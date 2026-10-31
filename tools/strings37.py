@@ -1,0 +1,107 @@
+# key: (pt, en, es, fr, ja)  -- Parte 37
+S = {}
+def add(key, pt, en, es, fr, ja): S[key] = (pt, en, es, fr, ja)
+
+# ---- cassino ----
+add('casino_dice','DADOS','DICE','DADOS','DÉS','サイコロ')
+add('casino_roulette','ROLETA','ROULETTE','RULETA','ROULETTE','ルーレット')
+add('casino_cards','CARTAS','CARDS','CARTAS','CARTES','カード')
+add('casino_low','MENOR','LOWER','MENOR','MOINS','ロー')
+add('casino_high','MAIOR','HIGHER','MAYOR','PLUS','ハイ')
+add('casino_exact','NÚMERO EXATO (soma dos dois dados)','EXACT NUMBER (sum of both dice)','NÚMERO EXACTO (suma de los dos dados)','NOMBRE EXACT (somme des deux dés)','ぴったりの数（2つの合計）')
+add('casino_roll','ROLAR','ROLL','LANZAR','LANCER','振る')
+add('casino_spin_wheel','GIRAR ROLETA','SPIN WHEEL','GIRAR RULETA','LANCER LA ROUE','ルーレットを回す')
+add('casino_color','COR','COLOR','COLOR','COULEUR','色')
+add('casino_parity','PAR/ÍMPAR','ODD/EVEN','PAR/IMPAR','PAIR/IMPAIR','偶数/奇数')
+add('casino_dozen','DÚZIA','DOZEN','DOCENA','DOUZAINE','ダズン')
+add('casino_number','NÚMERO','NUMBER','NÚMERO','NUMÉRO','数字')
+add('casino_red','VERMELHO','RED','ROJO','ROUGE','赤')
+add('casino_black','PRETO','BLACK','NEGRO','NOIR','黒')
+add('casino_odd','ÍMPAR','ODD','IMPAR','IMPAIR','奇数')
+add('casino_even','PAR','EVEN','PAR','PAIR','偶数')
+add('casino_tie','Empate: a casa vence.','Tie: the house wins.','Empate: gana la casa.','Égalité : la maison gagne.','引き分けは店の勝ち。')
+add('casino_cards_note','Escolha se a próxima carta é MAIOR ou MENOR. Ás vale 1 e Rei vale 13.','Pick if the next card is HIGHER or LOWER. Ace is 1, King is 13.','Elige si la próxima carta es MAYOR o MENOR. El As vale 1 y el Rey 13.','Choisis si la prochaine carte est PLUS ou MOINS. L’As vaut 1 et le Roi 13.','次のカードが高いか低いか選ぼう。Aは1、Kは13。')
+add('casino_limits','Aposta mínima {min} · máxima {max}','Minimum bet {min} · maximum {max}','Apuesta mínima {min} · máxima {max}','Mise minimum {min} · maximum {max}','最低ベット {min} ・ 最高ベット {max}')
+add('casino_result_win','VOCÊ GANHOU','YOU WON','GANASTE','VOUS GAGNEZ','勝ち')
+add('casino_result_lose','VOCÊ PERDEU','YOU LOST','PERDISTE','VOUS PERDEZ','負け')
+add('casino_result_push','APOSTA DEVOLVIDA','BET RETURNED','APUESTA DEVUELTA','MISE REMBOURSÉE','ベット返却')
+add('tip_casino','No cassino cada jogo paga um pouco menos do que seria justo: a casa sempre leva cerca de 5%. Aposte só o que pode perder!','At the casino every game pays a little less than fair: the house always keeps about 5%. Only bet what you can lose!','En el casino cada juego paga un poco menos de lo justo: la casa siempre se queda con un 5%. ¡Apuesta solo lo que puedas perder!','Au casino chaque jeu paie un peu moins que le juste prix : la maison garde toujours environ 5 %. Ne misez que ce que vous pouvez perdre !','カジノはどのゲームも少しだけ不利です。店は常に約5%を取ります。失ってもいい分だけ賭けましょう！')
+
+
+# ---- cosméticos ----
+add('status_visual','Visual','Look','Aspecto','Apparence','ビジュアル')
+add('cos_title_wardrobe','VISUAL','LOOK','ASPECTO','APPARENCE','ビジュアル')
+add('cos_title_shop','COSTUREIRA','TAILOR','COSTURERA','COUTURIÈRE','仕立て屋')
+add('cos_slot_hat','CHAPÉU','HAT','SOMBRERO','CHAPEAU','帽子')
+add('cos_slot_cape','CAPA','CAPE','CAPA','CAPE','マント')
+add('cos_slot_skin','SKIN','SKIN','SKIN','SKIN','スキン')
+add('cos_none','NENHUM','NONE','NINGUNO','AUCUN','なし')
+add('cos_original','ORIGINAL','ORIGINAL','ORIGINAL','ORIGINAL','オリジナル')
+add('cos_equip','VESTIR','WEAR','PONER','METTRE','着る')
+add('cos_unequip','TIRAR','TAKE OFF','QUITAR','ENLEVER','外す')
+add('cos_buy','COMPRAR','BUY','COMPRAR','ACHETER','買う')
+add('cos_owned','TEM','OWNED','TIENES','POSSÉDÉ','所持')
+add('cos_count','Você tem {n} de {m}','You own {n} of {m}','Tienes {n} de {m}','Vous avez {n} sur {m}','{n}/{m} 所持')
+add('cos_bought','Comprado! Já está vestido.','Bought! You are wearing it.','¡Comprado! Ya lo llevas puesto.','Acheté ! Vous le portez déjà.','購入しました！すぐに着ています。')
+add('cos_shop_hint','Toque num item para provar. Cosméticos só mudam o visual.','Tap an item to try it on. Cosmetics only change your look.','Toca un objeto para probarlo. Los cosméticos solo cambian el aspecto.','Touchez un objet pour l’essayer. Les cosmétiques ne changent que l’apparence.','タップして試着。見た目だけが変わります。')
+add('cos_wardrobe_hint','Toque num item para ver como fica e vestir.','Tap an item to preview and wear it.','Toca un objeto para verlo y ponértelo.','Touchez un objet pour le voir et le porter.','タップして確認・着用します。')
+add('cos_locked_hint','Compre na costureira: Dona Iracema, na casa da praça.','Buy it from the tailor: Dona Iracema, in the plaza house.','Cómpralo a la costurera: Doña Iracema, en la casa de la plaza.','Achetez-le chez la couturière : Dona Iracema, dans la maison de la place.','仕立て屋のイラセマさん（広場の家）で買えます。')
+add('open_wardrobe','COSTUREIRA','TAILOR','COSTURERA','COUTURIÈRE','仕立て屋')
+add('progress_cosmetics','Cosméticos','Cosmetics','Cosméticos','Cosmétiques','コスメ')
+add('cos_hat_leather','Gorro de Couro','Leather Cap','Gorro de Cuero','Bonnet de Cuir','革の帽子')
+add('cos_hat_fur','Chapéu de Pele','Fur Hat','Sombrero de Piel','Chapeau de Fourrure','毛皮の帽子')
+add('cos_hat_leaf','Coroa de Folhas','Leaf Crown','Corona de Hojas','Couronne de Feuilles','葉の冠')
+add('cos_hat_iron','Elmo de Ferro','Iron Helm','Yelmo de Hierro','Heaume de Fer','鉄のかぶと')
+add('cos_hat_hood','Capuz Rubro','Crimson Hood','Capucha Carmesí','Capuche Écarlate','深紅のフード')
+add('cos_hat_wizard','Chapéu de Mago','Wizard Hat','Sombrero de Mago','Chapeau de Mage','魔法使いの帽子')
+add('cos_hat_knight','Elmo Celeste','Sky Helm','Yelmo Celeste','Heaume Céleste','空色のかぶと')
+add('cos_hat_gold','Elmo Dourado','Golden Helm','Yelmo Dorado','Heaume Doré','黄金のかぶと')
+add('cos_cape_brown','Capa de Viajante','Traveler\'s Cape','Capa de Viajero','Cape de Voyageur','旅人のマント')
+add('cos_cape_red','Capa Carmesim','Crimson Cape','Capa Carmesí','Cape Écarlate','深紅のマント')
+add('cos_cape_green','Capa da Floresta','Forest Cape','Capa del Bosque','Cape de la Forêt','森のマント')
+add('cos_cape_blue','Capa Real','Royal Cape','Capa Real','Cape Royale','王家のマント')
+add('cos_cape_violet','Capa Violeta','Violet Cape','Capa Violeta','Cape Violette','紫のマント')
+add('cos_cape_gold','Capa Dourada','Golden Cape','Capa Dorada','Cape Dorée','黄金のマント')
+add('cos_skin_gelo','Tom Gelo','Frost Tone','Tono Hielo','Teinte Glace','氷カラー')
+add('cos_skin_floresta','Tom Floresta','Forest Tone','Tono Bosque','Teinte Forêt','森カラー')
+add('cos_skin_sombra','Tom Sombra','Shadow Tone','Tono Sombra','Teinte Ombre','影カラー')
+add('cos_skin_ouro','Tom Ouro','Gold Tone','Tono Oro','Teinte Or','黄金カラー')
+
+
+# ---- Parte 38 ----
+add('choice_prompt','O que você faz?','What do you do?','¿Qué haces?','Que faites-vous ?','どうする？')
+add('ending_back','VOLTAR AO MUNDO','BACK TO THE WORLD','VOLVER AL MUNDO','RETOUR AU MONDE','ワールドに戻る')
+add('ending_skip','PULAR','SKIP','SALTAR','PASSER','スキップ')
+add('cos_exclusive','EXCLUSIVO','EXCLUSIVE','EXCLUSIVO','EXCLUSIF','限定')
+add('cos_exclusive_hint','Só se ganha como recompensa de uma missão secreta.','You only get it as a reward for a secret mission.','Solo se consigue como recompensa de una misión secreta.','On ne l’obtient qu’en récompense d’une mission secrète.','秘密のミッションの報酬でのみ入手できます。')
+add('progress_choices','Escolhas importantes','Key choices','Decisiones importantes','Choix importants','重要な選択')
+add('progress_ending','Final alcançado','Ending reached','Final alcanzado','Fin atteinte','エンディング到達')
+add('progress_casino','Jogos vencidos no cassino (5)','Casino games won (5)','Juegos ganados en el casino (5)','Jeux gagnés au casino (5)','カジノで勝ったゲーム（5）')
+
+
+# ---- elenco e itens do VERSUS ----
+add('versus_items_title','ITENS DA LUTA','FIGHT ITEMS','OBJETOS DE LA LUCHA','OBJETS DU COMBAT','バトルアイテム')
+add('versus_items_note','Itens sorteados: escolha 2 para usar no botão ITEM. O outro lutador também recebe 2.','Drawn items: pick 2 to use with the ITEM button. The other fighter gets 2 too.','Objetos sorteados: elige 2 para usar con el botón ITEM. El otro luchador también recibe 2.','Objets tirés au sort : choisissez-en 2 pour le bouton ITEM. L’autre combattant en reçoit 2 aussi.','抽選されたアイテムから2つ選んで、ITEMボタンで使います。相手も2つ受け取ります。')
+add('versus_items_off','Luta sem itens.','Fight without items.','Lucha sin objetos.','Combat sans objets.','アイテムなしの戦い。')
+add('versus_items_reroll','SORTEAR DE NOVO','REDRAW','SORTEAR OTRA VEZ','TIRER À NOUVEAU','引き直す')
+add('versus_items_none','SEM ITENS','NO ITEMS','SIN OBJETOS','SANS OBJETS','アイテムなし')
+add('versus_items_use','COM ITENS','WITH ITEMS','CON OBJETOS','AVEC OBJETS','アイテムあり')
+add('roster_count','Lutadores desbloqueados: {n} de {m}','Fighters unlocked: {n} of {m}','Luchadores desbloqueados: {n} de {m}','Combattants débloqués : {n} sur {m}','解放済みの戦士：{n}/{m}')
+add('roster_tap','Toque num lutador para ver como desbloquear.','Tap a fighter to see how to unlock it.','Toca un luchador para ver cómo desbloquearlo.','Touchez un combattant pour voir comment le débloquer.','戦士をタップすると解放方法が見られます。')
+add('roster_unlocked','desbloqueado','unlocked','desbloqueado','débloqué','解放済み')
+add('roster_hint_boss','Derrote {name} na história.','Defeat {name} in story mode.','Derrota a {name} en el modo historia.','Battez {name} dans l’histoire.','ストーリーで{name}を倒そう。')
+add('roster_hint_tower','Chegue ao andar {n} da Torre dos Desafios.','Reach floor {n} of the Challenge Tower.','Llega al piso {n} de la Torre de Desafíos.','Atteignez l’étage {n} de la Tour des Défis.','挑戦の塔の{n}階に到達しよう。')
+add('equip_empty','vazio','empty','vacío','vide','空')
+
+import json, sys
+LANGS=['pt','en','es','fr','ja']
+def emit(path):
+    out=["import type { Lang } from './translations';","","/** Textos novos da Parte 37 (mesclados ao STRINGS em translations.ts). */","export const STRINGS_37: Record<Lang, Record<string, string>> = {"]
+    for i,l in enumerate(LANGS):
+        out.append(f"  {l}: {{")
+        for k,v in S.items(): out.append(f"    {k}: {json.dumps(v[i],ensure_ascii=False)},")
+        out.append("  },")
+    out.append("};"); out.append("")
+    open(path,'w',encoding='utf8').write("\n".join(out))
+if __name__=='__main__':
+    emit(sys.argv[1]); print(len(S),'chaves')
