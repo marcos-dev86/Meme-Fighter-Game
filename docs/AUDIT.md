@@ -1000,3 +1000,44 @@ exploração sólida primeiro.
 - **Estruturas novas** (`worldGen.ts` `SCENERY`, `world/SceneryLayer.tsx`, `assets/buildings/nb_*.png`): igreja, lanchonete, 2 prédios de tijolo, casa vermelha, casa pequena, barraca de feira, carrinho de sorvete e casa de madeira em volta da praça, sólidas e sem interior. A arte repetida de 4 prédios foi trocada (Loja do Vulcão = loja 24h, Descanso do Vulcão = hotel, Loja Abandonada = casa de madeira, Salão do Acampamento = casa de pedra). Busca em largura: nenhuma porta, cais ou torre deixou de ser alcançável. O chão sob cada estrutura é o do tile da frente.
 - **Verificado no build web**: escolha do Bento (intro, opções, recompensa e fala nova), os 3 finais com saves injetados (cada um no caminho certo), NPCs secretos à noite e na chuva e a missão deles ("???" até achar), missões e progresso, MODO LEVE nas Opções, elenco bloqueado (2 de 11), sorteio, uso de item na luta e a praça com as estruturas.
 - **Não verificado**: as outras 9 escolhas na tela (só a do Bento), a missão final real até o fim, o som, a vibração e o desempenho no celular, e as escolhas (texto da história) em en/es/fr/ja (como o resto dos diálogos dos NPCs, só em português).
+
+## Parte 39 — game feel do combate e raridade com efeito real
+
+**Plano de execução, Parte 1.** Branch local `feature/parte01-combate-game-feel-raridade` (sem push).
+
+### O que mudou
+- **Flash branco ao levar golpe** (`battle/Fighter.ts`, `screens/BattleScreen.tsx`): `takeHit` liga `hitFlashTimer` (130 ms, mais fraco se o golpe foi bloqueado). A tela desenha, por cima do sprite, a MESMA imagem do quadro atual com `tintColor` branco, então o flash segue a silhueta de qualquer lutador (dragões e sprites de proporções diferentes incluídos) em vez de um retângulo. O tint vermelho de dor também passou a seguir a silhueta. Nada disso altera posição, hitbox, dano, estados ou animações: são só timers de aparência (`tickVisuals`).
+- **Números de dano** (`battle/combatFx.ts`): vermelhos, nascem pequenos, "estouram" e sobem ~56 px com desaceleração, somem no último terço. Tamanho cresce com o dano e com a intensidade (comum < FORTE < crítico/SUPER; bloqueio é discreto). Números seguidos no mesmo alvo sobem um degrau e alternam de lado, então nunca ficam exatamente sobrepostos. O crítico leva o destaque `CRÍTICO!` (chave `battle_crit`, 5 idiomas, em `i18n/stringsCombate.ts`). Nascem na cabeça do atingido, abaixo da barra de vida.
+- **Impacto** (`combatFx.ts`): flash de impacto + faíscas em cone na direção do golpe, recuo e "amassado" do atingido (base nos pés), tremor curto da arena só em golpes FORTE/crítico/SUPER (3 a 7 px, 140 ms). Os efeitos só são CRIADOS depois do acerto resolvido: não atrasam comando, golpe nem animação. O `SpriteEffect` de impacto que já existia foi mantido (o crítico agora usa o de FORTE, maior).
+- **Leveza**: tetos fixos (56 partículas, 28 no MODO LEVE; 8 números), sem alocação por quadro além dos efeitos novos, MODO LEVE corta faíscas e tremor pela metade. Os efeitos avançam também em `roundEnd` (antes as partículas do golpe final ficavam congeladas na tela) e são zerados a cada round/revanche. Pausa congela tudo (o loop já pausava).
+- **Raridade com efeito real** (`items/rarity.ts` puro, `gearDefs.ts`, `gear.ts`, `itemDefs.ts`): tabela `RARITY_BONUS`, aplicada POR CIMA do valor próprio do item (comum = neutro, nada do que já existia muda):
+
+| Raridade | Dano da arma | Dano recebido (escudo) | Cura | Energia | Chance de status (arma) |
+|---|---|---|---|---|---|
+| Comum | x1,00 | x1,00 | x1,00 | x1,00 | 0% |
+| Incomum | x1,03 | x0,97 | x1,05 | x1,05 | 0% |
+| Rara | x1,06 | x0,94 | x1,10 | x1,10 | 8% |
+| Épica | x1,10 | x0,90 | x1,15 | x1,15 | 12% |
+| Lendária | x1,15 | x0,85 | x1,20 | x1,20 | 18% |
+
+  Armas de raridade rara+ aplicam status ao acertar (só na luta; chance pela raridade): Espada (rara) congela, Martelo (raro) atordoa, Machado (épico) queima. Hoje, com as raridades atuais: Adaga x1,10; Sabre x1,215; Porrete x1,257; Espada x1,325; Martelo x1,378; Machado x1,485 (antes x1,35). O escudo (incomum) passa de x0,70 para x0,679. Só a 1ª arma e o 1º escudo equipados contam (não acumula), o proc leva a marca `src:'gear'` (não duplica se o setup rodar de novo) e o multiplicador de chance da árvore de habilidades continua valendo por cima. Chefes imunes continuam imunes.
+- **Descrições** (`items/itemBonusText.ts`, `skillText.ts`): linhas de bônus nos 5 idiomas na cor da raridade, no Inventário e na Loja (os números saem da mesma tabela do combate, então não divergem; um teste confere item por item).
+
+### Verificado
+- `npx tsc --noEmit`: 0 erros (antes e depois). `node tools/test-parte01.mjs`: 65/65 (tabela de raridade, contas de dano/guarda/cura/energia, procs com 20 mil sorteios, textos nos 5 idiomas sem `{}` sobrando, limites dos efeitos, flash/reação em TODOS os 11 lutadores, sem mudar dano/hitstun/hitbox).
+- `node tools/e2e-parte01.mjs <dist>`: **90/90** no Expo Web + Chromium (Playwright), luta real contra a CPU, 10 oponentes: flash em todos (maior episódio 150 ms; começa em 1,00 e decai), caixa do flash igual à do sprite com diferença 0,00 px em ~800 quadros, prova por pixels (flash 92 a 97% branco vs 0 a 6% no sprite normal, em gadigago, mystic, dogking, ninja, 3 dragões), números vermelhos (100%), sobem ~54 px relativos à arena, somem, vivem 0,8 a 1,1 s, FORTE (~40 px) maior que comum (~27 px), nenhum par sobreposto (menor distância ~12 px), pausa congela e retoma, luta completa termina e a revanche começa limpa, sem erros de JS. Com `CRIT=1` em um build de teste (crítico garantido só na cópia): 50/50, `CRÍTICO!` aparece e o número é maior.
+- Desempenho no navegador do servidor: mediana de quadro 16,7 ms (60 fps), p95 16,8 ms, normal e MODO LEVE. **Não representa o Galaxy A14.**
+
+### Achados preexistentes (não causados por esta parte; confirmados no commit original)
+1. **Faltam `assets/legacy-art/` e `assets/legacy-sprites/` no repositório** (108 arquivos: sprites de todos os lutadores, telas de menu, cenários de luta e `escudo.gif`). `npx expo export` falha sem eles. Para testar, usei uma cópia descartável FORA do repositório com placeholders geométricos nas proporções reais de `SPRITE_ASPECTS` (nada disso foi commitado nem entregue). Os testes validam lógica, geometria e renderização, **não a arte real**. Antes do APK é preciso restaurar essas pastas.
+2. **Erro React #418 (hidratação) na web** em `/battle` sempre que o oponente da URL difere do padrão do HTML estático (`gadigago`): idêntico no código original.
+3. **Arena em `scale(0)` na web** com o oponente padrão: em 6 de 6 cargas do código original a arena fica invisível (a hidratação não remonta e `useWindowDimensions` fica em 0x0 até um resize). Só na exportação web, não no APK. Não corrigido aqui para não mexer em todas as telas; vai para a revisão de Expo Web da Parte 5. O teste de navegador contorna com um resize e imprime NOTA.
+
+### Limitações / não verificado
+- Som, vibração, desempenho e a sensação do impacto no celular (Galaxy A14 5G) **não foram testados em aparelho**.
+- Os status das armas só valem na luta (BattleScreen); no mundo (`WorldScreen.resolveSwing`) só dano e guarda por raridade, porque inimigos do mundo não usam o sistema de status.
+- Hoje não há arma/escudo lendário, e só Machado é épico; as linhas lendárias existem na tabela e nos testes, mas não aparecem em nenhum item ainda.
+- Rebalanceamento: armas e escudo ficaram um pouco mais fortes (ver valores acima). É intencional ("raridade com consequência"); ajuste a tabela `RARITY_BONUS` se quiser menos.
+
+### Como rodar
+`node tools/test-parte01.mjs` (sem dependências novas). Navegador: `npx expo export --platform web --output-dir dist` e `node tools/e2e-parte01.mjs dist` (usa o Playwright já instalado no ambiente, que NÃO está no `package.json`; variáveis opcionais: `ONLY`, `VISUAL`, `SHOTS_DIR`, `CRIT=1`, `PLAYWRIGHT_PATH`).

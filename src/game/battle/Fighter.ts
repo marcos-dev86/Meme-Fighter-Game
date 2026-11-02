@@ -30,7 +30,14 @@ export interface StatusProc {
   chance: number; // 0..1
   ms: number;
   on: AttackType[];
+  /** De onde vem (ex.: 'gear' = arma equipada). Serve para não adicionar o mesmo proc duas vezes. */
+  src?: string;
 }
+
+/** Duração do flash branco quando o lutador leva um golpe (ms). Só aparência. */
+export const HIT_FLASH_MS = 130;
+/** Duração do recuo/amassado visual de reação (ms). Só aparência. */
+export const HIT_REACT_MS = 170;
 
 export interface AttackDef {
   startup: number;
@@ -161,6 +168,19 @@ export class Fighter {
   /** Energia com a qual cada round começa. */
   startEnergy = 0;
 
+  /**
+   * Feedback visual de golpe recebido. SÓ APARÊNCIA: nada disto altera posição,
+   * hitbox, dano ou estados; o BattleScreen apenas lê para desenhar.
+   * - hitFlashTimer/hitFlashPower: o flash branco do sprite (ms restantes / intensidade 0..1).
+   * - reactTimer/reactDur/reactPower/reactDir: recuo e "amassado" do sprite, para longe de quem bateu.
+   */
+  hitFlashTimer = 0;
+  hitFlashPower = 1;
+  reactTimer = 0;
+  reactDur = HIT_REACT_MS;
+  reactPower = 0;
+  reactDir: 1 | -1 = 1;
+
   currentAttack: CurrentAttack | null = null;
   hitstunTimer = 0;
   dashTimer = 0;
@@ -269,6 +289,10 @@ export class Fighter {
     const blocked = this.isShielding && this.energy >= this.shieldCost;
     let finalDamage = damage;
 
+    // Flash branco do sprite (mais fraco quando o golpe foi bloqueado). Só visual.
+    this.hitFlashTimer = HIT_FLASH_MS;
+    this.hitFlashPower = blocked ? 0.45 : 1;
+
     if (blocked) {
       finalDamage = damage * (1 - this.shieldReduction);
       this.energy -= this.shieldCost;
@@ -286,6 +310,20 @@ export class Fighter {
       this.isKO = true;
       this.setState('ko');
     }
+  }
+
+  /** Faz andar só os timers de aparência (flash branco e recuo). Não mexe em nenhuma regra de luta: pode rodar mesmo com a simulação parada. */
+  tickVisuals(dt: number) {
+    if (this.hitFlashTimer > 0) this.hitFlashTimer = Math.max(0, this.hitFlashTimer - dt);
+    if (this.reactTimer > 0) this.reactTimer = Math.max(0, this.reactTimer - dt);
+  }
+
+  /** Liga o recuo/amassado visual (power ~0.4..1.6) empurrando o sprite na direção `dir` (para longe de quem bateu). */
+  triggerReaction(power: number, dir: 1 | -1) {
+    this.reactPower = power;
+    this.reactDir = dir;
+    this.reactDur = HIT_REACT_MS;
+    this.reactTimer = HIT_REACT_MS;
   }
 
   hasStatus(kind: StatusKind): boolean {
@@ -378,6 +416,9 @@ export class Fighter {
     this.hitstunTimer = 0;
     this.dashTimer = 0;
     this.dashCooldownTimer = 0;
+    this.hitFlashTimer = 0;
+    this.reactTimer = 0;
+    this.reactPower = 0;
     this.setState('idle');
   }
 
@@ -422,6 +463,7 @@ export class Fighter {
     // holding the aura-farm button - see startCharge()/stopCharge().
     if (this.isCharging) this.gainEnergy(this.chargeRate * dt);
     if (this.invulnTimer > 0) this.invulnTimer = Math.max(0, this.invulnTimer - dt);
+    this.tickVisuals(dt);
     if (this.regenPerSec > 0 && !this.isKO) this.health = Math.min(this.maxHealth, this.health + (this.regenPerSec * dt) / 1000);
     this.tickStatus(dt);
 

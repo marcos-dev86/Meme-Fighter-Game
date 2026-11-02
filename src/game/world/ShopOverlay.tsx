@@ -4,6 +4,7 @@ import { CURRENCY_ABBR, ITEMS, SHOP_STOCK } from '@/game/items/itemDefs';
 import { addItem, bagRoomFor, getOwnedBags, giveBag, spendCoins, usePlayerState } from '@/game/state/playerState';
 import { BAGS, PLAZA_BAGS } from '@/game/items/bags';
 import { RARITY_COLOR, rarityKey } from '@/game/items/rarity';
+import { itemBonusLines } from '@/game/items/itemBonusText';
 import { playSfx } from '@/game/audio/audioManager';
 import { reportPurchase } from '@/game/state/questState';
 import { flashMsLeft, flashOffers, markFlashBought, stockFor, type FlashOffer, type Vendor } from '@/game/items/shopCycle';
@@ -170,6 +171,11 @@ export function ShopOverlay({ onClose, stock: baseStock = SHOP_STOCK, title, bag
                   {item.name} {owned > 0 ? `(${owned})` : ''}
                 </Text>
                 <Text style={styles.itemDesc}>{item.description}</Text>
+                {itemBonusLines(id).map((line) => (
+                  <Text key={line} style={[styles.itemBonus, { color: RARITY_COLOR[item.rarity] }]}>
+                    {line}
+                  </Text>
+                ))}
               </View>
               <Pressable style={styles.buyBtn} onPress={() => buy(id)}>
                 <Text style={styles.buyLabel}>
@@ -209,6 +215,7 @@ const styles = StyleSheet.create({
   rowText: { flex: 1 },
   itemName: { color: '#fff', fontWeight: '700', fontSize: 14 },
   itemDesc: { color: '#fff', opacity: 0.65, fontSize: 11, marginTop: 2 },
+  itemBonus: { fontSize: 10, fontWeight: '700', marginTop: 2 },
   buyBtn: { borderWidth: 2, borderColor: '#FFD700', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
   sectionTitle: { color: '#FFD700', fontWeight: '800', fontSize: 12, letterSpacing: 1, marginTop: 4 },
   buyBtnOff: { opacity: 0.45 },

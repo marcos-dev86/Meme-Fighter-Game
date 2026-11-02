@@ -1,5 +1,6 @@
 import { getLang } from '@/game/i18n/i18n';
 import type { Lang } from '@/game/i18n/translations';
+import type { AttackType, StatusKind } from '@/game/battle/Fighter';
 import type { SkillDef, SkillEffect } from './skills';
 
 /** Nomes, ramos e descrições da árvore de habilidades nos 5 idiomas. As descrições são montadas a partir dos efeitos. */
@@ -167,6 +168,14 @@ function effectText(e: SkillEffect, lang: Lang): string {
     case 'statusDmg': return T('statusDmg', { p: pct(e.mult) });
     case 'startEnergy': return T('startEnergy', { n: e.add });
   }
+}
+
+/** Nome do status / do golpe no idioma pedido (padrão: o atual). Reaproveitado pelos textos de bônus de raridade dos itens. */
+export function statusLabel(kind: StatusKind, lang: Lang = getLang()): string {
+  return pick(STATUS[kind], lang);
+}
+export function attackLabel(type: AttackType, lang: Lang = getLang()): string {
+  return pick(ON[type], lang);
 }
 
 export function skillName(sk: SkillDef): string {

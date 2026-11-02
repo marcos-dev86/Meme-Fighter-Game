@@ -1,6 +1,6 @@
 import type { ImageSourcePropType } from 'react-native';
 import type { Fighter } from '@/game/battle/Fighter';
-import type { Rarity } from './rarity';
+import { scaledEnergy, scaledHeal, type Rarity } from './rarity';
 import { getBagEffects } from './bagRuntime';
 import { iconSource, type IconName } from '@/game/ui/iconRegistry';
 
@@ -209,11 +209,12 @@ export function applyItemEffect(fighter: Fighter, itemId: string, target?: Fight
   for (const e of d.effects) {
     if (isBuff(e.kind) && alreadyBuffed) continue;
     switch (e.kind) {
+      // Cura/energia: valor do item × bônus da mochila (só cura) × bônus de RARIDADE (ver rarity.ts).
       case 'heal':
-        fighter.health = Math.min(fighter.maxHealth, fighter.health + Math.round(e.amount * getBagEffects().healMult));
+        fighter.health = Math.min(fighter.maxHealth, fighter.health + scaledHeal(e.amount, d.rarity, getBagEffects().healMult));
         break;
       case 'energy':
-        fighter.energy = Math.min(fighter.maxEnergy, fighter.energy + e.amount);
+        fighter.energy = Math.min(fighter.maxEnergy, fighter.energy + scaledEnergy(e.amount, d.rarity));
         break;
       case 'shieldCost':
         fighter.shieldCost = Math.min(fighter.shieldCost, fighter.shieldCost * e.mult);

@@ -8,7 +8,8 @@ import { getPlayingMusic, playMusic, playSfx } from '@/game/audio/audioManager';
 import { BATTLE_MUSIC, BOSS_MUSIC } from '@/game/audio/music';
 import { haptic } from '@/game/audio/haptics';
 import { useGameLoop } from '@/game/core/useGameLoop';
-import { boxesOverlap, createFighter, Fighter, STATUS_COLOR, STATUS_ICON, STATUS_KINDS, type CharacterKey, type StatusKind } from '@/game/battle/Fighter';
+import { boxesOverlap, createFighter, Fighter, HIT_FLASH_MS, STATUS_COLOR, STATUS_ICON, STATUS_KINDS, type CharacterKey, type StatusKind } from '@/game/battle/Fighter';
+import { clearFx, createFx, hitKindOf, KIND_STYLE, numberVisual, particleVisual, reactionVisual, shakeOffset, spawnBurst, spawnDamageNumber, spawnImpact, stepFx, type FxState } from '@/game/battle/combatFx';
 import { grantVictory, resolveSetup, type Granted } from '@/game/battle/battleModes';
 import { applySkills } from '@/game/items/skills';
 import { getLearned } from '@/game/state/skillState';
@@ -65,16 +66,6 @@ const RIVAL_QUEST_REWARD = 40;
 
 type Phase = 'intro' | 'fight' | 'roundEnd' | 'matchEnd';
 
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  life: number;
-  maxLife: number;
-  color: string;
-}
-
 function clampArena(f: Fighter) {
   if (f.x < ARENA_LEFT) f.x = ARENA_LEFT;
   if (f.x + f.drawWidth > ARENA_RIGHT) f.x = ARENA_RIGHT - f.drawWidth;
@@ -96,28 +87,20 @@ function resolveSeparation(f1: Fighter, f2: Fighter) {
   }
 }
 
-function spawnHitEffect(particles: Particle[], x: number, y: number, kind: 'block' | 'ult' | 'normal' | 'crit') {
-  const count = Math.max(3, Math.round((kind === 'ult' ? 16 : kind === 'crit' ? 14 : 8) * (getSettings().lightMode ? 0.5 : 1)));
-  const color = kind === 'block' ? '80,200,255' : kind === 'ult' ? '255,150,30' : kind === 'crit' ? '255,90,90' : '255,220,80';
-  for (let i = 0; i < count; i++) {
-    const angle = (Math.PI * 2 * i) / count;
-    particles.push({
-      x,
-      y,
-      vx: Math.cos(angle) * (2 + Math.random() * 2),
-      vy: Math.sin(angle) * (2 + Math.random() * 2),
-      life: 300,
-      maxLife: 300,
-      color,
-    });
-  }
-}
-
 const STATUS_SFX: Record<StatusKind, 'fire' | 'ice' | 'poison' | 'debuff'> = { burn: 'fire', freeze: 'ice', poison: 'poison', stun: 'debuff' };
+
+/** O que o checkHit precisa para desenhar o acerto (efeitos, modo leve, texto do crítico e quem é o alvo). */
+interface HitCtx {
+  fx: FxState;
+  light: boolean;
+  critLabel: string;
+  /** Identifica quem levou o golpe, para os números de dano não se empilharem no mesmo ponto. */
+  targetKey: string;
+}
 
 /** Dano que o último checkHit realmente causou (0 se nenhum). */
 let lastHitDealt = 0;
-function checkHit(attacker: Fighter, defender: Fighter, particles: Particle[], onEffect: (name: EffectName, x: number, y: number, size: number) => void, dmgMult = 1) {
+function checkHit(attacker: Fighter, defender: Fighter, ctx: HitCtx, onEffect: (name: EffectName, x: number, y: number, size: number) => void, dmgMult = 1) {
   if (!attacker.currentAttack || attacker.currentAttack.hasHit) return;
   const box = attacker.getActiveHitbox();
   if (!box) return;
@@ -148,23 +131,29 @@ function checkHit(attacker: Fighter, defender: Fighter, particles: Particle[], o
         if (defender.applyStatus(pr.kind, pr.ms)) {
           playSfx(STATUS_SFX[pr.kind], { minGapMs: 120, gain: 0.8 });
           const d2 = defender.getHurtbox();
-          for (let i = 0; i < 10; i++) {
-            const a = (Math.PI * 2 * i) / 10;
-            particles.push({ x: (d2.x1 + d2.x2) / 2, y: (d2.y1 + d2.y2) / 2, vx: Math.cos(a) * 3, vy: Math.sin(a) * 3 - 1, life: 450, maxLife: 450, color: STATUS_COLOR[pr.kind] });
-          }
+          spawnBurst(ctx.fx, { x: (d2.x1 + d2.x2) / 2, y: (d2.y1 + d2.y2) / 2, count: 10, speed: 3, life: 450, color: STATUS_COLOR[pr.kind], vyBias: -1, light: ctx.light });
         }
       }
     }
 
-    const kind = blocked ? 'block' : isUlt ? 'ult' : crit ? 'crit' : 'normal';
+    // Intensidade do acerto: comum < FORTE < crítico < SUPER (o bloqueio é discreto).
+    const kind = hitKindOf({ blocked, ultimate: isUlt, crit, strong: atkType === 'strong' });
     const hx = (box.x1 + box.x2) / 2;
     const hy = (d.y1 + d.y2) / 2 - 40;
-    spawnHitEffect(particles, hx, hy, kind);
-    playSfx(kind === 'block' ? 'block' : kind === 'ult' ? 'fire' : kind === 'crit' ? 'hit_heavy' : attacker.currentAttack?.type === 'strong' ? 'hit_heavy' : 'hit_flesh', { minGapMs: 50 });
+    // Efeitos criados DEPOIS do acerto já resolvido: não atrasam golpe, comando nem animação.
+    spawnImpact(ctx.fx, { x: hx, y: hy, dir: attacker.facing, kind, light: ctx.light });
+    if (dealt > 0) {
+      // Número vermelho sobe da cabeça do atingido (nunca sobre a barra de vida, no topo da arena).
+      spawnDamageNumber(ctx.fx, { x: (d.x1 + d.x2) / 2, y: Math.max(110, d.y1 - 8), damage: dealt, kind, targetKey: ctx.targetKey, label: kind === 'crit' ? ctx.critLabel : undefined });
+    }
+    // Reação visual do atingido (recuo + amassado), empurrado para longe de quem bateu. Não mexe em posição nem hitbox.
+    defender.triggerReaction(KIND_STYLE[kind].react, attacker.facing);
+    playSfx(kind === 'block' ? 'block' : kind === 'ult' ? 'fire' : kind === 'crit' ? 'hit_heavy' : atkType === 'strong' ? 'hit_heavy' : 'hit_flesh', { minGapMs: 50 });
     haptic(kind === 'ult' || kind === 'crit' ? 'heavy' : kind === 'block' ? 'light' : 'medium');
     if (kind === 'block') onEffect('hit_block', hx, hy, 90);
     else if (isUlt) onEffect('hit_ult', hx, hy, 190);
-    else if (attacker.currentAttack?.type === 'strong') onEffect('hit_strong', hx, hy, 110);
+    else if (kind === 'crit') onEffect('hit_strong', hx, hy, 150);
+    else if (atkType === 'strong') onEffect('hit_strong', hx, hy, 110);
     else onEffect('hit_flash', hx, hy, 80);
   }
 }
@@ -219,6 +208,10 @@ export function BattleScreen() {
   useEffect(() => {
     applyUpgrades(p1, getUpgradeLevels());
     applySkills(p1, getStoryCharacterId(), getLearned());
+    // Arma de raridade alta pode aplicar status (a chance vem da raridade, ver gearDefs.ts). Não duplica se o setup rodar de novo.
+    for (const pr of getGear().procs) {
+      if (!p1.onHitStatus.some((x) => x.src === pr.src && x.kind === pr.kind)) p1.onHitStatus.push(pr);
+    }
     if (setup.kind === 'tower') {
       const r = getRun();
       if (r && r.hpPct < 1) p1.health = Math.max(1, p1.maxHealth * r.hpPct);
@@ -253,7 +246,8 @@ export function BattleScreen() {
   const held2 = useRef<HeldInput>({ left: false, right: false, shield: false });
   const tapDash1 = useRef(new TapDashDetector<-1 | 1>()).current;
   const tapDash2 = useRef(new TapDashDetector<-1 | 1>()).current;
-  const particlesRef = useRef<Particle[]>([]);
+  // Partículas, números de dano e tremor (ver combatFx.ts). Avançam no loop da luta, que já pausa sozinho.
+  const fxRef = useRef<FxState>(createFx());
 
   const phaseRef = useRef<Phase>('intro');
   const phaseTimerRef = useRef(INTRO_MS);
@@ -286,6 +280,7 @@ export function BattleScreen() {
   const towerEndedRef = useRef(false);
 
   const startRoundIntro = () => {
+    clearFx(fxRef.current); // sem números/partículas do round anterior
     phaseRef.current = 'intro';
     phaseTimerRef.current = INTRO_MS;
     roundTimerRef.current = ROUND_TIME_MS;
@@ -417,26 +412,17 @@ export function BattleScreen() {
         playSfx('charge');
         playSfx('encounter', { gain: 0.7 });
         haptic('heavy');
-        for (let i = 0; i < 24; i++) {
-          const a = (Math.PI * 2 * i) / 24;
-          particlesRef.current.push({ x: p2.x + p2.drawWidth / 2, y: p2.y + p2.getReferenceHeight() / 2, vx: Math.cos(a) * 6, vy: Math.sin(a) * 6, life: 700, maxLife: 700, color: '255,80,40' });
-        }
+        spawnBurst(fxRef.current, { x: p2.x + p2.drawWidth / 2, y: p2.y + p2.getReferenceHeight() / 2, count: 24, speed: 6, life: 700, color: '255,80,40', light: getSettings().lightMode });
       }
 
       const gear = getGear(); // equipped weapon/shield (see items/gear.ts)
-      checkHit(p1, p2, particlesRef.current, addEffect, gear.damageMult);
+      const hitCtx = (targetKey: string): HitCtx => ({ fx: fxRef.current, light: getSettings().lightMode, critLabel: t('battle_crit'), targetKey });
+      checkHit(p1, p2, hitCtx('p2'), addEffect, gear.damageMult);
       lastHitDealt = 0;
-      checkHit(p2, p1, particlesRef.current, addEffect, gear.guardMult);
+      checkHit(p2, p1, hitCtx('p1'), addEffect, gear.guardMult);
       if (lastHitDealt > 0) tookDamage.current = true; // o jogador tomou um golpe
 
-      if (particlesRef.current.length > 0) {
-        for (const part of particlesRef.current) {
-          part.x += part.vx * frameScale;
-          part.y += part.vy * frameScale;
-          part.life -= dt;
-        }
-        particlesRef.current = particlesRef.current.filter((p) => p.life > 0);
-      }
+      stepFx(fxRef.current, dt, frameScale);
 
       if (p1.isKO || p2.isKO) {
         endRound();
@@ -444,6 +430,10 @@ export function BattleScreen() {
 
       tick((n) => n + 1);
     } else if (phaseRef.current === 'roundEnd') {
+      // Os efeitos do golpe final terminam de rodar (antes ficavam congelados na tela até o próximo round).
+      stepFx(fxRef.current, dt, frameScale);
+      p1.tickVisuals(dt); // só os timers de aparência (flash/recuo); a simulação continua parada como antes
+      p2.tickVisuals(dt);
       phaseTimerRef.current -= dt;
       if (phaseTimerRef.current <= 0) {
         if (p1.roundsWon >= ROUNDS_TO_WIN || p2.roundsWon >= ROUNDS_TO_WIN) {
@@ -590,10 +580,13 @@ export function BattleScreen() {
   const offsetY = height / 2 - ARENA_H / 2;
 
   const champion = p1.roundsWon > p2.roundsWon ? p1 : p2;
+  // Tremor curto nos golpes fortes (some sozinho em ~140 ms; parado na pausa). Mesmo array de transform sempre.
+  const shake = paused ? { x: 0, y: 0 } : shakeOffset(fxRef.current);
+  const fx = fxRef.current;
 
   return (
     <View style={styles.root}>
-      <View style={[styles.arena, { width: ARENA_W, height: ARENA_H, transform: [{ translateX: offsetX }, { translateY: offsetY }, { scale }] }]}>
+      <View style={[styles.arena, { width: ARENA_W, height: ARENA_H, transform: [{ translateX: offsetX + shake.x * scale }, { translateY: offsetY + shake.y * scale }, { scale }] }]}>
         <Image source={STAGE_ART[stageKey]} resizeMode="cover" style={styles.arenaBg} />
         {ambience && <BattleSkyOverlay light={ambience.light} phase={ambience.phase} tint={ambience.tint} />}
         <FighterSprite fighter={p1} withGear />
@@ -604,20 +597,39 @@ export function BattleScreen() {
         {effects.map((e) => (
           <SpriteEffect key={e.id} name={e.name} x={e.x} y={e.y} size={e.size} onDone={() => removeEffect(e.id)} />
         ))}
-        {particlesRef.current.map((p, i) => (
-          <View
-            key={i}
-            style={{
-              position: 'absolute',
-              left: p.x - 4,
-              top: p.y - 4,
-              width: 8,
-              height: 8,
-              borderRadius: 4,
-              backgroundColor: `rgba(${p.color},${Math.max(0, p.life / p.maxLife)})`,
-            }}
-          />
-        ))}
+        {fx.particles.map((p, i) => {
+          const v = particleVisual(p);
+          return (
+            <View
+              key={i}
+              pointerEvents="none"
+              style={{
+                position: 'absolute',
+                left: p.x - v.size / 2,
+                top: p.y - v.size / 2,
+                width: v.size,
+                height: v.size,
+                borderRadius: v.size / 2,
+                backgroundColor: `rgba(${p.color},${v.alpha})`,
+              }}
+            />
+          );
+        })}
+        {fx.numbers.map((n) => {
+          const v = numberVisual(n);
+          return (
+            <View
+              key={n.id}
+              testID={`damage-number:${n.kind}`}
+              nativeID={`dmg-${n.id}`}
+              pointerEvents="none"
+              style={[styles.dmgWrap, { left: n.x - 70, top: n.y - n.size / 2, opacity: v.opacity, transform: [{ translateY: v.dy }, { scale: v.scale }] }]}
+            >
+              {n.label ? <Text style={styles.dmgLabel}>{n.label}</Text> : null}
+              <Text style={[styles.dmgNumber, { fontSize: n.size, color: n.color }]}>{n.text}</Text>
+            </View>
+          );
+        })}
 
         <View style={styles.hudTop}>
           <HealthBlock fighter={p1} align="left" />
@@ -815,6 +827,13 @@ function FighterSprite({ fighter, withGear }: { fighter: Fighter; withGear?: boo
   const xOffset = (fighter.drawWidth - frameWidth) / 2;
 
   const flicker = fighter.state === 'hurt' && Math.floor(fighter.hitstunTimer / 60) % 2 === 0;
+  // Flash branco ao levar golpe: cheio na primeira metade (~65 ms) e some até 130 ms. Só aparência (ver Fighter.hitFlashTimer).
+  const flashFrac = fighter.hitFlashTimer / HIT_FLASH_MS;
+  const flashA = fighter.hitFlashTimer > 0 ? fighter.hitFlashPower * (flashFrac > 0.5 ? 1 : flashFrac * 2) : 0;
+  // Recuo + amassado do sprite atingido (ancorado nos pés), também só aparência.
+  const rv = reactionVisual(fighter.reactPower, fighter.reactTimer, fighter.reactDur, fighter.reactDir);
+  // Silhueta do quadro atual: o mesmo recorte do sprite, então o flash/tint acompanha o formato de qualquer lutador (dragões inclusive).
+  const silhouetteBox = { position: 'absolute' as const, left: xOffset, top: 0, width: frameWidth, height: refHeight };
 
   // Held weapon/shield (p1 only): pinned to the hand of the current frame.
   let gearNode: React.ReactNode = null;
@@ -865,6 +884,8 @@ function FighterSprite({ fighter, withGear }: { fighter: Fighter; withGear?: boo
         },
       ]}
     >
+      {/* Wrapper da reação de golpe: recuo/amassado com a base nos pés. A rotação do KO fica no View de fora. */}
+      <View style={{ position: 'absolute', left: 0, top: 0, width: fighter.drawWidth, height: refHeight, transformOrigin: '50% 100%', transform: [{ translateX: rv.shiftX }, { scaleX: rv.scaleX }, { scaleY: rv.scaleY }] }}>
       {cos && <CapeLayer characterKey={fighter.characterKey} poseKey={poseKey} box={{ left: xOffset, top: 0, width: frameWidth, height: refHeight }} dir={fighter.facing} cosmeticId={cos.cape} />}
       <Image
         source={source}
@@ -879,7 +900,12 @@ function FighterSprite({ fighter, withGear }: { fighter: Fighter; withGear?: boo
       {fighter.hasStatus('stun') && <GameIcon name="star" size={30} style={{ position: 'absolute', left: fighter.drawWidth / 2 - 15, top: -30 }} />}
       {fighter.invulnTimer > 0 && <View style={[styles.shieldGlow, { width: fighter.drawWidth, height: refHeight, borderColor: 'rgba(255,90,40,0.8)', backgroundColor: 'rgba(255,90,40,0.18)' }]} />}
       {fighter.state === 'hurt' && (
-        <View style={[styles.hurtTint, { left: xOffset, top: 0, width: frameWidth, height: refHeight, opacity: flicker ? 0.55 : 0.25 }]} />
+        // Tint vermelho de dor (mesmo piscar de antes), agora na silhueta do sprite e não num retângulo.
+        <Image source={source} resizeMode="stretch" style={[silhouetteBox, { tintColor: '#ff3c3c', opacity: flicker ? 0.55 : 0.25, transform: [{ scaleX: fighter.facing }] }]} />
+      )}
+      {flashA > 0 && (
+        // Flash branco do golpe recebido: a silhueta do quadro atual, toda branca.
+        <Image testID="hit-flash" source={source} resizeMode="stretch" style={[silhouetteBox, { tintColor: '#ffffff', opacity: flashA, transform: [{ scaleX: fighter.facing }] }]} />
       )}
       {fighter.state === 'shield' && <View style={[styles.shieldGlow, { width: fighter.drawWidth, height: refHeight }]} />}
       {fighter.state === 'charge' && <AuraEffect active width={fighter.drawWidth} height={refHeight} />}
@@ -890,6 +916,7 @@ function FighterSprite({ fighter, withGear }: { fighter: Fighter; withGear?: boo
           style={{ position: 'absolute', left: fighter.drawWidth * 0.75, top: ultY, width: ultW, height: ultH }}
         />
       )}
+      </View>
     </View>
   );
 }
@@ -954,7 +981,9 @@ const styles = StyleSheet.create({
   arena: { position: 'absolute', left: 0, top: 0 },
   arenaBg: { position: 'absolute', left: 0, top: 0, width: ARENA_W, height: ARENA_H },
   fighterBox: { position: 'absolute' },
-  hurtTint: { position: 'absolute', left: 0, backgroundColor: '#ff3c3c' },
+  dmgWrap: { position: 'absolute', width: 140, alignItems: 'center' },
+  dmgNumber: { fontWeight: '900', textAlign: 'center', textShadowColor: '#000', textShadowOffset: { width: 2, height: 2 }, textShadowRadius: 3 },
+  dmgLabel: { color: '#ffd23f', fontWeight: '900', fontSize: 16, textShadowColor: '#000', textShadowOffset: { width: 1, height: 1 }, textShadowRadius: 3, marginBottom: -2 },
   shieldGlow: {
     position: 'absolute',
     left: 0,

@@ -7,6 +7,7 @@ import { CURRENCY_ABBR, ITEMS, isUsable } from '@/game/items/itemDefs';
 import { usePlayerState, equipItem, equipBag, getBagUsage, getOwnedBags } from '@/game/state/playerState';
 import { BAGS } from '@/game/items/bags';
 import { RARITY_COLOR, rarityKey } from '@/game/items/rarity';
+import { itemBonusLines } from '@/game/items/itemBonusText';
 import { playSfx } from '@/game/audio/audioManager';
 import { useI18n } from '@/game/i18n/i18n';
 
@@ -150,6 +151,11 @@ export function InventoryScreen() {
                   {t(rarityKey(selectedDef.rarity))} · {selectedDef.weight} kg
                 </Text>
                 <Text style={styles.detailDesc}>{selectedDef.description}</Text>
+                {itemBonusLines(selectedDef.id).map((line) => (
+                  <Text key={line} style={[styles.detailBonus, { color: RARITY_COLOR[selectedDef.rarity] }]}>
+                    {line}
+                  </Text>
+                ))}
               </View>
             </View>
             <View style={styles.detailActions}>
@@ -337,6 +343,7 @@ const styles = StyleSheet.create({
   detailIcon: { fontSize: 28 },
   detailName: { color: '#FFD700', fontWeight: '800', fontSize: 14 },
   detailDesc: { color: '#e8e8e8', fontSize: 12, marginTop: 3 },
+  detailBonus: { fontSize: 11, fontWeight: '700', marginTop: 2 },
   detailActions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   detailCollectible: { color: '#aaa', fontSize: 12, fontStyle: 'italic' },
   detailClose: { color: '#aaa', fontSize: 13, fontWeight: '700' },
