@@ -12,7 +12,7 @@ import type { IconName } from '@/game/ui/iconRegistry';
 export type FighterState = 'idle' | 'walk' | 'dash' | 'flash' | 'strong' | 'shield' | 'charge' | 'hurt' | 'ko';
 export type AttackType = 'flash' | 'strong' | 'ultimate';
 export type AttackPhase = 'startup' | 'active' | 'recovery';
-export type CharacterKey = 'dogge' | 'gadigago' | 'orc' | 'soldier' | 'dogking' | 'tank' | 'ninja' | 'mystic' | 'ice_dragon' | 'green_dragon' | 'shadow_dragon';
+export type CharacterKey = 'dogge' | 'gadigago' | 'orc' | 'soldier' | 'dogking' | 'tank' | 'ninja' | 'mystic' | 'ice_dragon' | 'green_dragon' | 'shadow_dragon' | 'cara_tranquilo' | 'troll_face';
 
 /** Battle status effects (see Fighter.applyStatus). */
 export type StatusKind = 'burn' | 'freeze' | 'poison' | 'stun';
@@ -678,6 +678,26 @@ export function createFighter(characterKey: CharacterKey, idleAspect: number): F
     f.maxHealth = 190; f.health = 190; f.idleAspect = idleAspect; f.ultEffectWidth = f.drawWidth * 0.5;
     f.hasPhases = true; f.statusDurationMult = 0.4; f.immune = ['burn'];
     f.onHitStatus = [{ kind: 'burn', chance: 0.3, ms: 4500, on: ['flash'] }, { kind: 'stun', chance: 0.22, ms: 1000, on: ['strong'] }, { kind: 'burn', chance: 1, ms: 6000, on: ['ultimate'] }];
+    return f;
+  }
+  if (characterKey === 'troll_face') {
+    // Trapaceiro, dono do cassino da Ilha Misteriosa: rapido e fragil, ataca de surpresa e atordoa.
+    // drawWidth 108 -> altura ~214 px (idle 170x337), do tamanho dos outros lutadores humanoides.
+    const f = new Fighter('Troll Face', 'troll_face');
+    f.drawWidth = 108; f.speed = 5.6; f.dashSpeed = 21; f.strongDamage = 16; f.flashDamage = 10; f.ultimateDamage = 32;
+    f.maxHealth = 100; f.health = 100; f.idleAspect = idleAspect; f.ultEffectWidth = f.drawWidth * 1.5;
+    f.hasPhases = true; f.statusDurationMult = 0.6;
+    f.onHitStatus = [{ kind: 'stun', chance: 0.2, ms: 700, on: ['flash'] }, { kind: 'stun', chance: 0.25, ms: 1000, on: ['strong'] }];
+    return f;
+  }
+  if (characterKey === 'cara_tranquilo') {
+    // Calmo e resistente: nada o abala (imune a atordoamento), bate devagar mas aguenta muito.
+    // drawWidth 118 -> altura ~207 px (idle 134x235).
+    const f = new Fighter('Cara Tranquilo', 'cara_tranquilo');
+    f.drawWidth = 118; f.speed = 3.4; f.dashSpeed = 12; f.strongDamage = 18; f.flashDamage = 9; f.ultimateDamage = 30;
+    f.maxHealth = 130; f.health = 130; f.idleAspect = idleAspect; f.ultEffectWidth = f.drawWidth * 1.5;
+    f.hasPhases = true; f.statusDurationMult = 0.5; f.immune = ['stun'];
+    f.onHitStatus = [{ kind: 'freeze', chance: 0.2, ms: 1800, on: ['strong'] }];
     return f;
   }
   // tank: guards the approach to Ilha das Trevas on Vulcao - the family

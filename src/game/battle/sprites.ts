@@ -133,6 +133,26 @@ const SOURCES: Record<CharacterKey, Record<string, number>> = {
     strong: require('../../../assets/legacy-sprites/mystic/strong.png'),
     ult: require('../../../assets/legacy-sprites/mystic/ult.png'),
   },
+  cara_tranquilo: {
+    idle: require('../../../assets/legacy-sprites/cara_tranquilo/idle.png'),
+    walk1: require('../../../assets/legacy-sprites/cara_tranquilo/walk1.png'),
+    walk2: require('../../../assets/legacy-sprites/cara_tranquilo/walk2.png'),
+    walk3: require('../../../assets/legacy-sprites/cara_tranquilo/walk3.png'),
+    dash: require('../../../assets/legacy-sprites/cara_tranquilo/dash.png'),
+    flash: require('../../../assets/legacy-sprites/cara_tranquilo/flash.png'),
+    strong: require('../../../assets/legacy-sprites/cara_tranquilo/strong.png'),
+    ult: require('../../../assets/legacy-sprites/cara_tranquilo/ult.png'),
+  },
+  troll_face: {
+    idle: require('../../../assets/legacy-sprites/troll_face/idle.png'),
+    walk1: require('../../../assets/legacy-sprites/troll_face/walk1.png'),
+    walk2: require('../../../assets/legacy-sprites/troll_face/walk2.png'),
+    walk3: require('../../../assets/legacy-sprites/troll_face/walk3.png'),
+    dash: require('../../../assets/legacy-sprites/troll_face/dash.png'),
+    flash: require('../../../assets/legacy-sprites/troll_face/flash.png'),
+    strong: require('../../../assets/legacy-sprites/troll_face/strong.png'),
+    ult: require('../../../assets/legacy-sprites/troll_face/ult.png'),
+  },
 };
 
 // width/height, verified directly against the PNG files (assets/sprite/*/*.png), not estimated.
@@ -250,6 +270,26 @@ export const SPRITE_ASPECTS: Record<CharacterKey, Record<string, number>> = {
     dash: 228 / 270,
     flash: 228 / 270,
     strong: 228 / 270,
+    ult: 418 / 297,
+  },
+  cara_tranquilo: {
+    idle: 134 / 235,
+    walk1: 144 / 235,
+    walk2: 134 / 235,
+    walk3: 144 / 235,
+    dash: 324 / 235,
+    flash: 278 / 235,
+    strong: 408 / 235,
+    ult: 418 / 297,
+  },
+  troll_face: {
+    idle: 170 / 337,
+    walk1: 184 / 337,
+    walk2: 170 / 337,
+    walk3: 184 / 337,
+    dash: 312 / 337,
+    flash: 368 / 337,
+    strong: 554 / 337,
     ult: 418 / 297,
   },
 };

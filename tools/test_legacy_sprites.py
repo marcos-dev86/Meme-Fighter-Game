@@ -19,7 +19,7 @@ POSES = ['idle', 'walk1', 'walk2', 'walk3', 'dash', 'flash', 'strong', 'ult']
 ORIGINALS = {'dogge', 'gadigago'}
 DRAWN = {'orc', 'soldier', 'mystic'}  # desenhados do zero: o arranque (dash) e um salto, sem pe na base
 FLYERS = {'green_dragon', 'ice_dragon', 'shadow_dragon'}  # voam: mantem o quadro original 178x202, sem 'pes na base'
-FOLDER = {'tank': 'tank_fighter'}  # CharacterKey -> pasta
+FOLDER = {'tank': 'tank_fighter'}
 fails, warns, ok = [], [], 0
 
 
@@ -43,7 +43,7 @@ src = open('src/game/battle/sprites.ts', encoding='utf-8').read()
 tab = src[src.index('export const SPRITE_ASPECTS'):]
 tab = tab[:tab.index('\n};')]
 chars = re.findall(r'\n  (\w+): \{\n(.*?)\n  \},', tab, re.S)
-check(len(chars) == 11, f'SPRITE_ASPECTS deveria ter 11 lutadores, tem {len(chars)}')
+check(len(chars) == 13, f'SPRITE_ASPECTS deveria ter 13 lutadores, tem {len(chars)}')
 for key, body in chars:
     folder = FOLDER.get(key, key)
     asp = {p: (int(a), int(b)) for p, a, b in re.findall(r'(\w+): (\d+) / (\d+),', body)}
@@ -75,7 +75,7 @@ for key, body in chars:
     imgs = [np.array(Image.open(f'assets/legacy-sprites/{folder}/{p}.png').convert('RGBA')).tobytes() for p in POSES if os.path.exists(f'assets/legacy-sprites/{folder}/{p}.png')]
     check(len(set(imgs)) >= 6, f'{key}: so {len(set(imgs))} quadros distintos de 8')
 
-# personagens novos (so assets, fora do jogo por enquanto)
+# personagens novos (agora no jogo desde a Urgente 2; os arquivos continuam checados)
 for c in ('cara_tranquilo', 'troll_face'):
     for p in POSES:
         check(os.path.exists(f'assets/legacy-sprites/{c}/{p}.png'), f'{c}/{p}: ausente')

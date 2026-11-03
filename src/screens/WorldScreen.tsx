@@ -41,7 +41,7 @@ import { CapeLayer, HatLayer, getBodySprite, canWearCosmetics, preloadBodySprite
 import { useCosmetics } from '@/game/state/cosmeticsState';
 import { OutdoorNpcs } from '@/game/world/OutdoorNpcs';
 import { BossMarkers } from '@/game/world/BossMarkers';
-import { BOSSES, isBossDefeated, type BossDef } from '@/game/state/bossState';
+import { BOSSES, BOSS_BY_ID, isBossDefeated, type BossDef } from '@/game/state/bossState';
 import { applySkills } from '@/game/items/skills';
 import { getLearned } from '@/game/state/skillState';
 import { npcPose } from '@/game/world/npcRoutine';
@@ -126,6 +126,9 @@ function chunkListAround(cx: number, cy: number): ChunkCoord[] {
   return list;
 }
 
+
+const CASINO_BUILDING_ID = 'loja_misteriosa';
+const TROLL_BOSS_ID = 'boss_troll';
 
 export function WorldScreen() {
   const { width, height } = useWindowDimensions();
@@ -537,6 +540,16 @@ export function WorldScreen() {
       const centerTileY = Math.floor((positionRef.current.y + PLAYER_SIZE.y / 2) / map.tileSize);
       if (map.getTile(centerTileX, centerTileY) === 'door') {
         const building = getBuildingAtDoor(centerTileX, centerTileY);
+        // O Troll Face e o dono do cassino: no primeiro acesso a porta fica barrada ate vencer a luta dele.
+        if (building?.id === CASINO_BUILDING_ID && !isBossDefeated(TROLL_BOSS_ID)) {
+          const back = { x: positionRef.current.x, y: positionRef.current.y + map.tileSize * 3 };
+          positionRef.current = back;
+          playerX.value = back.x;
+          playerY.value = back.y;
+          showToastRef.current(t('casino_troll_blocked'));
+          setBossOffer(BOSS_BY_ID[TROLL_BOSS_ID]);
+          return;
+        }
         reportEnter(building?.id ?? 'plaza_shop');
         setInterior({ buildingId: building?.id ?? 'plaza_shop', returnPos: { ...positionRef.current } });
         return;

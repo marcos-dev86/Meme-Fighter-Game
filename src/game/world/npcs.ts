@@ -494,6 +494,29 @@ export const NPCS: Record<string, NpcDef> = {
       'Minha mãe falou pra eu não ir sozinho na floresta. Mas com você, posso?',
     ],
   },
+  // Personagens da Urgente 2 (arte do proprio jogo, tambem jogaveis no VERSUS). As falas vem de i18n (ver story/npcDialogue.ts).
+  troll_trapaceiro: {
+    id: 'troll_trapaceiro',
+    fighterSprite: 'troll_face',
+    name: 'Troll Face',
+    role: 'Trapaceiro',
+    kind: 'meme',
+    skinColor: '#f2f2f2',
+    outfitColor: '#222222',
+    hairColor: '#222222',
+    dialogue: ['...'],
+  },
+  cara_tranquilo: {
+    id: 'cara_tranquilo',
+    fighterSprite: 'cara_tranquilo',
+    name: 'Cara Tranquilo',
+    role: 'Só um Cara Tranquilo',
+    kind: 'meme',
+    skinColor: '#b9733d',
+    outfitColor: '#8e97a8',
+    hairColor: '#8a4f25',
+    dialogue: ['...'],
+  },
   mestre_guilda: {
     id: 'mestre_guilda',
     sheetChar: 'c01',
@@ -605,6 +628,20 @@ export const OUTDOOR_NPCS: OutdoorPlacement[] = [
   { npcId: 'polen', x: 1151, y: 208 }, // near misteriosa (north)
   { npcId: 'penumbra', x: 187, y: 993 }, // southwest corner
   { npcId: 'alpinista', x: 82, y: 779 }, // at the foot of the icy cliff
+  // Troll Face: trapaceiro que fica perto dos barcos (4 a 5 tiles do barqueiro, para nao tomar o lugar dele no botao FALAR).
+  // Todas as posicoes foram checadas no mapa decodificado (tile andavel e vizinhos tambem).
+  { npcId: 'troll_trapaceiro', x: 1519, y: 892 }, // cais principal (leste)
+  { npcId: 'troll_trapaceiro', x: 385, y: 952 }, // cais oeste
+  { npcId: 'troll_trapaceiro', x: 379, y: 1080 }, // cais da ilha do gelo
+  { npcId: 'troll_trapaceiro', x: 1536, y: 272 }, // cais do vulcao
+  // Cara Tranquilo: pode estar em quase qualquer lugar; da dicas simples do jogo.
+  { npcId: 'cara_tranquilo', x: 862, y: 944 }, // praca (oeste)
+  { npcId: 'cara_tranquilo', x: 1132, y: 217 }, // Ilha Misteriosa
+  { npcId: 'cara_tranquilo', x: 1891, y: 356 }, // vulcao
+  { npcId: 'cara_tranquilo', x: 93, y: 206 }, // trevas
+  { npcId: 'cara_tranquilo', x: 1693, y: 1036 }, // fragmentos
+  { npcId: 'cara_tranquilo', x: 403, y: 1284 }, // acampamento
+  { npcId: 'cara_tranquilo', x: 1229, y: 1295 }, // ilha dos caes
   // One ferryman per dock: talking opens the boat menu.
   ...Object.values(FERRY_DOCKS).map((d) => ({ npcId: 'barqueiro', x: d.ferryman.x, y: d.ferryman.y })),
 ];

@@ -35,6 +35,8 @@ const CASES = {
   ice_dragon: [250, 178 / 202],
   green_dragon: [240, 178 / 202],
   shadow_dragon: [400, 144 / 104], // redesenhado: largura 440 -> 400, altura nova ~289 px (documentado em docs/AUDIT.md)
+  troll_face: [108, 170 / 337], // Urgente 2
+  cara_tranquilo: [118, 134 / 235], // Urgente 2
 };
 
 const MIME = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.webp': 'image/webp', '.gif': 'image/gif', '.ttf': 'font/ttf', '.mp3': 'audio/mpeg', '.wav': 'audio/wav' };

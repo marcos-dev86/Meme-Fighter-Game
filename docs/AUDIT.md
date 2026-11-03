@@ -1082,3 +1082,42 @@ Contexto: as pastas `assets/legacy-sprites` e `assets/legacy-art` nunca estivera
 
 ### Como regenerar
 `python3 tools/make_legacy_sprites.py --src <pasta legacy-sprites extraída do ZIP>` (determinístico, ~2 s; opções `--only a,b`, `--aspects`) e `python3 tools/make_legacy_art.py --out assets/legacy-art`. Depois `python3 -I tools/test_legacy_sprites.py`.
+
+## Parte Urgente 2 — Troll Face e Cara Tranquilo no jogo (Versus + história)
+
+Os dois já tinham os 8 quadros (Urgente 1, a partir da arte enviada pelo Marcos). Agora são lutadores de verdade, estão no VERSUS e na história.
+
+### Lutadores (`Fighter.ts`, `CharacterKey` ganhou `troll_face` e `cara_tranquilo`)
+| | Troll Face (trapaceiro) | Cara Tranquilo |
+|---|---|---|
+| Vida / velocidade / dash | 100 / 5,6 / 21 | 130 / 3,4 / 12 |
+| Flash / forte / super | 10 / 16 / 32 | 9 / 18 / 30 |
+| Efeitos ao acertar | atordoa (20% no flash, 700 ms; 25% no forte, 1 s) | congela (20% no forte, 1,8 s); **imune a atordoamento** |
+| Tamanho em jogo (`drawWidth`) | 108 (~214 px de altura) | 118 (~207 px) |
+Os dois mudam de padrão com 50% de vida (`hasPhases`), como os outros chefes. Os números são uma primeira proposta de equilíbrio, **não testados em partidas longas nem no celular**.
+
+### Elenco (VERSUS)
+- Troll Face: desbloqueia ao vencer o chefe `boss_troll`. Cara Tranquilo: ao vencer o `boss_chill` (o duelo amigável). Sem mexer no que os outros lutadores exigem. A tela de Versus passou a mostrar "2 de 13" desbloqueados no início.
+
+### História
+- **Troll Face, dono do cassino e da Ilha Misteriosa:** chefe `boss_troll` parado na trilha em frente à porta do cassino (tile 1128,178; a trilha de 3 tiles de largura é o único caminho até a porta). **Primeiro acesso:** ao entrar pela porta do cassino sem tê-lo vencido, o jogador é empurrado 3 tiles para trás, aparece o aviso (5 idiomas) e a janela de desafio do Troll Face (nível 20). Só depois de vencer o interior abre. O hint da missão "A Sorte do Dogge" avisa disso.
+- **Troll Face perto dos barcos:** NPC trapaceiro em 4 cais (principal, oeste, ilha do gelo, vulcão), a 4–5 tiles do barqueiro para não tomar o botão FALAR dele. Cada conversa traz uma de 3 pegadinhas (a "passagem grátis por 50 moedas"; "olha atrás de você"; "o barqueiro cobra mais caro de quem fala comigo"). Depois de vencido na porta, ele reconhece a derrota.
+- **Cara Tranquilo:** NPC em 7 lugares (praça, Ilha Misteriosa, vulcão, trevas, fragmentos, acampamento, ilha dos cães). Ao falar, um cumprimento e uma dica do jogo, que gira pelas 8 dicas (todas conferidas contra o jogo atual: pontos de STATUS, barqueiro, estoque noturno, mochila, margem de 5% do cassino, efeitos das armas raras, chefes mudam de padrão na metade da vida, chefe libera lutador no VERSUS). **Batalhas:** `boss_chill` (praça, nível 6, mais fraco que o normal) e `boss_chill_2` (Ilhas Fragmentadas, nível 30). O marcador deles no mapa não leva a caveira (`BossDef.friendly`).
+- Todas as posições foram checadas no mapa decodificado (3x3 de tiles andáveis) e contra os outros NPCs.
+
+### Textos
+- Falas, dicas e o aviso da porta estão em `src/game/i18n/stringsUrgente2.ts`, nos **5 idiomas**, sem emoji. Os nomes dos lutadores no Versus e as ficha de chefe (`bossLore.ts`) seguem o padrão do jogo (português), como os demais.
+
+### Verificado
+- `npx tsc --noEmit`: 0 erros. `node tools/test-parte01.mjs`: 65/65. `python3 -I tools/test_legacy_sprites.py`: 610/610.
+- `node tools/test-urgente2.mjs`: **12/12** (stats e altura de referência, elenco e chefes, Troll na trilha em frente à porta, todos os marcadores/NPCs em chão andável e longe de barqueiros e de outros NPCs, textos idênticos nos 5 idiomas, sem emoji).
+- Navegador (exportação web sem placeholders): `tools/e2e-urgente1.mjs` **52/52** (13 lutadores abrem em `/battle`, altura de referência correta, sem 404 e sem erro de JS) e `tools/e2e-urgente2-world.mjs` **18/18** (porta do cassino barrada e desafio do Troll Face com nível e ACEITAR, interior não abre; FALAR e falas do Cara Tranquilo com dica e do Troll Face com pegadinha; lutas `boss_troll`, `boss_chill`, `boss_chill_2` abrem contra o oponente certo).
+
+### Limitações / não verificado
+- Não testei vencer a luta do Troll Face até o fim e entrar no cassino (o fluxo de vitória é o mesmo dos outros chefes, mas essa sequência específica ficou fora do teste automático). Também não testei no celular.
+- Os dois partem de uma imagem só (ver Urgente 1): andam e atacam com poses geradas, não animação desenhada. O Cara Tranquilo mantém a mão no bolso em todas as poses.
+- Troll Face e Cara Tranquilo não têm lutador em outros modos (Torre/rival) de propósito.
+- Os trios "Tung Tung Sahur" e os 9 memes estáticos **não** entram nesta parte (ver relatório de entrega).
+
+### Como rodar
+`node tools/test-urgente2.mjs`; navegador: `npx expo export --platform web --output-dir dist`, depois `node tools/e2e-urgente1.mjs dist` e `node tools/e2e-urgente2-world.mjs dist`.

@@ -20,6 +20,8 @@ export interface BossDef {
   spot: { x: number; y: number } | null;
   /** Mission that is this boss's fight (story bosses). */
   storyMission?: string;
+  /** Duelo amigavel (ex.: Cara Tranquilo): o marcador no mapa nao leva a caveira de chefe. */
+  friendly?: boolean;
   /** Suggested level (just a hint on the challenge prompt). */
   level: number;
   hpMult: number;
@@ -33,6 +35,9 @@ export const BOSSES: BossDef[] = [
   { id: 'boss_fragments', island: 'fragments', name: 'Dragão da Floresta', character: 'green_dragon', stageKey: 'stage_3', spot: { x: 1690, y: 1040 }, level: 28, hpMult: 1.6, dmgMult: 1.2, reward: { coins: 250, xp: 650, items: { potion_hp_l: 3 } } },
   { id: 'boss_gelo', island: 'gelo', name: 'Dragão do Gelo', character: 'ice_dragon', stageKey: 'stage_1', spot: { x: 138, y: 498 }, level: 40, hpMult: 2, dmgMult: 1.35, reward: { coins: 300, xp: 800, bag: 'bag_arcane' } },
   { id: 'boss_trevas', island: 'trevas', name: 'Dragão Sombrio', character: 'shadow_dragon', stageKey: 'stage_2', spot: { x: 113, y: 236 }, level: 55, hpMult: 2.6, dmgMult: 1.5, reward: { coins: 500, xp: 1500, items: { night_brew: 2 } } },
+  { id: 'boss_troll', island: 'misteriosa', name: 'Troll Face', character: 'troll_face', stageKey: 'stage_3', spot: { x: 1128, y: 178 }, level: 20, hpMult: 1.2, dmgMult: 1, reward: { coins: 200, xp: 400, items: { power_brew: 1 } } },
+  { id: 'boss_chill', island: 'main', name: 'Cara Tranquilo', character: 'cara_tranquilo', stageKey: 'stage_1', spot: { x: 880, y: 950 }, friendly: true, level: 6, hpMult: 0.9, dmgMult: 0.8, reward: { coins: 60, xp: 120 } },
+  { id: 'boss_chill_2', island: 'fragments', name: 'Cara Tranquilo', character: 'cara_tranquilo', stageKey: 'stage_3', spot: { x: 1690, y: 1043 }, friendly: true, level: 30, hpMult: 1.6, dmgMult: 1.2, reward: { coins: 180, xp: 450, items: { potion_hp_l: 2 } } },
   { id: 'boss_camp', island: 'camp', name: 'Capitão Ferro', character: 'soldier', stageKey: 'stage_2', spot: null, storyMission: 'camp_showdown', level: 22, hpMult: 1, dmgMult: 1, reward: { coins: 0, xp: 0 } },
   { id: 'boss_dogisland', island: 'dogisland', name: 'Rei dos Cães', character: 'dogking', stageKey: 'stage_3', spot: null, storyMission: 'island_boss', level: 32, hpMult: 1, dmgMult: 1, reward: { coins: 0, xp: 0 } },
   { id: 'boss_vulcao', island: 'vulcao', name: 'Guardião do Vulcão', character: 'tank', stageKey: 'stage_2', spot: null, storyMission: 'vulcao_boss', level: 45, hpMult: 1, dmgMult: 1, reward: { coins: 0, xp: 0 } },

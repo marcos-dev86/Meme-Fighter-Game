@@ -14,11 +14,11 @@ export function BossMarkers({ tileSize }: { tileSize: number }) {
   return (
     <>
       {BOSSES.filter((b) => b.spot && !isBossDefeated(b.id)).map((b) => {
-        const h = b.character === 'shadow_dragon' ? 92 : 78;
+        const h = b.character === 'shadow_dragon' ? 92 : b.character === 'troll_face' || b.character === 'cara_tranquilo' ? 88 : 78;
         const w = h * getIdleAspect(b.character);
         return (
           <View key={b.id} pointerEvents="none" style={[styles.slot, { left: b.spot!.x * tileSize + tileSize / 2 - w / 2, top: b.spot!.y * tileSize + tileSize - h }]}>
-            <GameIcon name="skull" size={16} style={styles.mark} />
+            {!b.friendly && <GameIcon name="skull" size={16} style={styles.mark} />}
             <Image source={getSprite(b.character, 'idle')} resizeMode="contain" style={{ width: w, height: h }} />
           </View>
         );

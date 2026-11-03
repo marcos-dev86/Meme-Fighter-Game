@@ -28,12 +28,15 @@ export const ROSTER: RosterEntry[] = [
   { key: 'green_dragon', unlock: { kind: 'boss', bossId: 'boss_fragments' } },
   { key: 'ice_dragon', unlock: { kind: 'boss', bossId: 'boss_gelo' } },
   { key: 'shadow_dragon', unlock: { kind: 'boss', bossId: 'boss_trevas' } },
+  { key: 'troll_face', unlock: { kind: 'boss', bossId: 'boss_troll' } },
+  { key: 'cara_tranquilo', unlock: { kind: 'boss', bossId: 'boss_chill' } },
 ];
 
 /** Nomes (em português, como no resto dos nomes de personagens) para avisos de desbloqueio. */
 export const FIGHTER_NAME: Record<string, string> = {
   dogge: 'Dogge', gadigago: 'Gadigago', orc: 'Orc', soldier: 'Soldado', dogking: 'Rei dos Cães', tank: 'Tanque',
   ninja: 'Ninja', mystic: 'Místico', green_dragon: 'Dragão da Floresta', ice_dragon: 'Dragão do Gelo', shadow_dragon: 'Dragão Sombrio',
+  troll_face: 'Troll Face', cara_tranquilo: 'Cara Tranquilo',
 };
 
 const KEY = 'meme_fighter_roster_v1';

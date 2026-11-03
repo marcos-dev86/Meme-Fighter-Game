@@ -70,7 +70,7 @@ const DOGGE_BASE: MissionDef[] = [
   { id: 'talk_zeca', title: 'O Pescador do Cais', hint: 'Zeca, o pescador, conhece as rotas do mar.', type: 'talk', chapter: CH3, objective: { kind: 'talk', npcId: 'zeca' }, requires: ['kills_12'], reward: { coins: 20 } },
   { id: 'visit_misteriosa', title: 'Ilha Misteriosa', hint: 'Pegue o barco no cais principal rumo ao norte.', type: 'discover', chapter: CH3, objective: { kind: 'visit', island: 'misteriosa' }, requires: ['talk_zeca'], reward: { coins: 30 } },
   {
-    id: 'casino_lucky', title: 'A Sorte do Dogge', hint: 'Fale com o Crupiê, no cassino.', type: 'quest', chapter: CH3, requires: ['visit_misteriosa'], reward: { coins: 50, xp: 100 },
+    id: 'casino_lucky', title: 'A Sorte do Dogge', hint: 'Fale com o Crupiê, no cassino (o Troll Face guarda a porta: vença a luta dele).', type: 'quest', chapter: CH3, requires: ['visit_misteriosa'], reward: { coins: 50, xp: 100 },
     objective: {
       kind: 'chain',
       steps: [

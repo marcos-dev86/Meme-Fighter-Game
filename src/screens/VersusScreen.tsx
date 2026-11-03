@@ -26,6 +26,8 @@ const CHAR_PORTRAIT: Record<CharacterKey, number> = {
   ice_dragon: require('../../assets/legacy-sprites/ice_dragon/idle.png'),
   green_dragon: require('../../assets/legacy-sprites/green_dragon/idle.png'),
   shadow_dragon: require('../../assets/legacy-sprites/shadow_dragon/idle.png'),
+  cara_tranquilo: require('../../assets/legacy-sprites/cara_tranquilo/idle.png'),
+  troll_face: require('../../assets/legacy-sprites/troll_face/idle.png'),
 };
 
 const CHAR_LABEL: Record<CharacterKey, string> = {
@@ -40,6 +42,8 @@ const CHAR_LABEL: Record<CharacterKey, string> = {
   ice_dragon: 'DRAGÃO DO GELO',
   green_dragon: 'DRAGÃO DA FLORESTA',
   shadow_dragon: 'DRAGÃO SOMBRIO',
+  cara_tranquilo: 'CARA TRANQUILO',
+  troll_face: 'TROLL FACE',
 };
 const ALL_CHARACTERS: CharacterKey[] = ROSTER.map((r) => r.key);
 const STAGES: { key: string; label: string }[] = [
