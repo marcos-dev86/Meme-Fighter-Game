@@ -1,0 +1,652 @@
+{
+ "sizes": {
+  "dogge": {
+   "idle": [
+    146,
+    164
+   ],
+   "walk1": [
+    140,
+    159
+   ],
+   "walk2": [
+    137,
+    164
+   ],
+   "walk3": [
+    143,
+    164
+   ],
+   "dash": [
+    149,
+    156
+   ],
+   "flash": [
+    143,
+    156
+   ],
+   "strong": [
+    157,
+    158
+   ],
+   "ult": [
+    488,
+    242
+   ]
+  },
+  "gadigago": {
+   "idle": [
+    237,
+    359
+   ],
+   "walk1": [
+    83,
+    146
+   ],
+   "walk2": [
+    55,
+    143
+   ],
+   "walk3": [
+    72,
+    116
+   ],
+   "dash": [
+    101,
+    113
+   ],
+   "flash": [
+    85,
+    124
+   ],
+   "strong": [
+    92,
+    112
+   ],
+   "ult": [
+    364,
+    346
+   ]
+  },
+  "dogking": {
+   "idle": [
+    112,
+    136
+   ],
+   "walk1": [
+    192,
+    136
+   ],
+   "walk2": [
+    192,
+    136
+   ],
+   "walk3": [
+    192,
+    136
+   ],
+   "dash": [
+    192,
+    136
+   ],
+   "flash": [
+    152,
+    136
+   ],
+   "strong": [
+    264,
+    136
+   ],
+   "ult": [
+    336,
+    324
+   ]
+  },
+  "tank_fighter": {
+   "idle": [
+    120,
+    148
+   ],
+   "walk1": [
+    120,
+    148
+   ],
+   "walk2": [
+    120,
+    148
+   ],
+   "walk3": [
+    120,
+    148
+   ],
+   "dash": [
+    208,
+    148
+   ],
+   "flash": [
+    120,
+    148
+   ],
+   "strong": [
+    304,
+    148
+   ],
+   "ult": [
+    465,
+    420
+   ]
+  },
+  "footman": {
+   "idle": [
+    92,
+    124
+   ]
+  },
+  "tank": {
+   "idle": [
+    120,
+    124
+   ]
+  },
+  "green_dragon": {
+   "idle": [
+    178,
+    202
+   ],
+   "walk1": [
+    178,
+    202
+   ],
+   "walk2": [
+    178,
+    202
+   ],
+   "walk3": [
+    178,
+    202
+   ],
+   "dash": [
+    428,
+    202
+   ],
+   "flash": [
+    178,
+    202
+   ],
+   "strong": [
+    270,
+    202
+   ],
+   "ult": [
+    418,
+    297
+   ]
+  },
+  "ice_dragon": {
+   "idle": [
+    178,
+    202
+   ],
+   "walk1": [
+    178,
+    202
+   ],
+   "walk2": [
+    178,
+    202
+   ],
+   "walk3": [
+    178,
+    202
+   ],
+   "dash": [
+    428,
+    202
+   ],
+   "flash": [
+    178,
+    202
+   ],
+   "strong": [
+    270,
+    202
+   ],
+   "ult": [
+    418,
+    297
+   ]
+  },
+  "orc": {
+   "idle": [
+    304,
+    248
+   ],
+   "walk1": [
+    304,
+    248
+   ],
+   "walk2": [
+    304,
+    248
+   ],
+   "walk3": [
+    304,
+    248
+   ],
+   "dash": [
+    304,
+    248
+   ],
+   "flash": [
+    304,
+    248
+   ],
+   "strong": [
+    304,
+    248
+   ],
+   "ult": [
+    450,
+    420
+   ]
+  },
+  "soldier": {
+   "idle": [
+    304,
+    268
+   ],
+   "walk1": [
+    304,
+    268
+   ],
+   "walk2": [
+    304,
+    268
+   ],
+   "walk3": [
+    304,
+    268
+   ],
+   "dash": [
+    304,
+    268
+   ],
+   "flash": [
+    304,
+    268
+   ],
+   "strong": [
+    304,
+    268
+   ],
+   "ult": [
+    286,
+    319
+   ]
+  },
+  "mystic": {
+   "idle": [
+    228,
+    270
+   ],
+   "walk1": [
+    228,
+    270
+   ],
+   "walk2": [
+    228,
+    270
+   ],
+   "walk3": [
+    228,
+    270
+   ],
+   "dash": [
+    228,
+    270
+   ],
+   "flash": [
+    228,
+    270
+   ],
+   "strong": [
+    228,
+    270
+   ],
+   "ult": [
+    418,
+    297
+   ]
+  },
+  "shadow_dragon": {
+   "idle": [
+    576,
+    416
+   ],
+   "walk1": [
+    576,
+    416
+   ],
+   "walk2": [
+    576,
+    416
+   ],
+   "walk3": [
+    576,
+    416
+   ],
+   "dash": [
+    576,
+    416
+   ],
+   "flash": [
+    576,
+    416
+   ],
+   "strong": [
+    576,
+    416
+   ],
+   "ult": [
+    418,
+    297
+   ]
+  },
+  "hood": {
+   "idle": [
+    128,
+    128
+   ]
+  },
+  "monk": {
+   "idle": [
+    128,
+    128
+   ]
+  },
+  "moai": {
+   "idle": [
+    128,
+    128
+   ]
+  },
+  "meme-kin": {
+   "espinho": [
+    128,
+    128
+   ],
+   "violeta": [
+    128,
+    128
+   ],
+   "gemada": [
+    128,
+    128
+   ],
+   "polen": [
+    128,
+    128
+   ],
+   "penumbra": [
+    128,
+    128
+   ]
+  },
+  "ninja": {
+   "idle": [
+    108,
+    184
+   ],
+   "walk1": [
+    144,
+    184
+   ],
+   "walk2": [
+    108,
+    184
+   ],
+   "walk3": [
+    134,
+    184
+   ],
+   "dash": [
+    272,
+    184
+   ],
+   "flash": [
+    216,
+    184
+   ],
+   "strong": [
+    324,
+    184
+   ],
+   "ult": [
+    418,
+    297
+   ]
+  },
+  "cara_tranquilo": {
+   "idle": [
+    134,
+    235
+   ],
+   "walk1": [
+    144,
+    235
+   ],
+   "walk2": [
+    134,
+    235
+   ],
+   "walk3": [
+    144,
+    235
+   ],
+   "dash": [
+    324,
+    235
+   ],
+   "flash": [
+    278,
+    235
+   ],
+   "strong": [
+    408,
+    235
+   ],
+   "ult": [
+    418,
+    297
+   ]
+  },
+  "troll_face": {
+   "idle": [
+    170,
+    337
+   ],
+   "walk1": [
+    184,
+    337
+   ],
+   "walk2": [
+    170,
+    337
+   ],
+   "walk3": [
+    184,
+    337
+   ],
+   "dash": [
+    312,
+    337
+   ],
+   "flash": [
+    368,
+    337
+   ],
+   "strong": [
+    554,
+    337
+   ],
+   "ult": [
+    418,
+    297
+   ]
+  }
+ },
+ "origem": {
+  "dogge": {
+   "idle": "original (recuperado da skin floresta)",
+   "walk1": "original (recuperado da skin floresta)",
+   "walk2": "original (recuperado da skin floresta)",
+   "walk3": "original (recuperado da skin floresta)",
+   "dash": "original (recuperado da skin floresta)",
+   "flash": "original (recuperado da skin floresta)",
+   "strong": "original (recuperado da skin floresta)",
+   "ult": "original (recuperado da skin floresta)"
+  },
+  "gadigago": {
+   "idle": "original (recuperado da skin floresta)",
+   "walk1": "original (recuperado da skin floresta)",
+   "walk2": "original (recuperado da skin floresta)",
+   "walk3": "original (recuperado da skin floresta)",
+   "dash": "original (recuperado da skin floresta)",
+   "flash": "original (recuperado da skin floresta)",
+   "strong": "original (recuperado da skin floresta)",
+   "ult": "original (recuperado da skin floresta)"
+  },
+  "dogking": {
+   "idle": "pacote EvilDog Idle[0]",
+   "walk1": "EvilDog Run[1]",
+   "walk2": "EvilDog Run[2]",
+   "walk3": "EvilDog Run[3]",
+   "dash": "EvilDog Run[4] + riscos de velocidade (gerado)",
+   "flash": "EvilDog Attack[1]",
+   "strong": "EvilDog Attack[4]",
+   "ult": "gerado (bola de energia sombria)"
+  },
+  "tank_fighter": {
+   "idle": "pacote TankDog Idle[0]",
+   "walk1": "TankDog Run[1]",
+   "walk2": "TankDog Run[2]",
+   "walk3": "TankDog Run[3]",
+   "dash": "TankDog Run[4] + riscos (gerado)",
+   "flash": "TankDog Attack[1]",
+   "strong": "TankDog Attack[3]",
+   "ult": "gerado (bola de fogo)"
+  },
+  "footman": {
+   "idle": "pacote FootmanDog Idle[0] x4 (retrato)"
+  },
+  "tank": {
+   "idle": "pacote TankDog Idle[0] x4 (retrato)"
+  },
+  "green_dragon": {
+   "idle": "quadro real (planando)",
+   "walk1": "quadro real (asas p/ cima)",
+   "walk2": "quadro real (asas a meio)",
+   "walk3": "quadro real (asas p/ baixo)",
+   "dash": "quadro real + riscos (gerado)",
+   "flash": "quadro real (asas p/ baixo)",
+   "strong": "quadro real (asas p/ cima) + arco (gerado)",
+   "ult": "gerado (bola de veneno)"
+  },
+  "ice_dragon": {
+   "idle": "quadro real (asas p/ cima)",
+   "walk1": "quadro real (planando)",
+   "walk2": "quadro real (asas p/ baixo)",
+   "walk3": "quadro real (planando 2)",
+   "dash": "quadro real + riscos (gerado)",
+   "flash": "quadro real (asas p/ baixo)",
+   "strong": "quadro real (asas p/ cima) + arco (gerado)",
+   "ult": "gerado (bola de gelo)"
+  },
+  "orc": {
+   "idle": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "walk1": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "walk2": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "walk3": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "dash": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "flash": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "strong": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "ult": "gerado (bola de energia)"
+  },
+  "soldier": {
+   "idle": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "walk1": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "walk2": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "walk3": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "dash": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "flash": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "strong": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "ult": "gerado (bola de energia)"
+  },
+  "mystic": {
+   "idle": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "walk1": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "walk2": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "walk3": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "dash": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "flash": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "strong": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "ult": "gerado (bola de energia)"
+  },
+  "shadow_dragon": {
+   "idle": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "walk1": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "walk2": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "walk3": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "dash": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "flash": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "strong": "desenhado do zero por codigo (tools/legacy_chars.py)",
+   "ult": "gerado (bola de energia)"
+  },
+  "hood": {
+   "idle": "retrato desenhado do zero por codigo (tools/legacy_chars.py)"
+  },
+  "monk": {
+   "idle": "retrato desenhado do zero por codigo (tools/legacy_chars.py)"
+  },
+  "moai": {
+   "idle": "retrato desenhado do zero por codigo (tools/legacy_chars.py)"
+  },
+  "meme-kin": {
+   "espinho": "retrato desenhado do zero por codigo (tools/legacy_chars.py)",
+   "violeta": "retrato desenhado do zero por codigo (tools/legacy_chars.py)",
+   "gemada": "retrato desenhado do zero por codigo (tools/legacy_chars.py)",
+   "polen": "retrato desenhado do zero por codigo (tools/legacy_chars.py)",
+   "penumbra": "retrato desenhado do zero por codigo (tools/legacy_chars.py)"
+  },
+  "ninja": {
+   "idle": "imagem solta f1842528 (encapuzado)",
+   "walk1": "imagem solta f1842528 (encapuzado) + pose gerada por codigo",
+   "walk2": "imagem solta f1842528 (encapuzado) + pose gerada por codigo",
+   "walk3": "imagem solta f1842528 (encapuzado) + pose gerada por codigo",
+   "dash": "imagem solta f1842528 (encapuzado) + pose gerada por codigo",
+   "flash": "imagem solta f1842528 (encapuzado) + pose gerada por codigo",
+   "strong": "imagem solta f1842528 (encapuzado) + pose gerada por codigo",
+   "ult": "gerado (bola de energia)"
+  },
+  "cara_tranquilo": {
+   "idle": "imagem solta f80303424 (cara tranquilo), reduzida a 50%",
+   "walk1": "imagem solta f80303424 (cara tranquilo), reduzida a 50% + pose gerada por codigo",
+   "walk2": "imagem solta f80303424 (cara tranquilo), reduzida a 50% + pose gerada por codigo",
+   "walk3": "imagem solta f80303424 (cara tranquilo), reduzida a 50% + pose gerada por codigo",
+   "dash": "imagem solta f80303424 (cara tranquilo), reduzida a 50% + pose gerada por codigo",
+   "flash": "imagem solta f80303424 (cara tranquilo), reduzida a 50% + pose gerada por codigo",
+   "strong": "imagem solta f80303424 (cara tranquilo), reduzida a 50% + pose gerada por codigo",
+   "ult": "gerado (bola de energia)"
+  },
+  "troll_face": {
+   "idle": "imagem solta f89000160 (troll face), reduzida a 60%",
+   "walk1": "imagem solta f89000160 (troll face), reduzida a 60% + pose gerada por codigo",
+   "walk2": "imagem solta f89000160 (troll face), reduzida a 60% + pose gerada por codigo",
+   "walk3": "imagem solta f89000160 (troll face), reduzida a 60% + pose gerada por codigo",
+   "dash": "imagem solta f89000160 (troll face), reduzida a 60% + pose gerada por codigo",
+   "flash": "imagem solta f89000160 (troll face), reduzida a 60% + pose gerada por codigo",
+   "strong": "imagem solta f89000160 (troll face), reduzida a 60% + pose gerada por codigo",
+   "ult": "gerado (bola de energia)"
+  }
+ }
+}
