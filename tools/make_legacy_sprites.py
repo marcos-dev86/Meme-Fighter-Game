@@ -34,9 +34,11 @@ from PIL import Image, ImageDraw
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import legacy_chars  # noqa: E402  (personagens desenhados do zero)
+import folha_sprites  # noqa: E402  (recortes da folha de poses dos 3 troncos)
 
 POSES = ['idle', 'walk1', 'walk2', 'walk3', 'dash', 'flash', 'strong', 'ult']
 BODY = POSES[:7]
+WALK4 = ['tocao', 'serafim', 'capiroto']  # estes 3 tem um 4o passo de andar (walk4) na folha enviada
 
 # ----------------------------------------------------------------------------- utilidades de matriz RGBA
 
@@ -320,12 +322,13 @@ def finalize_set(frames, k, ult, ref_h=None, max_ratio=1.2, keep_canvas=False):
     keep_canvas=True (dragoes): nao recorta o quadro - mantem o quadro original inteiro (178x202), so alarga para os efeitos."""
     idle_h = frames['idle'].a.shape[0] if keep_canvas else trim(frames['idle'].a).shape[0]
     tops = []
-    for p in BODY:
+    body = BODY + (['walk4'] if 'walk4' in frames else [])
+    for p in body:
         f = frames[p]
         tops.append(f.a.shape[0])
     H0 = int(round(max(idle_h, min(max(tops), idle_h * max_ratio)))) if ref_h is None else ref_h
     out = {}
-    for p in BODY:
+    for p in body:
         f = frames[p]
         a = f.a
         # recorta vazio nas bordas mantendo o centro do corpo calculado
@@ -347,7 +350,7 @@ def finalize_set(frames, k, ult, ref_h=None, max_ratio=1.2, keep_canvas=False):
     return out
 
 
-def body_set(base, u, rng, pal, style='legs', extra=None):
+def body_set(base, u, rng, pal, style='legs', extra=None, leg_y0=0.55):
     """Gera idle/walk1-3/dash/flash/strong a partir de UMA imagem-base (pes embaixo, olhando para a direita).
     style 'legs' = pernas visiveis (abrem e cruzam); 'robe' = manto/capuz (a barra balanca)."""
     ex = extra or {}
@@ -360,8 +363,8 @@ def body_set(base, u, rng, pal, style='legs', extra=None):
         f['walk1'] = hem(lean(B, 0.05), step)
         f['walk3'] = hem(lean(B, 0.05), -step)
     else:
-        f['walk1'] = legs(lean(B, 0.05), step, -step // 2)
-        f['walk3'] = legs(lean(B, 0.05), step // 2, -step)
+        f['walk1'] = legs(lean(B, 0.05), step, -step // 2, leg_y0)
+        f['walk3'] = legs(lean(B, 0.05), step // 2, -step, leg_y0)
     f['walk2'] = lift(squash(B, 1.0, 0.96), bob * 2)  # passagem: corpo sobe e fica mais baixo/fino
     f['dash'] = fx_ghost(fx_speed(lean(squash(B, 1.06, 0.97), 0.20), u, rng), W * 0.28)
     f['flash'] = fx_burst(lean(squash(B, 1.04, 0.98), 0.12), u, pal, 0.8)
@@ -500,9 +503,10 @@ def mono_base(path, k_small=None, soften=None, flip=False):
 def write_set(out_dir, name, imgs, origin):
     d = os.path.join(out_dir, name)
     os.makedirs(d, exist_ok=True)
-    for p in POSES:
+    poses = POSES[:4] + (['walk4'] if 'walk4' in imgs else []) + POSES[4:]
+    for p in poses:
         Image.fromarray(imgs[p]).save(os.path.join(d, f'{p}.png'), optimize=True)
-    return {p: [imgs[p].shape[1], imgs[p].shape[0]] for p in POSES}, origin
+    return {p: [imgs[p].shape[1], imgs[p].shape[0]] for p in poses}, origin
 
 
 def build_all(src_root, repo, out, only=None):
@@ -592,9 +596,9 @@ def build_all(src_root, repo, out, only=None):
             origins.setdefault(folder, {})[name] = 'retrato desenhado do zero por codigo (tools/legacy_chars.py)'
 
     # ---- uma imagem-base + poses geradas
-    def single(name, base, k, pal, ult_wh, seed, u, note, style='legs'):
+    def single(name, base, k, pal, ult_wh, seed, u, note, style='legs', leg_y0=0.55):
         rng = random.Random(seed)
-        f = body_set(base, u, rng, pal, style=style)
+        f = body_set(base, u, rng, pal, style=style, leg_y0=leg_y0)
         ult = fireball(ult_wh[0], ult_wh[1], pal, seed)
         origin = {'idle': note}
         origin.update({p: f'{note} + pose gerada por codigo' for p in BODY[1:]})
@@ -614,8 +618,34 @@ def build_all(src_root, repo, out, only=None):
         base = smooth(a, a.shape[1] * 0.6, a.shape[0] * 0.6)
         single('troll_face', base, 1, GOLD, (420, 300), 36, 4, 'imagem solta f89000160 (troll face), reduzida a 60%')
 
+    # ---- Urgente 3: os 3 personagens de "tronco" (Tocao, Serafim, Capiroto): quadros recortados da folha de poses enviada pelo dono.
+    def from_sheet(name, pal, seed):
+        """Os 3 troncos: quadros RECORTADOS da folha de poses enviada pelo dono (folha_sprites.py). Efeitos de rastro, estrela e arco
+        ja vem desenhados na folha; so a bola do ult e gerada por codigo (a folha nao tem quadro de ult)."""
+        parts = folha_sprites.frames(name)
+        F = {k_: Fr(a_, cx) for k_, (a_, cx) in parts.items()}
+        notes = folha_sprites.POSE_NOTES.get(name, {})
+        base = 'recorte da folha de poses enviada pelo dono'
+        origin = {p_: notes.get(p_, base) for p_ in list(BODY) + ['walk4']}
+        origin['ult'] = 'gerado (bola de energia)'
+        add(name, finalize_set(F, 1, fireball(420, 300, pal, seed)), origin)
+
+    if want('tocao'):
+        from_sheet('tocao', GOLD, 41)
+    if want('serafim'):
+        from_sheet('serafim', ICE, 42)
+    if want('capiroto'):
+        from_sheet('capiroto', SHADOW, 43)
+
     meta = {'sizes': sizes, 'origem': origins}
     os.makedirs(out, exist_ok=True)
+    prev_path = os.path.join(out, 'ORIGEM.json')
+    if only is not None and os.path.exists(prev_path):  # --only: mescla com o que ja existia (nao apaga os outros lutadores)
+        with open(prev_path, encoding='utf-8') as fh:
+            prev = json.load(fh)
+        prev['sizes'].update(sizes)
+        prev['origem'].update(origins)
+        meta = prev
     with open(os.path.join(out, 'ORIGEM.json'), 'w', encoding='utf-8') as fh:
         json.dump(meta, fh, ensure_ascii=False, indent=1)
     return meta
@@ -627,7 +657,7 @@ def aspects_block(sizes):
         if len(d) < 8:
             continue
         lines.append(f'  {c}: {{')
-        for p in POSES:
+        for p in (POSES[:4] + (['walk4'] if 'walk4' in d else []) + POSES[4:]):
             w, h = d[p]
             lines.append(f'    {p}: {w} / {h},')
         lines.append('  },')

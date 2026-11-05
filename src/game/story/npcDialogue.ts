@@ -24,6 +24,13 @@ export function trollLines(n = trollTalks++): string[] {
   return [t(`troll_${g}1`), t(`troll_${g}2`), t(`troll_${g}3`)];
 }
 
+/** Os 3 troncos (Tocão, Serafim, Capiroto): 4 falas de história cada, no idioma escolhido. */
+const TRONCO_BY_NPC: Record<string, string> = { tocao_npc: 'tocao', serafim_npc: 'serafim', capiroto_npc: 'capiroto' };
+export function troncoLines(npcId: string): string[] | null {
+  const c = TRONCO_BY_NPC[npcId];
+  return c ? [1, 2, 3, 4].map((i) => t(`tronco_${c}_${i}`)) : null;
+}
+
 /** The NPC with the lines that fit the mission state right now (mission-specific lines win over the NPC's built-in ones). */
 export function resolveNpcDialogue(npc: NpcDef): NpcDef {
   // A multi-step mission waiting for a talk with this NPC wins over everything else.
@@ -31,6 +38,8 @@ export function resolveNpcDialogue(npc: NpcDef): NpcDef {
   if (chainLines) return { ...npc, dialogue: chainLines };
   if (npc.id === 'cara_tranquilo') return { ...npc, dialogue: chillLines() };
   if (npc.id === 'troll_trapaceiro') return { ...npc, dialogue: trollLines() };
+  const tronco = troncoLines(npc.id);
+  if (tronco) return { ...npc, dialogue: tronco };
   // As escolhas da história mudam o que o NPC diz (mas missão com fala própria ainda ativa vence).
   const q = getNpcQuest(npc.id);
   const story = storyLinesFor(npc.id);

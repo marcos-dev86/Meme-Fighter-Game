@@ -34,10 +34,12 @@ export interface GearDef {
   guardMult: number;
   /** Status aplicado por armas de raridade rara ou superior. */
   proc?: GearProc;
+  /** Lâmina AFIADA: soma a chance de crítico da raridade (rarity.ts `critChance`: 4% comum até 12% lendária) enquanto está equipada. */
+  crit?: boolean;
 }
 
-const W = (id: string, lengthFrac: number, grip: { x: number; y: number }, axis: number, damageMult: number, proc?: GearProc): GearDef => ({
-  id, kind: 'weapon', lengthFrac, grip, axis, damageMult, guardMult: 1, proc,
+const W = (id: string, lengthFrac: number, grip: { x: number; y: number }, axis: number, damageMult: number, proc?: GearProc, crit?: boolean): GearDef => ({
+  id, kind: 'weapon', lengthFrac, grip, axis, damageMult, guardMult: 1, proc, crit,
 });
 
 /**
@@ -47,10 +49,11 @@ const W = (id: string, lengthFrac: number, grip: { x: number; y: number }, axis:
  *  - Martelo (raro): atordoamento, no FORTE (pancada pesada).
  *  - Machado (épico): queimadura, nos golpes FLASH e FORTE.
  * Adaga, Sabre, Porrete e Escudo não têm status (são comuns/incomuns hoje).
+ * Habilidade especial de CRÍTICO: Adaga e Sabre são lâminas afiadas (`crit`) e aumentam a chance de golpe crítico.
  */
 export const GEAR: Record<string, GearDef> = {
-  w_dagger: W('w_dagger', 0.3, { x: 0.15, y: 0.5 }, 0, 1.1),
-  w_cutlass: W('w_cutlass', 0.36, { x: 0.13, y: 0.5 }, 0, 1.18),
+  w_dagger: W('w_dagger', 0.3, { x: 0.15, y: 0.5 }, 0, 1.1, undefined, true),
+  w_cutlass: W('w_cutlass', 0.36, { x: 0.13, y: 0.5 }, 0, 1.18, undefined, true),
   w_club: W('w_club', 0.42, { x: 0.12, y: 0.88 }, -46, 1.22),
   w_sword: W('w_sword', 0.5, { x: 0.13, y: 0.5 }, 0, 1.25, { kind: 'freeze', ms: 1800, on: ['flash', 'strong'] }),
   w_hammer: W('w_hammer', 0.4, { x: 0.1, y: 0.9 }, -48, 1.3, { kind: 'stun', ms: 800, on: ['strong'] }),
@@ -74,6 +77,8 @@ export interface GearState {
   guardMult: number;
   /** Status que a arma equipada pode aplicar (vazio se a raridade não dá chance). */
   procs: StatusProc[];
+  /** Chance de crítico que a arma equipada soma (0 se não for lâmina afiada). */
+  critChance: number;
 }
 
 /**
@@ -101,5 +106,6 @@ export function computeGear(equipped: readonly (string | null | undefined)[], ra
     damageMult: weapon ? scaledWeaponDamage(weapon.damageMult, rarityOf(weapon.id)) : 1,
     guardMult: shield ? scaledGuard(shield.guardMult, rarityOf(shield.id)) : 1,
     procs,
+    critChance: weapon?.crit ? rarityBonus(rarityOf(weapon.id)).critChance : 0,
   };
 }

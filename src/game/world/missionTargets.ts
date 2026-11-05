@@ -2,6 +2,7 @@ import { OUTDOOR_NPCS } from './npcs';
 import { npcPose } from './npcRoutine';
 import { WORLD_PICKUPS } from './pickups';
 import { BUILDING_DOORS } from './worldGen';
+import { CASINO_NPC_IDS, CASINO_BUILDING_ID } from './casinoLayout';
 import { BUILDING_CONTENT } from './buildingContent';
 import { FERRY_STOPS } from './islandMap';
 import { isCollected } from '@/game/state/playerState';
@@ -28,6 +29,7 @@ function npcSpots(npcId: string): TileTarget[] {
     return { x: Math.round(pose.x), y: Math.round(pose.y) };
   });
   if (out.length) return out;
+  if (CASINO_NPC_IDS.has(npcId) && BUILDING_DOORS[CASINO_BUILDING_ID]) return [BUILDING_DOORS[CASINO_BUILDING_ID]];
   for (const [buildingId, content] of Object.entries(BUILDING_CONTENT)) {
     const lives = content.npcId === npcId || content.npcId2 === npcId || content.upstairs?.npcId === npcId || content.basement?.npcId === npcId;
     const door = BUILDING_DOORS[buildingId];

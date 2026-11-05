@@ -37,6 +37,9 @@ const CASES = {
   shadow_dragon: [400, 144 / 104], // redesenhado: largura 440 -> 400, altura nova ~289 px (documentado em docs/AUDIT.md)
   troll_face: [108, 170 / 337], // Urgente 2
   cara_tranquilo: [118, 134 / 235], // Urgente 2
+  tocao: [106, 92 / 186], // Urgente 3
+  serafim: [177, 170 / 216], // Urgente 3
+  capiroto: [161, 160 / 224], // Urgente 3
 };
 
 const MIME = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.webp': 'image/webp', '.gif': 'image/gif', '.ttf': 'font/ttf', '.mp3': 'audio/mpeg', '.wav': 'audio/wav' };
@@ -86,7 +89,7 @@ async function fighterBox(page, drawWidth) {
     for (const d of document.querySelectorAll('div')) {
       const w = parseFloat(d.style.width);
       const h = parseFloat(d.style.height);
-      if (Math.abs(w - dw) < 0.6 && h > 60 && h < 520 && d.style.position === 'absolute' && d.querySelector('div,img')) {
+      if (Math.abs(w - dw) < 0.3 && h > 60 && h < 520 && d.style.position === 'absolute' && d.querySelector('div,img')) {
         const r = d.getBoundingClientRect();
         boxes.push({ x: r.x, y: r.y, w: r.width, h: r.height, styleH: h, left: parseFloat(d.style.left) });
       }
@@ -121,7 +124,7 @@ async function main() {
         await page.waitForTimeout(160);
         const b2 = await fighterBox(page, dw);
         if (SHOTS && b2) await page.screenshot({ path: path.join(SHOTS, `${key}_walk${i}.png`), clip: { x: Math.max(0, b2.x - 60), y: Math.max(0, b2.y - 40), width: Math.min(1280, b2.w + 260), height: Math.min(720 - Math.max(0, b2.y - 40), b2.h + 90) } });
-        seen.add(await page.evaluate((w) => [...document.querySelectorAll('div')].filter((d) => Math.abs(parseFloat(d.style.width) - w) < 0.6).map((d) => d.innerHTML.length).join(','), dw));
+        seen.add(await page.evaluate((w) => [...document.querySelectorAll('div')].filter((d) => Math.abs(parseFloat(d.style.width) - w) < 0.3).map((d) => d.innerHTML.length).join(','), dw));
       }
       await page.mouse.up();
     }

@@ -16,7 +16,8 @@ type Five = [string, string, string, string, string];
 const pick = (v: Five, lang: Lang): string => v[LANGS.indexOf(lang)];
 
 // {p} porcentagem, {b} valor base, {n} valor final, {on} golpes, {st} status, {s} segundos
-const TPL: Record<'damage' | 'guard' | 'heal' | 'energy' | 'proc', Five> = {
+const TPL: Record<'damage' | 'guard' | 'heal' | 'energy' | 'proc' | 'crit', Five> = {
+  crit: ['Lâmina afiada: +{p}% de chance de golpe crítico.', 'Sharp blade: +{p}% critical hit chance.', 'Hoja afilada: +{p}% de probabilidad de golpe crítico.', 'Lame affûtée : +{p} % de chance de coup critique.', '鋭い刃：クリティカル率+{p}%。'],
   damage: ['+{p}% de dano pela raridade.', '+{p}% damage from rarity.', '+{p}% de daño por rareza.', '+{p} % de dégâts grâce à la rareté.', 'レア度でダメージ+{p}%。'],
   guard: ['Recebe {p}% menos dano pela raridade.', 'Take {p}% less damage from rarity.', 'Recibes {p}% menos daño por rareza.', 'Subit {p} % de dégâts en moins grâce à la rareté.', 'レア度で受けるダメージ-{p}%。'],
   heal: ['+{p}% de cura pela raridade ({b} → {n}).', '+{p}% healing from rarity ({b} → {n}).', '+{p}% de curación por rareza ({b} → {n}).', '+{p} % de soin grâce à la rareté ({b} → {n}).', 'レア度で回復+{p}%（{b}→{n}）。'],
@@ -39,6 +40,7 @@ export function itemBonusLines(id: string, lang: Lang = getLang()): string[] {
   const g = GEAR[id];
 
   if (g?.kind === 'weapon') {
+    if (g.crit && b.critChance > 0) out.push(T('crit', { p: Math.round(b.critChance * 100) }));
     if (b.weaponDamage > 1) out.push(T('damage', { p: bonusPct(b.weaponDamage) }));
     if (g.proc && b.procChance > 0) {
       out.push(

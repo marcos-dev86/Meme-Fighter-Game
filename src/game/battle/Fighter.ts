@@ -10,9 +10,10 @@ import type { IconName } from '@/game/ui/iconRegistry';
  */
 
 export type FighterState = 'idle' | 'walk' | 'dash' | 'flash' | 'strong' | 'shield' | 'charge' | 'hurt' | 'ko';
+import { BASE_CRIT_CHANCE, BASE_CRIT_MULT } from './damageRoll';
 export type AttackType = 'flash' | 'strong' | 'ultimate';
 export type AttackPhase = 'startup' | 'active' | 'recovery';
-export type CharacterKey = 'dogge' | 'gadigago' | 'orc' | 'soldier' | 'dogking' | 'tank' | 'ninja' | 'mystic' | 'ice_dragon' | 'green_dragon' | 'shadow_dragon' | 'cara_tranquilo' | 'troll_face';
+export type CharacterKey = 'dogge' | 'gadigago' | 'orc' | 'soldier' | 'dogking' | 'tank' | 'ninja' | 'mystic' | 'ice_dragon' | 'green_dragon' | 'shadow_dragon' | 'cara_tranquilo' | 'troll_face' | 'tocao' | 'serafim' | 'capiroto';
 
 /** Battle status effects (see Fighter.applyStatus). */
 export type StatusKind = 'burn' | 'freeze' | 'poison' | 'stun';
@@ -85,6 +86,9 @@ const ANIMATIONS: Record<FighterState, string[]> = {
   // not a sprite swap.
   charge: ['idle'],
 };
+
+const WALK4_FRAMES = ['walk1', 'walk2', 'walk3', 'walk4'];
+const WALK4_FIGHTERS = new Set<CharacterKey>(['tocao', 'serafim', 'capiroto']);
 
 export class Fighter {
   name: string;
@@ -159,8 +163,8 @@ export class Fighter {
   energyGainMult = 1;
   regenPerSec = 0;
   /** Árvore de habilidades (Parte 36): crítico, roubo de vida, bônus contra alvo com status e energia inicial. */
-  critChance = 0;
-  critMult = 1.5;
+  critChance = BASE_CRIT_CHANCE;
+  critMult = BASE_CRIT_MULT;
   /** Fração do dano causado que volta como vida (0.05 = 5%). */
   lifesteal = 0;
   /** Multiplicador de dano contra alvos com algum status (queimar, congelar, envenenar, atordoar). */
@@ -542,13 +546,19 @@ export class Fighter {
     }
   }
 
+  /** Quadros da animação do estado atual. Tocão, Serafim e Capiroto têm 4 passos de andar (folha de poses deles). */
+  private framesFor(): string[] {
+    if (this.state === 'walk' && WALK4_FIGHTERS.has(this.characterKey)) return WALK4_FRAMES;
+    return ANIMATIONS[this.state];
+  }
+
   get currentSpriteKey(): string {
-    const frames = ANIMATIONS[this.state];
+    const frames = this.framesFor();
     return frames[this.frameIndex % frames.length];
   }
 
   private advanceAnimation(dt: number) {
-    const frames = ANIMATIONS[this.state];
+    const frames = this.framesFor();
     if (frames.length <= 1) return;
     this.frameTimer += dt;
     if (this.frameTimer >= this.frameDuration) {
@@ -698,6 +708,34 @@ export function createFighter(characterKey: CharacterKey, idleAspect: number): F
     f.maxHealth = 130; f.health = 130; f.idleAspect = idleAspect; f.ultEffectWidth = f.drawWidth * 1.5;
     f.hasPhases = true; f.statusDurationMult = 0.5; f.immune = ['stun'];
     f.onHitStatus = [{ kind: 'freeze', chance: 0.2, ms: 1800, on: ['strong'] }];
+    return f;
+  }
+  if (characterKey === 'tocao') {
+    // Tronco laranja, firme e teimoso: aguenta muito, bate devagar e e imune a veneno. Os golpes fortes atordoam.
+    // drawWidth 106 -> altura ~215 px (idle 92x186 da folha de poses; o quadro e todo corpo, sem folga).
+    const f = new Fighter('Tocão', 'tocao');
+    f.drawWidth = 106; f.speed = 3.9; f.dashSpeed = 14; f.strongDamage = 19; f.flashDamage = 10; f.ultimateDamage = 31;
+    f.maxHealth = 150; f.health = 150; f.idleAspect = idleAspect; f.ultEffectWidth = f.drawWidth * 2.2;
+    f.hasPhases = true; f.statusDurationMult = 0.5; f.immune = ['poison'];
+    f.onHitStatus = [{ kind: 'stun', chance: 0.3, ms: 900, on: ['strong'] }, { kind: 'stun', chance: 1, ms: 1100, on: ['ultimate'] }];
+    return f;
+  }
+  if (characterKey === 'serafim') {
+    // Tronco anjo: leve e rapido, a luz sagrada queima. Imune a congelamento. drawWidth 177 -> altura ~225 px (idle 170x216 da folha, com a auréola).
+    const f = new Fighter('Serafim', 'serafim');
+    f.drawWidth = 177; f.speed = 5.0; f.dashSpeed = 17; f.strongDamage = 15; f.flashDamage = 11; f.ultimateDamage = 36;
+    f.maxHealth = 110; f.health = 110; f.idleAspect = idleAspect; f.ultEffectWidth = f.drawWidth * 1.3;
+    f.hasPhases = true; f.statusDurationMult = 0.6; f.immune = ['freeze'];
+    f.onHitStatus = [{ kind: 'burn', chance: 0.25, ms: 4000, on: ['flash'] }, { kind: 'stun', chance: 0.15, ms: 800, on: ['strong'] }, { kind: 'burn', chance: 1, ms: 5000, on: ['ultimate'] }];
+    return f;
+  }
+  if (characterKey === 'capiroto') {
+    // Tronco diabo: canhao de vidro, bate forte e envenena/queima. Imune a fogo. drawWidth 161 -> altura ~225 px (idle 160x224 da folha).
+    const f = new Fighter('Capiroto', 'capiroto');
+    f.drawWidth = 161; f.speed = 5.2; f.dashSpeed = 19; f.strongDamage = 22; f.flashDamage = 12; f.ultimateDamage = 40;
+    f.maxHealth = 105; f.health = 105; f.idleAspect = idleAspect; f.ultEffectWidth = f.drawWidth * 1.4;
+    f.hasPhases = true; f.statusDurationMult = 0.6; f.immune = ['burn'];
+    f.onHitStatus = [{ kind: 'poison', chance: 0.3, ms: 6000, on: ['flash'] }, { kind: 'burn', chance: 0.3, ms: 4000, on: ['strong'] }, { kind: 'burn', chance: 1, ms: 6000, on: ['ultimate'] }];
     return f;
   }
   // tank: guards the approach to Ilha das Trevas on Vulcao - the family

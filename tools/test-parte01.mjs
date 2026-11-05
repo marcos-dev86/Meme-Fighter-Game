@@ -37,7 +37,8 @@ function seeded(seed = 1) {
 describe('raridade: tabela de bônus', () => {
   it('comum é neutro (nada do que já existia muda)', () => {
     const b = rarity.RARITY_BONUS.common;
-    assert.deepEqual(b, { weaponDamage: 1, guard: 1, heal: 1, energy: 1, procChance: 0 });
+    // critChance 0.04 so vale para lâminas afiadas (Adaga/Sabre, ver tools/test-dano.mjs): fora delas a raridade comum continua neutra.
+    assert.deepEqual({ ...b, critChance: undefined }, { weaponDamage: 1, guard: 1, heal: 1, energy: 1, procChance: 0, critChance: undefined });
   });
 
   it('os bônus só crescem (ou o dano recebido só cai) a cada degrau de raridade', () => {
@@ -213,7 +214,8 @@ describe('itens: cura e energia com raridade (applyItemEffect)', () => {
 
 describe('descrições de bônus de raridade (5 idiomas)', () => {
   it('item comum não tem linhas de bônus', () => {
-    for (const lang of LANGS) assert.deepEqual(itemBonusLines('w_dagger', lang), [], lang);
+    // A Adaga comum agora tem UMA linha: a habilidade de crítico (sem bônus de dano/status de raridade).
+    for (const lang of LANGS) assert.equal(itemBonusLines('w_dagger', lang).length, 1, lang);
     for (const lang of LANGS) assert.deepEqual(itemBonusLines('potion_hp_s', lang), [], lang);
   });
   it('item desconhecido não quebra', () => {

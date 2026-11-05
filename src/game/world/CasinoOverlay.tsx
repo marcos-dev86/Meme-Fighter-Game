@@ -70,12 +70,14 @@ const rand = () => Math.random();
 
 interface Props {
   onClose: () => void;
+  /** Jogo aberto de início (as mesas do cassino gigante abrem direto no jogo delas). */
+  initialGame?: GameId;
 }
 
-export function CasinoOverlay({ onClose }: Props) {
+export function CasinoOverlay({ onClose, initialGame }: Props) {
   const { t } = useI18n();
   const { coins } = usePlayerState();
-  const [game, setGame] = useState<GameId>('slots');
+  const [game, setGame] = useState<GameId>(initialGame ?? 'slots');
   const [betIdx, setBetIdx] = useState<Record<GameId, number>>({ slots: 0, flip: 0, dice: 0, roulette: 0, cards: 0 });
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);

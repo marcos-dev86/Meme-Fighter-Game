@@ -11,18 +11,21 @@ import { useGameLoop } from '@/game/core/useGameLoop';
 import { boxesOverlap, createFighter, Fighter, HIT_FLASH_MS, STATUS_COLOR, STATUS_ICON, STATUS_KINDS, type CharacterKey, type StatusKind } from '@/game/battle/Fighter';
 import { clearFx, createFx, hitKindOf, KIND_STYLE, numberVisual, particleVisual, reactionVisual, shakeOffset, spawnBurst, spawnDamageNumber, spawnImpact, stepFx, type FxState } from '@/game/battle/combatFx';
 import { grantVictory, resolveSetup, type Granted } from '@/game/battle/battleModes';
+import { applyRevanche, recordLoss, recordWin, revancheKey, revancheLabel, revancheMult } from '@/game/state/revanche';
 import { applySkills } from '@/game/items/skills';
 import { getLearned } from '@/game/state/skillState';
 import { endRun, getRun } from '@/game/state/towerState';
 import { CpuController } from '@/game/battle/CpuController';
 import { getLayoutAspect, getSprite, SPRITE_ASPECTS } from '@/game/battle/sprites';
-import { STAGE_ART } from '@/game/menu/art';
+import { stageArt } from '@/game/menu/art';
+import { STAGE_FEET, stageVariantForLight } from '@/game/battle/stages';
 import { MenuButton } from '@/game/menu/MenuButton';
 import { useI18n } from '@/game/i18n/i18n';
 import { setQuestStatus, QUEST_BATTLE_DEFS, getStoryCharacterId } from '@/game/state/questState';
 import { getSession } from '@/game/state/session';
 import { refreshIslandUnlocks } from '@/game/state/islandState';
 import { addCoins, consumeEquippedItem, getEquippedItems, getLevel, getUpgradeLevels } from '@/game/state/playerState';
+import { rollHit } from '@/game/battle/damageRoll';
 import { getGear, isGear } from '@/game/items/gear';
 import { HeldGear, type SwingPhase } from '@/game/items/HeldGear';
 import { canHoldWeapon, getHandAnchor } from '@/game/battle/handAnchors';
@@ -57,7 +60,7 @@ const ARENA_RIGHT = 1230;
  * chão cai em alturas diferentes: medido em cada arte (trilha de terra do
  * cenário 1, deque de madeira do 2 e piso do cais do 3).
  */
-const GROUND_FEET_BY_STAGE: Record<string, number> = { stage_1: 600, stage_2: 670, stage_3: 630 };
+const GROUND_FEET_BY_STAGE: Record<string, number> = STAGE_FEET;
 const GROUND_FEET_DEFAULT = 600;
 const INTRO_MS = 1400;
 const ROUND_END_MS = 1800;
@@ -100,7 +103,7 @@ interface HitCtx {
 
 /** Dano que o último checkHit realmente causou (0 se nenhum). */
 let lastHitDealt = 0;
-function checkHit(attacker: Fighter, defender: Fighter, ctx: HitCtx, onEffect: (name: EffectName, x: number, y: number, size: number) => void, dmgMult = 1) {
+function checkHit(attacker: Fighter, defender: Fighter, ctx: HitCtx, onEffect: (name: EffectName, x: number, y: number, size: number) => void, dmgMult = 1, gearCrit = 0) {
   if (!attacker.currentAttack || attacker.currentAttack.hasHit) return;
   const box = attacker.getActiveHitbox();
   if (!box) return;
@@ -110,8 +113,10 @@ function checkHit(attacker: Fighter, defender: Fighter, ctx: HitCtx, onEffect: (
     let dmg = attacker[def.damageKey] * dmgMult;
     // Habilidades: bônus contra alvo com status e golpe crítico.
     if (attacker.statusTargetDmgMult !== 1 && defender.hasAnyStatus()) dmg *= attacker.statusTargetDmgMult;
-    const crit = attacker.critChance > 0 && Math.random() < attacker.critChance;
-    if (crit) dmg *= attacker.critMult;
+    // Dano aleatorio dentro da faixa do golpe (FLASH ±15%, FORTE/SUPER ±10%) e critico (base 5% + habilidades + arma afiada).
+    const roll = rollHit({ base: dmg, type: attacker.currentAttack.type, critChance: attacker.critChance + gearCrit, critMult: attacker.critMult });
+    dmg = roll.damage;
+    const crit = roll.crit;
     const isUlt = attacker.currentAttack.type === 'ultimate';
     const blocked = defender.isShielding && defender.energy >= defender.shieldCost;
 
@@ -278,6 +283,10 @@ export function BattleScreen() {
   const [banner, setBanner] = useState<string | null>(null);
   const [granted, setGranted] = useState<Granted | null>(null);
   const towerEndedRef = useRef(false);
+  /** Revanche: perdeu e tentou de novo = prêmio menor (ver state/revanche.ts). Torre e VERSUS ficam de fora. */
+  const rKey = revancheKey(setup);
+  const lossRecordedRef = useRef(false);
+  const [rMult, setRMult] = useState(() => revancheMult(rKey));
 
   const startRoundIntro = () => {
     clearFx(fxRef.current); // sem números/partículas do round anterior
@@ -417,7 +426,7 @@ export function BattleScreen() {
 
       const gear = getGear(); // equipped weapon/shield (see items/gear.ts)
       const hitCtx = (targetKey: string): HitCtx => ({ fx: fxRef.current, light: getSettings().lightMode, critLabel: t('battle_crit'), targetKey });
-      checkHit(p1, p2, hitCtx('p2'), addEffect, gear.damageMult);
+      checkHit(p1, p2, hitCtx('p2'), addEffect, gear.damageMult, gear.critChance);
       lastHitDealt = 0;
       checkHit(p2, p1, hitCtx('p1'), addEffect, gear.guardMult);
       if (lastHitDealt > 0) tookDamage.current = true; // o jogador tomou um golpe
@@ -439,11 +448,18 @@ export function BattleScreen() {
         if (p1.roundsWon >= ROUNDS_TO_WIN || p2.roundsWon >= ROUNDS_TO_WIN) {
           phaseRef.current = 'matchEnd';
           setPhase('matchEnd');
+          if (rKey && p1.roundsWon <= p2.roundsWon && !lossRecordedRef.current) {
+            lossRecordedRef.current = true;
+            recordLoss(rKey);
+            setRMult(revancheMult(rKey));
+          }
           if (isSpecial && p1.roundsWon > p2.roundsWon && !questRewardGrantedRef.current) {
             questRewardGrantedRef.current = true;
             playSfx('levelup');
             haptic('success');
-            setGranted(grantVictory(setup, Math.max(0.01, p1.health / p1.maxHealth), !tookDamage.current));
+            const m = revancheMult(rKey);
+            setGranted(grantVictory(setup, Math.max(0.01, p1.health / p1.maxHealth), !tookDamage.current, m));
+            recordWin(rKey);
           } else if (setup.kind === 'tower' && p1.roundsWon <= p2.roundsWon && !towerEndedRef.current) {
             towerEndedRef.current = true;
             endRun(getSession()?.name ?? 'Dogge', getLevel());
@@ -452,7 +468,9 @@ export function BattleScreen() {
             questRewardGrantedRef.current = true;
             setQuestStatus(params.questId, 'completed');
             refreshIslandUnlocks();
-            const reward = QUEST_BATTLE_DEFS[params.questId]?.reward ?? RIVAL_QUEST_REWARD;
+            const mq = revancheMult(rKey);
+            const reward = applyRevanche(QUEST_BATTLE_DEFS[params.questId]?.reward ?? RIVAL_QUEST_REWARD, mq);
+            recordWin(rKey);
             addCoins(reward);
             setQuestReward(reward);
           }
@@ -553,6 +571,8 @@ export function BattleScreen() {
     router.replace({ pathname: '/battle', params: { p1: p1Key, p2Control: 'cpu', tower: String((setup.floor ?? 1) + 1) } });
   };
   const startRematch = () => {
+    lossRecordedRef.current = false;
+    setRMult(revancheMult(rKey));
     p1.roundsWon = 0;
     p2.roundsWon = 0;
     roundNumberRef.current = 1;
@@ -587,8 +607,9 @@ export function BattleScreen() {
   return (
     <View style={styles.root}>
       <View style={[styles.arena, { width: ARENA_W, height: ARENA_H, transform: [{ translateX: offsetX + shake.x * scale }, { translateY: offsetY + shake.y * scale }, { scale }] }]}>
-        <Image source={STAGE_ART[stageKey]} resizeMode="cover" style={styles.arenaBg} />
-        {ambience && <BattleSkyOverlay light={ambience.light} phase={ambience.phase} tint={ambience.tint} />}
+        <Image source={stageArt(stageKey, ambience ? stageVariantForLight(ambience.light) : 'day')} resizeMode="cover" style={styles.arenaBg} />
+        {/* a hora do dia já vem pintada na arte (dia / entardecer / noite): o véu escuro/laranja não é mais aplicado, só o tom da ilha */}
+        {ambience && <BattleSkyOverlay light={1} phase="day" tint={ambience.tint} />}
         <FighterSprite fighter={p1} withGear />
         <FighterSprite fighter={p2} />
         {ambience && ambience.weather !== 'clear' && (
@@ -694,6 +715,7 @@ export function BattleScreen() {
                   {granted.coins > 0 ? `+${granted.coins} ${CURRENCY_ABBR}   ` : ''}
                   {granted.xp > 0 ? `+${granted.xp} XP` : ''}
                 </Text>
+                {granted.mult < 1 && <Text style={styles.questRewardText}>{t('revanche_applied')} {revancheLabel(granted.mult)}</Text>}
                 {granted.lines.map((l) => (
                   <Text key={l} style={styles.questRewardText}>
                     {l}
@@ -720,6 +742,7 @@ export function BattleScreen() {
             ) : (
               <>
                 <Text style={styles.overlayTitle}>{t('quest_defeat')}</Text>
+                {rKey && <Text style={styles.questRewardText}>{t('revanche_next')} {revancheLabel(rMult)}</Text>}
                 <MenuButton label={t('quest_retry')} onPress={startRematch} />
                 <View style={{ height: 12 }} />
                 <MenuButton label={t('quest_give_up')} variant="ghost" onPress={() => router.back()} />
@@ -733,12 +756,14 @@ export function BattleScreen() {
               {questReward !== null && (
                 <Text style={styles.questRewardText}>
                   {t('quest_reward')}: +{questReward} {CURRENCY_ABBR}
+                  {rMult < 1 ? `  (${t('revanche_applied')} ${revancheLabel(rMult)})` : ''}
                 </Text>
               )}
               {questReward !== null ? (
                 <MenuButton label={t('battle_continue')} onPress={() => router.back()} />
               ) : (
                 <>
+                  {rKey && <Text style={styles.questRewardText}>{t('revanche_next')} {revancheLabel(rMult)}</Text>}
                   <MenuButton label={t('quest_retry')} onPress={startRematch} />
                   <View style={{ height: 12 }} />
                   <MenuButton label={t('quest_give_up')} variant="ghost" onPress={() => router.back()} />

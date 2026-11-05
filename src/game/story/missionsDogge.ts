@@ -1,3 +1,4 @@
+import { CASSINO_MISSIONS, TRONCOS_MISSIONS } from './missionsCassino';
 import type { MissionDef } from './missionTypes';
 
 const FINAL_TITLE = 'Meme Fighter'; // same constant as characters.ts FINAL_MISSION_TITLE (kept here to avoid an import cycle)
@@ -207,4 +208,4 @@ const DOGGE_BASE: MissionDef[] = [
 ];
 
 /** Missões principais + de caminho + secretas (ver missionsStory.ts). */
-export const DOGGE_MISSIONS: MissionDef[] = [...DOGGE_BASE, ...STORY_MISSIONS];
+export const DOGGE_MISSIONS: MissionDef[] = [...DOGGE_BASE, ...STORY_MISSIONS, ...CASSINO_MISSIONS, ...TRONCOS_MISSIONS];

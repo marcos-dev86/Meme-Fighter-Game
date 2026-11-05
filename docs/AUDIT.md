@@ -1121,3 +1121,38 @@ Os dois mudam de padrão com 50% de vida (`hasPhases`), como os outros chefes. O
 
 ### Como rodar
 `node tools/test-urgente2.mjs`; navegador: `npx expo export --platform web --output-dir dist`, depois `node tools/e2e-urgente1.mjs dist` e `node tools/e2e-urgente2-world.mjs dist`.
+
+## Parte Urgente 3 — Serafim/Tocão/Capiroto, cassino gigante, memes ×3, cenários com variação, revanche
+
+### Dano aleatório e crítico (commit `977ab1c`, ainda não entregue em ZIP)
+- Cada golpe sorteia dano em faixa; crítico base de 5%; lâminas afiadas aumentam a chance. Cobertura em `tools/test-dano.mjs` (15 testes).
+
+### Personagens Serafim (anjo), Tocão (laranja) e Capiroto (diabo)
+- Sprites cortados da folha enviada pelo usuário (`tools/art_src/folha_3_personagens.png`) por `tools/folha_sprites.py` → `tools/make_legacy_sprites.py` (`from_sheet`). Poses: idle, walk1–4, dash, flash (soco curto), strong (soco longo), ult.
+- A linha do Tocão na folha não tinha um quadro separado de soco longo: foi mapeado conforme `POSE_NOTES` em `folha_sprites.py`. Asas/auréola não animam separadas do corpo (são parte do quadro).
+- `tools/rig_sprites.py` (rig anterior, sem a folha) foi removido.
+
+### Cassino gigante (Ilha Misteriosa)
+- Prédio `loja_misteriosa` 176×66 tiles (~77,6% da ilha). Zona de paz: criaturas hostis removidas num raio de 30 tiles (`enemySpawns.ts`).
+- 3 andares (`casinoLayout.ts`): térreo, Mezanino VIP (2º) e Subsolo Secreto (−1). A escada do subsolo só existe com a flag `cassino_porao` (conversar com `velho_poker`).
+- Missão secreta opcional `cas_subsolo` (`missionsCassino.ts`).
+- Troll Face NÃO está mais dentro do cassino. Na porta (1128, 221) há luta obrigatória com `boss_troll`; só entra depois de vencer. Interpretação adotada para "ganhar de primeira": a luta é obrigatória e, se perder, pode tentar de novo pela revanche (com recompensa reduzida).
+
+### Memes estáticos ×3
+- 9 memes, cada um em exatamente 3 lugares (mundo e/ou cassino). Lista completa em `docs/MEMES.md` (gerada por `node tools/list_memes.cjs`). Teste: `test-urgente3.mjs`.
+
+### Cenários de batalha
+- 12 cenários (`stage_1..12`). Os 10 que têm céu/luz do dia ganham versões entardecer/amanhecer (`_dusk`) e noite (`_night`); Caverna e Cassino (interior) não variam. As variações são derivadas por correção de cor/iluminação dos cenários do usuário, não redesenhadas (`tools/make_stages.py`).
+- A variante é escolhida pela luz do mundo no início da luta (`stageVariantForLight`: noite < 0,35; entardecer < 0,85; senão dia). Cenário correspondente ao bioma/lugar via `stageForTile`. O VERSUS lista os 12 (miniatura do dia).
+
+### Revanche
+- `src/game/state/revanche.ts`: sequência de derrotas por luta (chefe, rival, duelo de missão). Revanche = −50% de moedas e XP; revanche da revanche e as seguintes = −70%. Persistido em `ext.revanche`. Itens/bolsas/personagens liberados não são reduzidos. Torre e luta livre/VERSUS não entram.
+
+### Verificado (executado)
+- `npx tsc --noEmit` limpo; test-parte01 (65), test-dano (15), test-urgente2 (12), test-urgente3 (40), test-revanche (7); `test_legacy_sprites.py` 802 verificações.
+- Export web descartável + Playwright: `e2e-urgente3.mjs` 23/23 (cassino 3 andares, subsolo com/sem passagem, 9 cenários novos, VERSUS com 12) e `e2e-urgente1.mjs` 64/64 (altura dos 16 lutadores).
+
+### Limitações / não verificado
+- Nada testado em aparelho real nem APK. Não há teste de navegador da luta de revanche até o desconto aparecer na tela (coberto só por teste Node + tsc).
+- Variantes dusk/noite não foram vistas em batalha viva em todos os cenários (só os arquivos e o carregamento).
+- Parte 2 (cutscenes, rivais, elites, animação de caminhada dos NPCs) segue bloqueada por falta das folhas PNG limpas.

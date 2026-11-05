@@ -127,8 +127,8 @@ const buildings: Building[] = [
   makeTallBuilding('loja_gelo', 114, 977, 5, 6, 'shop'),
   // The refuge on top of the snow mountain (where the igloo clearing is).
   makeBuilding('casa_pico', 200, 555, 5, 5, 'house'),
-  // Casino (Ilha Misteriosa).
-  makeTallBuilding('loja_misteriosa', 1128, 172, 5, 8, 'shop'),
+  // Cassino GIGANTE (Ilha Misteriosa): 176x66 tiles = 11.6 mil tiles, ~78% do planalto da ilha (retangulo 1040..1215 x 152..236) (a fachada nb_cassino_gigante ocupa tudo isso).
+  makeTallBuilding('loja_misteriosa', 1128, 217, 176, 66, 'shop'),
   // Vulcao.
   makeTallBuilding('loja_vulcao', 1888, 308, 5, 6, 'shop'),
   makeBuilding('descanso_vulcao', 1881, 306, 5, 5, 'house'),
@@ -468,6 +468,10 @@ function buildGrid(): TileType[] {
     stampRect(grid, { x0: b.doorX - 1, y0: b.doorY, x1: b.doorX + 1, y1: b.doorY }, 'door');
     stampRect(grid, { x0: b.doorX - 2, y0: b.doorY + 1, x1: b.doorX + 2, y1: b.doorY + 1 }, 'path');
   }
+
+  // Praça do cassino: calçada larga na frente da fachada gigante (nao fica espremida entre lavas).
+  const cas = buildings.find((b) => b.id === 'loja_misteriosa')!;
+  stampRect(grid, { x0: cas.doorX - 24, y0: cas.rect.y1 + 1, x1: cas.doorX + 24, y1: cas.rect.y1 + 6 }, 'path');
 
   return grid;
 }

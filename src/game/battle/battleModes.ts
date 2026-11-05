@@ -1,4 +1,5 @@
 import type { CharacterKey, StatusProc } from './Fighter';
+import { STAGE_KEYS } from './stages';
 import { BOSS_BY_ID, markBossDefeated, type BossDef } from '@/game/state/bossState';
 import { setFlag } from '@/game/state/storyFlags';
 import { FIGHTER_NAME, unlockByEvent } from '@/game/state/rosterState';
@@ -7,6 +8,7 @@ import { BAGS } from '@/game/items/bags';
 import { itemName } from '@/game/items/itemDefs';
 import { addRivalWin, rivalReward, rivalScale, getRivalWins } from '@/game/state/rivalState';
 import { claim, floorCleared } from '@/game/state/towerState';
+import { applyRevanche } from '@/game/state/revanche';
 
 /**
  * What a battle IS, resolved from the route params: a plain/quest fight, a
@@ -28,6 +30,8 @@ export interface BattleSetup {
   title?: string;
   floor?: number;
   boss?: BossDef;
+  /** missão de duelo (para a conta de revanche) */
+  questId?: string;
   extraProcs: StatusProc[];
 }
 
@@ -40,7 +44,7 @@ export interface BattleParams {
   rival?: string;
 }
 
-const STAGES = ['stage_1', 'stage_2', 'stage_3'];
+const STAGES = STAGE_KEYS;
 
 function h(n: number, salt = 0): number {
   let x = (Math.imul(n + 1, 374761393) + Math.imul(salt + 7, 668265263)) | 0;
@@ -113,7 +117,7 @@ export function resolveSetup(p: BattleParams, opts: { questOpponent?: CharacterK
     return { ...base, kind: 'rival', opponent: 'gadigago', stageKey: STAGES[getRivalWins() % STAGES.length], hpMult: sc.hp, dmgMult: sc.dmg, roundsToWin: 2, bossFight: true, title: 'RIVAL', extraProcs: rivalProcs() };
   }
   if (p.questId) {
-    return { ...base, kind: 'quest', opponent: opts.questOpponent ?? ((p.p2 as CharacterKey) || 'gadigago'), stageKey: p.stageKey || 'stage_1', bossFight: p.questId === 'final_meme_fighter' };
+    return { ...base, kind: 'quest', opponent: opts.questOpponent ?? ((p.p2 as CharacterKey) || 'gadigago'), stageKey: p.stageKey || 'stage_1', bossFight: p.questId === 'final_meme_fighter', questId: p.questId };
   }
   return { ...base, kind: 'free', opponent: (p.p2 as CharacterKey) || 'gadigago', stageKey: p.stageKey || 'stage_1' };
 }
@@ -122,12 +126,17 @@ export interface Granted {
   coins: number;
   xp: number;
   lines: string[];
+  /** multiplicador de revanche aplicado (1 = sem desconto) */
+  mult: number;
 }
 
 /** Gives the prizes of a won fight (boss, tower floor, rival). */
-export function grantVictory(s: BattleSetup, hpPct: number, flawless = false): Granted {
-  const g: Granted = { coins: 0, xp: 0, lines: [] };
-  const give = (coins: number, xp: number) => {
+export function grantVictory(s: BattleSetup, hpPct: number, flawless = false, mult = 1): Granted {
+  const g: Granted = { coins: 0, xp: 0, lines: [], mult };
+  const give = (coins0: number, xp0: number) => {
+    // revanche: moedas e XP encolhem (itens/bolsas/personagens liberados continuam inteiros)
+    const coins = applyRevanche(coins0, mult);
+    const xp = applyRevanche(xp0, mult);
     if (coins > 0) {
       addCoins(coins);
       g.coins += coins;

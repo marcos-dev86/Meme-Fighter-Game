@@ -140,6 +140,10 @@ export const BUILDING_CONTENT: Record<string, BuildingContent> = {
     template: 'casino',
     npcId: 'croupier',
     casino: true,
+    // O cassino gigante tem 3 andares (casinoLayout.ts / CasinoInterior.tsx). Aqui ficam só os baús, para o contador de
+    // coletáveis e as setas de missão (a planta de cada andar vem do casinoLayout).
+    upstairs: { label: 'Mezanino VIP', template: 'casino', chest: { id: 'chest_cassino_mezanino', coins: 120 } },
+    basement: { label: 'Subsolo Secreto', template: 'basement', chest: { id: 'chest_cassino_cofre', coins: 500, itemId: 'power_brew' } },
   },
   loja_vulcao: {
     label: 'Forja do Brasa',

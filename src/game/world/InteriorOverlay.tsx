@@ -237,7 +237,15 @@ function getRoomTile(x: number, y: number, template: InteriorTemplate, isGroundF
 
 /** Interior NPC: the meme character's own sprite when it has one (same as
  * outdoors), otherwise the generic paper-doll marker. */
-function NpcFigure({ npc }: { npc: (typeof NPCS)[string] }) {
+export function NpcFigure({ npc }: { npc: (typeof NPCS)[string] }) {
+  if (!npc.fighterSprite && npc.portraitSprite) {
+    const ph = NPC_MARKER_SIZE * 1.8;
+    return (
+      <View style={{ width: NPC_MARKER_SIZE, alignItems: 'center' }}>
+        <Image source={npc.portraitSprite} resizeMode="contain" style={{ width: ph * Math.min(npc.portraitAspect ?? 1, 1.6), height: ph }} />
+      </View>
+    );
+  }
   if (!npc.fighterSprite && npc.sheetChar) {
     return (
       <View style={{ width: NPC_MARKER_SIZE, alignItems: 'center' }}>

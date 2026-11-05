@@ -25,7 +25,7 @@ function Npc({ placement, tileSize, markerSize, cycleTick }: { placement: Outdoo
       {npc.fighterSprite ? (
         <Image source={getSprite(npc.fighterSprite, 'idle')} resizeMode="contain" style={{ width: npcW, height: npcH }} />
       ) : npc.portraitSprite ? (
-        <Image source={npc.portraitSprite} resizeMode="contain" style={{ width: markerSize * 1.3, height: markerSize * 1.3 }} />
+        <Image source={npc.portraitSprite} resizeMode="contain" style={npc.portraitAspect ? { width: markerSize * 1.5 * Math.min(npc.portraitAspect, 1.6), height: markerSize * 1.5 } : { width: markerSize * 1.3, height: markerSize * 1.3 }} />
       ) : npc.sheetChar ? (
         <NpcSprite char={npc.sheetChar} />
       ) : (

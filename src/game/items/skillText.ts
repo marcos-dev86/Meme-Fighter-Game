@@ -118,7 +118,7 @@ const TPL: Record<string, Five> = {
   statusChance: ['+{p}% de chance de causar status.', '+{p}% status chance.', '+{p}% de probabilidad de estados.', '+{p} % de chance de statut.', '状態異常の確率+{p}%。'],
   resist: ['Status duram {p}% menos em você.', 'Status effects last {p}% shorter on you.', 'Los estados duran {p}% menos en ti.', 'Les statuts durent {p} % moins sur vous.', '自分への状態異常の時間-{p}%。'],
   regen: ['Recupera {n} de vida por segundo.', 'Recover {n} health per second.', 'Recuperas {n} de vida por segundo.', 'Récupère {n} de vie par seconde.', '毎秒HPを{n}回復。'],
-  critChance: ['+{p}% de chance de golpe crítico (+50% de dano).', '+{p}% critical hit chance (+50% damage).', '+{p}% de probabilidad de crítico (+50% de daño).', '+{p} % de chance de coup critique (+50 % de dégâts).', 'クリティカル率+{p}%（ダメージ+50%）。'],
+  critChance: ['+{p}% de chance de golpe crítico (+75% de dano).', '+{p}% critical hit chance (+75% damage).', '+{p}% de probabilidad de crítico (+75% de daño).', '+{p} % de chance de coup critique (+75 % de dégâts).', 'クリティカル率+{p}%（ダメージ+75%）。'],
   critMult: ['+{m}% de dano nos golpes críticos.', '+{m}% damage on critical hits.', '+{m}% de daño en golpes críticos.', '+{m} % de dégâts sur les coups critiques.', 'クリティカルのダメージ+{m}%。'],
   lifesteal: ['Recupera {p}% do dano causado como vida.', 'Heal {p}% of the damage you deal.', 'Recuperas {p}% del daño causado como vida.', 'Récupère {p} % des dégâts infligés en vie.', '与えたダメージの{p}%をHPで回復。'],
   statusDmg: ['+{p}% de dano em alvos com status.', '+{p}% damage to targets with a status effect.', '+{p}% de daño a objetivos con estado.', '+{p} % de dégâts sur les cibles sous statut.', '状態異常の相手へのダメージ+{p}%。'],

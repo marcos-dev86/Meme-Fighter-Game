@@ -35,6 +35,7 @@ export function rarityKey(r: Rarity): string {
  * - heal / energy: multiplicam a cura e a energia de poções e comidas.
  * - procChance: chance base de a arma aplicar um status ao acertar (0 = nunca).
  *   Só raridades altas têm; o status em si é definido por arma (gear.ts).
+ * - critChance: chance de golpe crítico que as armas AFIADAS (Adaga e Sabre, ver GearDef.crit) somam à do lutador.
  */
 export interface RarityBonus {
   weaponDamage: number;
@@ -42,14 +43,15 @@ export interface RarityBonus {
   heal: number;
   energy: number;
   procChance: number;
+  critChance: number;
 }
 
 export const RARITY_BONUS: Record<Rarity, RarityBonus> = {
-  common: { weaponDamage: 1, guard: 1, heal: 1, energy: 1, procChance: 0 },
-  uncommon: { weaponDamage: 1.03, guard: 0.97, heal: 1.05, energy: 1.05, procChance: 0 },
-  rare: { weaponDamage: 1.06, guard: 0.94, heal: 1.1, energy: 1.1, procChance: 0.08 },
-  epic: { weaponDamage: 1.1, guard: 0.9, heal: 1.15, energy: 1.15, procChance: 0.12 },
-  legendary: { weaponDamage: 1.15, guard: 0.85, heal: 1.2, energy: 1.2, procChance: 0.18 },
+  common: { weaponDamage: 1, guard: 1, heal: 1, energy: 1, procChance: 0, critChance: 0.04 },
+  uncommon: { weaponDamage: 1.03, guard: 0.97, heal: 1.05, energy: 1.05, procChance: 0, critChance: 0.06 },
+  rare: { weaponDamage: 1.06, guard: 0.94, heal: 1.1, energy: 1.1, procChance: 0.08, critChance: 0.08 },
+  epic: { weaponDamage: 1.1, guard: 0.9, heal: 1.15, energy: 1.15, procChance: 0.12, critChance: 0.10 },
+  legendary: { weaponDamage: 1.15, guard: 0.85, heal: 1.2, energy: 1.2, procChance: 0.18, critChance: 0.12 },
 };
 
 /** Bônus de uma raridade (cai em `common` se vier algo desconhecido, ex.: save/dado antigo). */

@@ -1,5 +1,6 @@
 import { PLAZA_SQUARE, REGION_ANCHORS, IGLOO_TILE, CAVE_GUARDIAN_SPOT, FERRY_DOCKS } from './worldGen';
 import type { CharacterKey } from '@/game/battle/Fighter';
+import { CASINO_NPCS } from './casinoNpcs';
 
 /**
  * "Igual do Pokémon FireRed, tipo o Professor Carvalho" was given as a
@@ -38,6 +39,8 @@ export interface NpcDef {
   /** For NPCs with real art who aren't a battle fighter (no moveset/stats
    * to build) - a plain portrait image instead of the generic silhouette. */
   portraitSprite?: number;
+  /** Largura / altura da imagem do portrait (memes estáticos não são quadrados). */
+  portraitAspect?: number;
   /** A character from the user's sprite pack (see npcSheet.ts) - used by every NPC that has no fighter sprite/portrait of its own. */
   sheetChar?: string;
   /** If set, talking to this NPC can offer/track a quest (see questState.ts). */
@@ -517,6 +520,39 @@ export const NPCS: Record<string, NpcDef> = {
     hairColor: '#8a4f25',
     dialogue: ['...'],
   },
+  tocao_npc: {
+    id: 'tocao_npc',
+    fighterSprite: 'tocao',
+    name: 'Tocão',
+    role: 'Tronco Laranja',
+    kind: 'meme',
+    skinColor: '#e08a2a',
+    outfitColor: '#e08a2a',
+    hairColor: '#222222',
+    dialogue: ['...'],
+  },
+  serafim_npc: {
+    id: 'serafim_npc',
+    fighterSprite: 'serafim',
+    name: 'Serafim',
+    role: 'Tronco Anjo',
+    kind: 'meme',
+    skinColor: '#d8d8dc',
+    outfitColor: '#f2f2f2',
+    hairColor: '#222222',
+    dialogue: ['...'],
+  },
+  capiroto_npc: {
+    id: 'capiroto_npc',
+    fighterSprite: 'capiroto',
+    name: 'Capiroto',
+    role: 'Tronco Diabo',
+    kind: 'meme',
+    skinColor: '#c0322a',
+    outfitColor: '#c0322a',
+    hairColor: '#222222',
+    dialogue: ['...'],
+  },
   mestre_guilda: {
     id: 'mestre_guilda',
     sheetChar: 'c01',
@@ -546,6 +582,9 @@ export const NPCS: Record<string, NpcDef> = {
     ],
   },
 };
+
+// Moradores do cassino gigante + 9 memes estáticos (Urgente 3).
+Object.assign(NPCS, CASINO_NPCS);
 
 /** Rival's lines change with quest progress, so a single static array isn't enough. */
 export function getRivalDialogue(status: 'unstarted' | 'offered' | 'active' | 'completed'): string[] {
@@ -595,6 +634,8 @@ export interface OutdoorPlacement {
   y: number;
   /** NPC secreto: só aparece à noite ('night') ou enquanto chove ('rain'). */
   only?: 'night' | 'rain';
+  /** Só aparece depois que esse chefe do mundo foi vencido (ex.: os 3 troncos). */
+  after?: string;
 }
 
 export const OUTDOOR_NPCS: OutdoorPlacement[] = [
@@ -625,7 +666,7 @@ export const OUTDOOR_NPCS: OutdoorPlacement[] = [
   { npcId: 'espinho', x: 1859, y: 360 }, // near vulcao (east)
   { npcId: 'violeta', x: 104, y: 209 }, // near trevas (northwest)
   { npcId: 'gemada', x: 1675, y: 1065 }, // near fragA (southeast)
-  { npcId: 'polen', x: 1151, y: 208 }, // near misteriosa (north)
+  { npcId: 'polen', x: 1109, y: 221 }, // near misteriosa (north)
   { npcId: 'penumbra', x: 187, y: 993 }, // southwest corner
   { npcId: 'alpinista', x: 82, y: 779 }, // at the foot of the icy cliff
   // Troll Face: trapaceiro que fica perto dos barcos (4 a 5 tiles do barqueiro, para nao tomar o lugar dele no botao FALAR).
@@ -636,12 +677,30 @@ export const OUTDOOR_NPCS: OutdoorPlacement[] = [
   { npcId: 'troll_trapaceiro', x: 1536, y: 272 }, // cais do vulcao
   // Cara Tranquilo: pode estar em quase qualquer lugar; da dicas simples do jogo.
   { npcId: 'cara_tranquilo', x: 862, y: 944 }, // praca (oeste)
-  { npcId: 'cara_tranquilo', x: 1132, y: 217 }, // Ilha Misteriosa
+  { npcId: 'cara_tranquilo', x: 1119, y: 221 }, // Ilha Misteriosa
   { npcId: 'cara_tranquilo', x: 1891, y: 356 }, // vulcao
   { npcId: 'cara_tranquilo', x: 93, y: 206 }, // trevas
   { npcId: 'cara_tranquilo', x: 1693, y: 1036 }, // fragmentos
   { npcId: 'cara_tranquilo', x: 403, y: 1284 }, // acampamento
   { npcId: 'cara_tranquilo', x: 1229, y: 1295 }, // ilha dos caes
+  // Os 3 troncos (Urgente 3): aparecem como moradores depois de vencidos como chefes; 3 tiles ao lado do lugar do chefe (area 5x5 livre, mas conferida no teste).
+  { npcId: 'tocao_npc', x: 842, y: 905, after: 'boss_tocao' },
+  { npcId: 'serafim_npc', x: 328, y: 1059, after: 'boss_serafim' },
+  { npcId: 'capiroto_npc', x: 1907, y: 345, after: 'boss_capiroto' },
+  // Memes estaticos (Urgente 3) fora do cassino: posicoes checadas no mapa decodificado (5x5 andavel e alcancavel pelo pouso da ilha).
+  { npcId: 'corvao', x: 119, y: 244 }, // trevas
+  { npcId: 'bebe_risonho', x: 1202, y: 1303 }, // ilha dos caes
+  { npcId: 'seis_sete', x: 1729, y: 1061 }, // fragmentos
+  // Mesmo meme em varios lugares (no maximo 3 no jogo todo, contando o cassino): mais memes pelo mapa sem ficar repetitivo.
+  { npcId: 'azulao', x: 990, y: 840 }, // ilha principal, planicie
+  { npcId: 'rei_dourado', x: 1872, y: 298 }, // vulcao
+  { npcId: 'gato_bocao', x: 420, y: 1260 }, // acampamento
+  { npcId: 'shiba_manso', x: 675, y: 996 }, // neve, oeste
+  { npcId: 'gato_arco_iris', x: 1700, y: 1075 }, // fragmentos
+  { npcId: 'vermelhao', x: 102, y: 228 }, // trevas
+  { npcId: 'bebe_risonho', x: 1250, y: 670 }, // ilha principal, norte
+  { npcId: 'corvao', x: 1189, y: 1339 }, // ilha dos caes
+  { npcId: 'seis_sete', x: 1295, y: 895 }, // ilha principal, centro
   // One ferryman per dock: talking opens the boat menu.
   ...Object.values(FERRY_DOCKS).map((d) => ({ npcId: 'barqueiro', x: d.ferryman.x, y: d.ferryman.y })),
 ];

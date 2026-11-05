@@ -18,6 +18,8 @@ const FACADES = {
   nb_loja24: { src: require('../../../assets/buildings/nb_loja24.png'), aspect: 288 / 258 },
   nb_hotel: { src: require('../../../assets/buildings/nb_hotel.png'), aspect: 303 / 489 },
   nb_madeira: { src: require('../../../assets/buildings/nb_madeira.png'), aspect: 261 / 312 },
+  nb_cassino: { src: require('../../../assets/buildings/nb_cassino.png'), aspect: 640 / 440 },
+  nb_cassino_gigante: { src: require('../../../assets/buildings/nb_cassino_gigante.png'), aspect: 3520 / 1320 },
   nb_casa_pedra: { src: require('../../../assets/buildings/nb_casa_pedra.png'), aspect: 336 / 234 },
 };
 /* eslint-enable @typescript-eslint/no-require-imports */
@@ -38,7 +40,7 @@ const FACADE_BY_BUILDING: Record<string, { key: FacadeKey; h: number }> = {
   plaza_shop: { key: 'casa2', h: 6 },
   loja_vulcao: { key: 'nb_loja24', h: 5 }, // loja 24h (arte nova, no lugar da repetida do plaza_shop)
   loja_abandonada: { key: 'nb_madeira', h: 5 }, // casa de madeira (arte nova, no lugar da repetida do casa_dogge)
-  loja_misteriosa: { key: 'predio1', h: 8 },
+  loja_misteriosa: { key: 'nb_cassino_gigante', h: 66 }, // cassino gigante (176x66 tiles)
   salao_geral: { key: 'predio2', h: 11 },
   guilda: { key: 'predio3', h: 9 },
 };

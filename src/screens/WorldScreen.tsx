@@ -51,12 +51,14 @@ import { MissionArrow, type ArrowState } from '@/game/world/MissionArrow';
 import { FERRY_STOPS, getIslandAt, nearestStopOf } from '@/game/world/islandMap';
 import { getMissionTargets } from '@/game/world/missionTargets';
 import { InteriorOverlay } from '@/game/world/InteriorOverlay';
+import { CasinoInterior } from '@/game/world/CasinoInterior';
 import { PauseButton, PauseMenu } from '@/game/menu/PauseMenu';
 import { isWorldFrozen, setGamePaused } from '@/game/state/pauseState';
 import { setWorldPosition } from '@/game/state/worldPosition';
 import { createFighter, Fighter } from '@/game/battle/Fighter';
 import { getLayoutAspect, getSprite, SPRITE_ASPECTS } from '@/game/battle/sprites';
 import { getHandAnchor } from '@/game/battle/handAnchors';
+import { rollHit } from '@/game/battle/damageRoll';
 import { getGear, isGear } from '@/game/items/gear';
 import { HeldGear, type SwingPhase } from '@/game/items/HeldGear';
 import { EnemyManager, type PlayerAttackType } from '@/game/enemies/enemySim';
@@ -808,11 +810,13 @@ export function WorldScreen() {
   /** Applies a swing to the enemies in front of the player and pays out drops. */
   const resolveSwing = (type: PlayerAttackType, cx: number, cy: number) => {
     const def = fighter.attackDefFor(type);
-    const dmg = fighter[def.damageKey] * getGear().damageMult;
-    const res = enemies.playerAttack(cx, cy, facingRef.current, type, dmg);
+    const gear = getGear();
+    // Mesma conta do VERSUS: dano aleatorio na faixa do golpe + critico (base 5% + habilidades + arma afiada).
+    const roll = rollHit({ base: fighter[def.damageKey] * gear.damageMult, type, critChance: fighter.critChance + gear.critChance, critMult: fighter.critMult });
+    const res = enemies.playerAttack(cx, cy, facingRef.current, type, roll.damage);
     if (res.hits > 0) {
       fighter.gainEnergy(def.energyGain);
-      playSfx(type === 'flash' ? 'hit_flesh' : 'hit_heavy', { minGapMs: 60 });
+      playSfx(type === 'flash' && !roll.crit ? 'hit_flesh' : 'hit_heavy', { minGapMs: 60 });
       haptic(type === 'flash' ? 'light' : 'medium');
     }
     if (res.kills.length > 0) {
@@ -1103,17 +1107,15 @@ export function WorldScreen() {
   }
 
   if (interior) {
-    return (
-      <InteriorOverlay
-        buildingId={interior.buildingId}
-        onExit={() => {
-          positionRef.current = { ...interior.returnPos };
-          playerX.value = interior.returnPos.x;
-          playerY.value = interior.returnPos.y;
-          setInterior(null);
-        }}
-      />
-    );
+    const leaveInterior = () => {
+      positionRef.current = { ...interior.returnPos };
+      playerX.value = interior.returnPos.x;
+      playerY.value = interior.returnPos.y;
+      setInterior(null);
+    };
+    // O cassino é uma sala gigante própria (câmera que rola), não a sala 9x7 das outras casas.
+    if (interior.buildingId === CASINO_BUILDING_ID) return <CasinoInterior onExit={leaveInterior} />;
+    return <InteriorOverlay buildingId={interior.buildingId} onExit={leaveInterior} />;
   }
 
   const visiblePickups: PickupDef[] = WORLD_PICKUPS.filter((p) => !isCollected(p.id));

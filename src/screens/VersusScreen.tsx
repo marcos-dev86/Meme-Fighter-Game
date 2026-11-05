@@ -4,11 +4,12 @@ import { BOSS_BY_ID } from '@/game/state/bossState';
 import { ITEMS } from '@/game/items/itemDefs';
 import { GameIcon } from '@/game/ui/GameIcon';
 import { PICK_COUNT, drawOffer, drawRandomPair, encodeItems } from '@/game/battle/versusLoadout';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArtBackdrop } from '@/game/menu/ArtBackdrop';
 import { ButtonColumn, MenuButton } from '@/game/menu/MenuButton';
 import { STAGE_ART } from '@/game/menu/art';
+import { STAGE_DEFS } from '@/game/battle/stages';
 import { useI18n } from '@/game/i18n/i18n';
 import type { CharacterKey } from '@/game/battle/Fighter';
 import { DifficultyPicker } from '@/game/menu/DifficultyPicker';
@@ -28,6 +29,9 @@ const CHAR_PORTRAIT: Record<CharacterKey, number> = {
   shadow_dragon: require('../../assets/legacy-sprites/shadow_dragon/idle.png'),
   cara_tranquilo: require('../../assets/legacy-sprites/cara_tranquilo/idle.png'),
   troll_face: require('../../assets/legacy-sprites/troll_face/idle.png'),
+  tocao: require('../../assets/legacy-sprites/tocao/idle.png'),
+  serafim: require('../../assets/legacy-sprites/serafim/idle.png'),
+  capiroto: require('../../assets/legacy-sprites/capiroto/idle.png'),
 };
 
 const CHAR_LABEL: Record<CharacterKey, string> = {
@@ -44,13 +48,11 @@ const CHAR_LABEL: Record<CharacterKey, string> = {
   shadow_dragon: 'DRAGÃO SOMBRIO',
   cara_tranquilo: 'CARA TRANQUILO',
   troll_face: 'TROLL FACE',
+  tocao: 'TOCÃO',
+  serafim: 'SERAFIM',
+  capiroto: 'CAPIROTO',
 };
 const ALL_CHARACTERS: CharacterKey[] = ROSTER.map((r) => r.key);
-const STAGES: { key: string; label: string }[] = [
-  { key: 'stage_1', label: 'MONTANHAS' },
-  { key: 'stage_2', label: 'VILAREJO' },
-  { key: 'stage_3', label: 'RIO OUTONAL' },
-];
 
 type Step = 'mode' | 'difficulty' | 'characters' | 'stage' | 'items';
 type Mode = 'cpu' | '2p';
@@ -163,14 +165,14 @@ export function VersusScreen() {
   return (
     <ArtBackdrop onBack={() => setStep('characters')}>
       <Text style={styles.heading}>{t('versus_choose_stage')}</Text>
-      <View style={styles.stageRow}>
-        {STAGES.map((s) => (
+      <ScrollView style={styles.stageScroll} contentContainerStyle={styles.stageRow}>
+        {STAGE_DEFS.map((s) => (
           <Pressable key={s.key} onPress={() => setStageKey(s.key)} style={[styles.stageCard, stageKey === s.key && styles.stageCardActive]}>
             <Image source={STAGE_ART[s.key]} style={styles.stageThumb} resizeMode="cover" />
-            <Text style={styles.stageLabel}>{s.label}</Text>
+            <Text style={styles.stageLabel}>{t(s.nameKey)}</Text>
           </Pressable>
         ))}
-      </View>
+      </ScrollView>
       <MenuButton label={t('versus_next')} onPress={() => setStep('items')} />
     </ArtBackdrop>
   );
@@ -257,7 +259,8 @@ const styles = StyleSheet.create({
   offerImg: { width: 44, height: 44 },
   offerName: { color: '#fff', fontSize: 10, fontWeight: '700' },
   itemsActions: { flexDirection: 'row', gap: 10, marginBottom: 10 },
-  stageRow: { flexDirection: 'row', gap: 16, marginBottom: 18 },
+  stageScroll: { maxHeight: 250, alignSelf: 'stretch', marginBottom: 12 },
+  stageRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 12, paddingHorizontal: 8, paddingBottom: 6 },
   stageCard: { borderWidth: 2, borderColor: 'rgba(255,215,0,0.3)', borderRadius: 10, overflow: 'hidden', width: 140 },
   stageCardActive: { borderColor: '#FFD700' },
   stageThumb: { width: '100%', height: 80 },

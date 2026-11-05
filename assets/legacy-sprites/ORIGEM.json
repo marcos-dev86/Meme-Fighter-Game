@@ -493,6 +493,120 @@
     418,
     297
    ]
+  },
+  "tocao": {
+   "idle": [
+    92,
+    186
+   ],
+   "walk1": [
+    104,
+    186
+   ],
+   "walk2": [
+    122,
+    186
+   ],
+   "walk3": [
+    134,
+    186
+   ],
+   "walk4": [
+    172,
+    186
+   ],
+   "dash": [
+    244,
+    186
+   ],
+   "flash": [
+    368,
+    186
+   ],
+   "strong": [
+    806,
+    186
+   ],
+   "ult": [
+    418,
+    297
+   ]
+  },
+  "serafim": {
+   "idle": [
+    170,
+    216
+   ],
+   "walk1": [
+    152,
+    216
+   ],
+   "walk2": [
+    158,
+    216
+   ],
+   "walk3": [
+    170,
+    216
+   ],
+   "walk4": [
+    206,
+    216
+   ],
+   "dash": [
+    260,
+    216
+   ],
+   "flash": [
+    350,
+    216
+   ],
+   "strong": [
+    316,
+    216
+   ],
+   "ult": [
+    418,
+    297
+   ]
+  },
+  "capiroto": {
+   "idle": [
+    160,
+    224
+   ],
+   "walk1": [
+    168,
+    224
+   ],
+   "walk2": [
+    162,
+    224
+   ],
+   "walk3": [
+    180,
+    224
+   ],
+   "walk4": [
+    196,
+    224
+   ],
+   "dash": [
+    280,
+    224
+   ],
+   "flash": [
+    404,
+    224
+   ],
+   "strong": [
+    326,
+    224
+   ],
+   "ult": [
+    418,
+    297
+   ]
   }
  },
  "origem": {
@@ -646,6 +760,39 @@
    "dash": "imagem solta f89000160 (troll face), reduzida a 60% + pose gerada por codigo",
    "flash": "imagem solta f89000160 (troll face), reduzida a 60% + pose gerada por codigo",
    "strong": "imagem solta f89000160 (troll face), reduzida a 60% + pose gerada por codigo",
+   "ult": "gerado (bola de energia)"
+  },
+  "tocao": {
+   "idle": "recorte da folha de poses enviada pelo dono",
+   "walk1": "recorte da folha de poses enviada pelo dono",
+   "walk2": "recorte da folha de poses enviada pelo dono",
+   "walk3": "recorte da folha de poses enviada pelo dono",
+   "dash": "folha enviada pelo dono: investida com rastro",
+   "flash": "folha enviada pelo dono: soco curto com estrela",
+   "strong": "folha enviada pelo dono: mesma investida SEM a estrela + arco de energia solto da folha (a linha dele nao traz um quadro de soco longo proprio)",
+   "walk4": "recorte da folha de poses enviada pelo dono",
+   "ult": "gerado (bola de energia)"
+  },
+  "serafim": {
+   "idle": "recorte da folha de poses enviada pelo dono",
+   "walk1": "recorte da folha de poses enviada pelo dono",
+   "walk2": "recorte da folha de poses enviada pelo dono",
+   "walk3": "recorte da folha de poses enviada pelo dono",
+   "dash": "recorte da folha de poses enviada pelo dono",
+   "flash": "recorte da folha de poses enviada pelo dono",
+   "strong": "recorte da folha de poses enviada pelo dono",
+   "walk4": "recorte da folha de poses enviada pelo dono",
+   "ult": "gerado (bola de energia)"
+  },
+  "capiroto": {
+   "idle": "recorte da folha de poses enviada pelo dono",
+   "walk1": "recorte da folha de poses enviada pelo dono",
+   "walk2": "recorte da folha de poses enviada pelo dono",
+   "walk3": "recorte da folha de poses enviada pelo dono",
+   "dash": "recorte da folha de poses enviada pelo dono",
+   "flash": "recorte da folha de poses enviada pelo dono",
+   "strong": "recorte da folha de poses enviada pelo dono",
+   "walk4": "recorte da folha de poses enviada pelo dono",
    "ult": "gerado (bola de energia)"
   }
  }
