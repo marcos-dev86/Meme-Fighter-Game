@@ -56,7 +56,9 @@ import { PauseButton, PauseMenu } from '@/game/menu/PauseMenu';
 import { isWorldFrozen, setGamePaused } from '@/game/state/pauseState';
 import { setWorldPosition } from '@/game/state/worldPosition';
 import { createFighter, Fighter } from '@/game/battle/Fighter';
-import { getLayoutAspect, getSprite, SPRITE_ASPECTS } from '@/game/battle/sprites';
+import { FAINT_HP, getStoryHp, setStoryHp } from '@/game/state/healthState';
+import { applyArmorRegen } from '@/game/items/armor';
+import { getLayoutAspect, getSprite, SPRITE_ASPECTS, walkFrames } from '@/game/battle/sprites';
 import { getHandAnchor } from '@/game/battle/handAnchors';
 import { rollHit } from '@/game/battle/damageRoll';
 import { getGear, isGear } from '@/game/items/gear';
@@ -89,7 +91,6 @@ import { useI18n } from '@/game/i18n/i18n';
 import type { Direction, PlayerState } from '@/types/game';
 
 /** O corpo do jogador agora vem de getBodySprite (pose + skin); a caminhada tem 3 quadros. */
-const WALK_FRAME_COUNT = 3;
 
 const PLAYER_SIZE = { x: 30, y: 42 };
 const PLAYER_SPEED = 190;
@@ -411,6 +412,7 @@ export function WorldScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [booting, settings.autoSave, settings.autoSaveSeconds]);
 
+  const baseRegenRef = useRef(0);
   const fighter = useRef<Fighter>(createFighter(getStoryCharacter(getStoryCharacterId()).fighter, getLayoutAspect(getStoryCharacter(getStoryCharacterId()).fighter))).current;
 
   // Overworld enemies (see game/enemies): the manager owns their logic, the
@@ -431,8 +433,19 @@ export function WorldScreen() {
   useEffect(() => {
     applyUpgrades(fighter, getUpgradeLevels());
     applySkills(fighter, getStoryCharacterId(), getLearned());
+    baseRegenRef.current = fighter.regenPerSec; // só o das habilidades; a armadura soma por cima a cada quadro
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Vida do modo história (state/healthState.ts): vale ao entrar no mundo (depois do save carregar) e a cada volta de uma luta.
+  // Quem escreve o valor é este loop (mundo) ou a BattleScreen (luta de história); aqui só leio ao ganhar o foco.
+  useEffect(() => {
+    if (booting || !worldFocused) return;
+    fighter.health = Math.max(1, getStoryHp() * fighter.maxHealth);
+    healthPct.value = (fighter.health / fighter.maxHealth) * 100;
+    sinceHurtRef.current = 0; // voltou de uma luta: a regeneração natural do mundo espera o tempo normal
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [booting, worldFocused]);
 
   // Same dash trigger as battle (double-tap a direction within 300ms, see
   // src/game/input/tapDash.ts) instead of a dedicated button, so it's the
@@ -452,14 +465,15 @@ export function WorldScreen() {
   showToastRef.current = showToast;
 
   useGameLoop((dtMs) => {
-    if (booting || pausedRef.current || interior || dialogueNpc || choiceNpc || questOffer || bossOffer) return;
+    if (booting || !worldFocused || pausedRef.current || interior || dialogueNpc || choiceNpc || questOffer || bossOffer) return;
+    applyArmorRegen(fighter, baseRegenRef.current); // armadura equipada: regenera vida aos poucos (fighter.update aplica)
     if (sailRef.current) {
       stepSail(dtMs);
       return;
     }
 
     fighter.update(dtMs, dtMs / (1000 / 60));
-    healthPct.value = fighter.health;
+    healthPct.value = (fighter.health / fighter.maxHealth) * 100;
     energyPct.value = fighter.energy;
 
     if (attackTimerRef.current > 0) {
@@ -568,7 +582,7 @@ export function WorldScreen() {
       frameTimerRef.current += dtMs;
       if (frameTimerRef.current >= WALK_FRAME_MS) {
         frameTimerRef.current = 0;
-        setFrameIndex((i) => (i + 1) % WALK_FRAME_COUNT);
+        setFrameIndex((i) => (i + 1) % walkFrames(getStoryCharacter(getStoryCharacterId()).fighter).length);
       }
     } else {
       frameTimerRef.current = 0;
@@ -769,7 +783,7 @@ export function WorldScreen() {
       setHurt(true);
       setTimeout(() => setHurt(false), 420);
     }
-    healthPct.value = fighter.health;
+    healthPct.value = (fighter.health / fighter.maxHealth) * 100;
     energyPct.value = fighter.energy;
     if (fighter.isKO || fighter.health <= 0) {
       handleFaint();
@@ -778,8 +792,9 @@ export function WorldScreen() {
     // Slow natural recovery once nothing has hurt us for a while.
     if (sinceHurtRef.current > 4500 && fighter.health < fighter.maxHealth) {
       fighter.health = Math.min(fighter.maxHealth, fighter.health + 1.6 * dt);
-      healthPct.value = fighter.health;
+      healthPct.value = (fighter.health / fighter.maxHealth) * 100;
     }
+    setStoryHp(fighter.health / fighter.maxHealth); // a luta de história começa com ESTA vida
 
     const focus = { x: positionRef.current.x + PLAYER_SIZE.x / 2, y: positionRef.current.y + PLAYER_SIZE.y / 2 };
     const idealCamera = computeCameraPosition(map, focus, { width, height });
@@ -845,7 +860,8 @@ export function WorldScreen() {
     const lost = Math.min(getCoins(), Math.floor(getCoins() * 0.1));
     if (lost > 0) spendCoins(lost);
     fighter.isKO = false;
-    fighter.health = fighter.maxHealth;
+    fighter.health = Math.max(1, FAINT_HP * fighter.maxHealth); // acorda na vila com metade da vida (não com a cheia)
+    setStoryHp(FAINT_HP);
     fighter.hitstunTimer = 0;
     fighter.currentAttack = null;
     fighter.setState('idle');
@@ -864,7 +880,7 @@ export function WorldScreen() {
     const ideal = computeCameraPosition(map, { x: sp.x + PLAYER_SIZE.x / 2, y: sp.y + PLAYER_SIZE.y / 2 }, { width, height });
     cameraX.value = ideal.x;
     cameraY.value = ideal.y;
-    healthPct.value = fighter.health;
+    healthPct.value = (fighter.health / fighter.maxHealth) * 100;
     energyPct.value = fighter.energy;
     invulnRef.current = 1500;
     sinceHurtRef.current = 0;
@@ -913,7 +929,7 @@ export function WorldScreen() {
     applyItemEffect(fighter, id);
     playSfx(ITEMS[id]?.effects.some((e) => e.kind === 'heal') ? 'heal' : 'buff_atk');
     haptic('light');
-    healthPct.value = fighter.health;
+    healthPct.value = (fighter.health / fighter.maxHealth) * 100;
     energyPct.value = fighter.energy;
     setItemMenuOpen(false);
     setWorldFx({ id: Date.now(), name: itemEffectName(id) as EffectName });

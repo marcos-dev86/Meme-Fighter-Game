@@ -1,4 +1,4 @@
-import { REGION_ANCHORS, PLAZA_SQUARE, IGLOO_TILE, STATUE_TILE, BUILDING_RECTS, MONUMENT_TILE, FRAG_B_TILE, CAVE_ECHO_1, CAVE_ECHO_2, MOUNTAIN_RESCUE_TILE, MOUNTAIN_SUMMIT_TILE } from './worldGen';
+import { REGION_ANCHORS, PLAZA_SQUARE, IGLOO_TILE, STATUE_TILE, BUILDING_RECTS, MONUMENT_TILE, FRAG_B_TILE, CAVE_ECHO_1, CAVE_ECHO_2, MOUNTAIN_RESCUE_TILE, MOUNTAIN_SUMMIT_TILE, VOLCANO_SUMMIT_TILE, VOLCANO_CHEST_TILE } from './worldGen';
 
 export interface PickupDef {
   id: string;
@@ -41,6 +41,10 @@ export const WORLD_PICKUPS: PickupDef[] = [
   { id: 'mountain_rescue_point', x: MOUNTAIN_RESCUE_TILE.x, y: MOUNTAIN_RESCUE_TILE.y, itemId: 'shield_charm' },
 
   { id: 'mountain_summit', x: MOUNTAIN_SUMMIT_TILE.x, y: MOUNTAIN_SUMMIT_TILE.y, questId: 'mountain_summit', itemId: 'summit_flag' },
+
+  // O cume do vulcão (escalada com o piolet, como a montanha de neve).
+  { id: 'volcano_summit', x: VOLCANO_SUMMIT_TILE.x, y: VOLCANO_SUMMIT_TILE.y, questId: 'volcano_summit', itemId: 'volcano_flag' },
+  { id: 'volcano_cache', x: VOLCANO_CHEST_TILE.x, y: VOLCANO_CHEST_TILE.y, itemId: 'moon_elixir' },
 
   // The 3-fragment backstory (see loreState.ts for the combined text).
   { id: 'frag_c_monument', x: MONUMENT_TILE.x, y: MONUMENT_TILE.y, questId: 'frag_c_lore', lorePiece: 'fragC' },

@@ -16,7 +16,7 @@ const { STRINGS_URGENTE3 } = require('../src/game/i18n/stringsUrgente3.ts');
 const { BUILDING_DOORS } = wg;
 const { createFighter } = require('../src/game/battle/Fighter.ts');
 const { ROSTER, FIGHTER_NAME } = require('../src/game/state/rosterState.ts');
-const { getLayoutAspect, SPRITE_ASPECTS } = require('../src/game/battle/sprites.ts');
+const { getLayoutAspect, SPRITE_ASPECTS, usesV2 } = require('../src/game/battle/sprites.ts');
 const bossSrc = fs.readFileSync(new URL('../src/game/state/bossState.ts', import.meta.url), 'utf8');
 const BOSSES = [...bossSrc.matchAll(/\{ id: '(\w+)', island: '(\w+)', name: '([^']+)', character: '(\w+)'[^\n]*?spot: (null|\{ x: (\d+), y: (\d+) \})/g)].map((m) => ({ id: m[1], island: m[2], name: m[3], character: m[4], spot: m[5] === 'null' ? null : { x: +m[6], y: +m[7] } }));
 
@@ -299,13 +299,13 @@ describe('i18n do cassino', () => {
   });
 });
 
-describe('os 3 troncos: Tocao, Serafim, Capiroto', () => {
-  const KEYS = ['tocao', 'serafim', 'capiroto'];
+describe('os 3 troncos: Sahur, Sahur God, Sahur Evil', () => {
+  const KEYS = ['sahur', 'sahur_god', 'sahur_evil'];
   it('lutadores distintos (nao sao skins): stats e imunidades proprias', () => {
     const f = Object.fromEntries(KEYS.map((k) => [k, createFighter(k, getLayoutAspect(k))]));
     const sig = KEYS.map((k) => JSON.stringify([f[k].maxHealth, f[k].speed, f[k].strongDamage, f[k].flashDamage, f[k].ultimateDamage, f[k].immune, f[k].onHitStatus.map((s) => s.kind + s.on.join())]));
     assert.equal(new Set(sig).size, 3);
-    assert.deepEqual(f.tocao.immune, ['poison']); assert.deepEqual(f.serafim.immune, ['freeze']); assert.deepEqual(f.capiroto.immune, ['burn']);
+    assert.deepEqual(f.sahur.immune, ['poison']); assert.deepEqual(f.sahur_god.immune, ['freeze']); assert.deepEqual(f.sahur_evil.immune, ['burn']);
     for (const k of KEYS) assert.ok(f[k].getReferenceHeight() > 200 && f[k].getReferenceHeight() < 270, `${k} altura ${f[k].getReferenceHeight()}`);
   });
   it('andar usa 4 quadros distintos; os outros lutadores seguem com 3; poses de ataque trocam o quadro', () => {
@@ -314,17 +314,22 @@ describe('os 3 troncos: Tocao, Serafim, Capiroto', () => {
       f.setState('walk');
       const seen = new Set();
       for (let i = 0; i < 12; i++) { seen.add(f.currentSpriteKey); f.update(130, 1); }
-      assert.deepEqual([...seen].sort(), ['walk1', 'walk2', 'walk3', 'walk4'], k);
+      // sprites novos (assets/sprites-v2) andam em 5 passos; os antigos em 4
+      assert.deepEqual([...seen].sort(), usesV2(k) ? ['walk1', 'walk2', 'walk3', 'walk4', 'walk5'] : ['walk1', 'walk2', 'walk3', 'walk4'], k);
       for (const st of ['dash', 'flash', 'strong']) { f.setState(st); assert.equal(f.currentSpriteKey, st); }
     }
     const d = createFighter('dogge', getLayoutAspect('dogge')); d.setState('walk');
     const seen = new Set(); for (let i = 0; i < 12; i++) { seen.add(d.currentSpriteKey); d.update(130, 1); }
-    assert.deepEqual([...seen].sort(), ['walk1', 'walk2', 'walk3']);
+    assert.deepEqual([...seen].sort(), usesV2('dogge') ? ['walk1', 'walk2', 'walk3', 'walk4', 'walk5'] : ['walk1', 'walk2', 'walk3']);
   });
   it('9 poses existem em disco e as proporcoes batem com as imagens', () => {
     for (const k of KEYS) {
-      assert.deepEqual(Object.keys(SPRITE_ASPECTS[k]).sort(), ['dash', 'flash', 'idle', 'strong', 'ult', 'walk1', 'walk2', 'walk3', 'walk4']);
-      for (const p of Object.keys(SPRITE_ASPECTS[k])) assert.ok(fs.existsSync(new URL(`../assets/legacy-sprites/${k}/${p}.png`, import.meta.url)), `${k}/${p}`);
+      const core = ['dash', 'flash', 'idle', 'strong', 'ult', 'walk1', 'walk2', 'walk3', 'walk4'];
+      const have = Object.keys(SPRITE_ASPECTS[k]);
+      for (const p of core) assert.ok(have.includes(p), `${k}/${p}`);
+      if (!usesV2(k)) assert.deepEqual(have.sort(), core);
+      const dir = usesV2(k) ? 'sprites-v2' : 'legacy-sprites';
+      for (const p of have) assert.ok(fs.existsSync(new URL(`../assets/${dir}/${k}/${p}.png`, import.meta.url)), `${k}/${p}`);
       assert.ok(getLayoutAspect(k) > 0);
     }
   });
@@ -353,7 +358,7 @@ describe('os 3 troncos: Tocao, Serafim, Capiroto', () => {
   it('missoes dos troncos existem e encadeiam (ids unicos)', () => {
     const { TRONCOS_MISSIONS } = require('../src/game/story/missionsCassino.ts');
     assert.equal(TRONCOS_MISSIONS.length, 3);
-    assert.deepEqual(TRONCOS_MISSIONS.map((m) => m.objective.steps[0].npcId), ['tocao_npc', 'serafim_npc', 'capiroto_npc']);
+    assert.deepEqual(TRONCOS_MISSIONS.map((m) => m.objective.steps[0].npcId), ['sahur_npc', 'sahur_god_npc', 'sahur_evil_npc']);
   });
   it('corvao nao esta em cima do chefe das trevas', () => {
     const c = OUTDOOR_NPCS.find((p) => p.npcId === 'corvao');

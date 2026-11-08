@@ -520,10 +520,10 @@ export const NPCS: Record<string, NpcDef> = {
     hairColor: '#8a4f25',
     dialogue: ['...'],
   },
-  tocao_npc: {
-    id: 'tocao_npc',
-    fighterSprite: 'tocao',
-    name: 'Tocão',
+  sahur_npc: {
+    id: 'sahur_npc',
+    fighterSprite: 'sahur',
+    name: 'Sahur',
     role: 'Tronco Laranja',
     kind: 'meme',
     skinColor: '#e08a2a',
@@ -531,10 +531,10 @@ export const NPCS: Record<string, NpcDef> = {
     hairColor: '#222222',
     dialogue: ['...'],
   },
-  serafim_npc: {
-    id: 'serafim_npc',
-    fighterSprite: 'serafim',
-    name: 'Serafim',
+  sahur_god_npc: {
+    id: 'sahur_god_npc',
+    fighterSprite: 'sahur_god',
+    name: 'Sahur God',
     role: 'Tronco Anjo',
     kind: 'meme',
     skinColor: '#d8d8dc',
@@ -542,10 +542,10 @@ export const NPCS: Record<string, NpcDef> = {
     hairColor: '#222222',
     dialogue: ['...'],
   },
-  capiroto_npc: {
-    id: 'capiroto_npc',
-    fighterSprite: 'capiroto',
-    name: 'Capiroto',
+  sahur_evil_npc: {
+    id: 'sahur_evil_npc',
+    fighterSprite: 'sahur_evil',
+    name: 'Sahur Evil',
     role: 'Tronco Diabo',
     kind: 'meme',
     skinColor: '#c0322a',
@@ -684,9 +684,9 @@ export const OUTDOOR_NPCS: OutdoorPlacement[] = [
   { npcId: 'cara_tranquilo', x: 403, y: 1284 }, // acampamento
   { npcId: 'cara_tranquilo', x: 1229, y: 1295 }, // ilha dos caes
   // Os 3 troncos (Urgente 3): aparecem como moradores depois de vencidos como chefes; 3 tiles ao lado do lugar do chefe (area 5x5 livre, mas conferida no teste).
-  { npcId: 'tocao_npc', x: 842, y: 905, after: 'boss_tocao' },
-  { npcId: 'serafim_npc', x: 328, y: 1059, after: 'boss_serafim' },
-  { npcId: 'capiroto_npc', x: 1907, y: 345, after: 'boss_capiroto' },
+  { npcId: 'sahur_npc', x: 842, y: 905, after: 'boss_sahur' },
+  { npcId: 'sahur_god_npc', x: 328, y: 1059, after: 'boss_sahur_god' },
+  { npcId: 'sahur_evil_npc', x: 1907, y: 345, after: 'boss_sahur_evil' },
   // Memes estaticos (Urgente 3) fora do cassino: posicoes checadas no mapa decodificado (5x5 andavel e alcancavel pelo pouso da ilha).
   { npcId: 'corvao', x: 119, y: 244 }, // trevas
   { npcId: 'bebe_risonho', x: 1202, y: 1303 }, // ilha dos caes

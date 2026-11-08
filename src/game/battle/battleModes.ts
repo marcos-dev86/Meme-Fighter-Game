@@ -3,12 +3,13 @@ import { STAGE_KEYS } from './stages';
 import { BOSS_BY_ID, markBossDefeated, type BossDef } from '@/game/state/bossState';
 import { setFlag } from '@/game/state/storyFlags';
 import { FIGHTER_NAME, unlockByEvent } from '@/game/state/rosterState';
-import { addCoins, addItem, addXp, giveBag } from '@/game/state/playerState';
+import { addCoins, addItem, addXp, giveArmor, giveBag } from '@/game/state/playerState';
 import { BAGS } from '@/game/items/bags';
+import { ARMORS } from '@/game/items/armorDefs';
 import { itemName } from '@/game/items/itemDefs';
 import { addRivalWin, rivalReward, rivalScale, getRivalWins } from '@/game/state/rivalState';
 import { claim, floorCleared } from '@/game/state/towerState';
-import { applyRevanche } from '@/game/state/revanche';
+import { noteBossDefeated, noteFightWon, noteTowerFloor } from '@/game/account/accountState';
 
 /**
  * What a battle IS, resolved from the route params: a plain/quest fight, a
@@ -30,7 +31,7 @@ export interface BattleSetup {
   title?: string;
   floor?: number;
   boss?: BossDef;
-  /** missão de duelo (para a conta de revanche) */
+  /** missão de duelo (recompensa e conclusão da missão) */
   questId?: string;
   extraProcs: StatusProc[];
 }
@@ -126,17 +127,15 @@ export interface Granted {
   coins: number;
   xp: number;
   lines: string[];
-  /** multiplicador de revanche aplicado (1 = sem desconto) */
-  mult: number;
 }
 
 /** Gives the prizes of a won fight (boss, tower floor, rival). */
-export function grantVictory(s: BattleSetup, hpPct: number, flawless = false, mult = 1): Granted {
-  const g: Granted = { coins: 0, xp: 0, lines: [], mult };
+export function grantVictory(s: BattleSetup, hpPct: number, flawless = false): Granted {
+  const g: Granted = { coins: 0, xp: 0, lines: [] };
   const give = (coins0: number, xp0: number) => {
-    // revanche: moedas e XP encolhem (itens/bolsas/personagens liberados continuam inteiros)
-    const coins = applyRevanche(coins0, mult);
-    const xp = applyRevanche(xp0, mult);
+    // recompensa sempre cheia: perder, renascer e tentar de novo não tem desconto
+    const coins = Math.max(0, coins0);
+    const xp = Math.max(0, xp0);
     if (coins > 0) {
       addCoins(coins);
       g.coins += coins;
@@ -148,6 +147,9 @@ export function grantVictory(s: BattleSetup, hpPct: number, flawless = false, mu
   };
   if (s.kind === 'boss' && s.boss) {
     const first = markBossDefeated(s.boss.id);
+    // Diamond Meme + conquistas da conta (só a 1ª vitória rende diamantes).
+    const dm = noteBossDefeated(s.boss.id, first, flawless);
+    if (dm > 0) g.lines.push(`+${dm} 💎 Diamond Meme`);
     // Elenco do VERSUS: o lutador desse chefe é liberado na conta.
     for (const k of unlockByEvent({ boss: s.boss.id })) g.lines.push(`Novo lutador no VERSUS: ${FIGHTER_NAME[k] ?? k}`);
     // Segredo: derrotar um chefe sem tomar nenhum golpe (missão "Sem um Arranhão").
@@ -160,22 +162,27 @@ export function grantVictory(s: BattleSetup, hpPct: number, flawless = false, mu
         g.lines.push(`${itemName(id)} ×${n}`);
       }
       if (s.boss.reward.bag && giveBag(s.boss.reward.bag)) g.lines.push(BAGS[s.boss.reward.bag].name);
+      if (s.boss.reward.armor && giveArmor(s.boss.reward.armor)) g.lines.push(ARMORS[s.boss.reward.armor].name);
     } else {
       give(Math.round(s.boss.reward.coins * 0.2), Math.round(s.boss.reward.xp * 0.2)); // rematch: a small prize
     }
   } else if (s.kind === 'rival') {
     const r = rivalReward();
+    noteFightWon();
     addRivalWin();
     give(r.coins, r.xp);
   } else if (s.kind === 'tower' && s.floor) {
     const f = s.floor;
     floorCleared(f, hpPct);
+    const dm = noteTowerFloor(f); // diamantes só em andar novo
+    if (dm > 0) g.lines.push(`+${dm} 💎 Diamond Meme`);
     give(10 + f * 4 + (f % 5 === 0 ? (10 + f * 4) * 2 : 0), Math.round(25 + f * 8 + f * f * 0.15));
     if (f === 10 && claim('tower_10')) {
       addItem('moon_elixir', 2, true);
       g.lines.push(`${itemName('moon_elixir')} ×2`);
     }
     if (f === 25 && claim('tower_25') && giveBag('bag_king')) g.lines.push(BAGS.bag_king.name);
+    if (f === 40 && claim('tower_40') && giveArmor('armor_phoenix')) g.lines.push(ARMORS.armor_phoenix.name);
     if (f === 50 && claim('tower_50')) {
       addItem('night_brew', 3, true);
       g.lines.push(`${itemName('night_brew')} ×3`);

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CURRENCY_ABBR, ITEMS, SHOP_STOCK } from '@/game/items/itemDefs';
-import { addItem, bagRoomFor, getOwnedBags, giveBag, spendCoins, usePlayerState } from '@/game/state/playerState';
+import { addItem, bagRoomFor, getOwnedArmors, getOwnedBags, giveArmor, giveBag, spendCoins, usePlayerState } from '@/game/state/playerState';
 import { BAGS, PLAZA_BAGS } from '@/game/items/bags';
+import { ARMORS, PLAZA_ARMORS } from '@/game/items/armorDefs';
 import { RARITY_COLOR, rarityKey } from '@/game/items/rarity';
 import { itemBonusLines } from '@/game/items/itemBonusText';
 import { playSfx } from '@/game/audio/audioManager';
@@ -22,13 +23,15 @@ interface Props {
   title?: string;
   /** Bag ids on sale here (default: the plaza shop's). */
   bags?: string[];
+  /** Armor ids on sale here (default: the plaza shop's). */
+  armors?: string[];
   /** Which shop this is (building id): flash offers are rolled per shop. */
   shopKey?: string;
   /** Quem vende: define os itens que só aparecem à noite (Marina = comuns, Maximilian = batalha). */
   vendor?: Vendor;
 }
 
-export function ShopOverlay({ onClose, stock: baseStock = SHOP_STOCK, title, bags = PLAZA_BAGS, shopKey = 'plaza_shop', vendor }: Props) {
+export function ShopOverlay({ onClose, stock: baseStock = SHOP_STOCK, title, bags = PLAZA_BAGS, armors = PLAZA_ARMORS, shopKey = 'plaza_shop', vendor }: Props) {
   const { t } = useI18n();
   const { coins, inventory } = usePlayerState();
   const [message, setMessage] = useState<string | null>(null);
@@ -88,6 +91,19 @@ export function ShopOverlay({ onClose, stock: baseStock = SHOP_STOCK, title, bag
       giveBag(bagId);
       playSfx('coin');
       setMessage(`${t('bag_got')} ${bag.name}!`);
+    } else {
+      playSfx('ui_denied');
+      setMessage(t('shop_insufficient'));
+    }
+  };
+
+  const buyArmor = (armorId: string) => {
+    const a = ARMORS[armorId];
+    if (!a || a.price === null || getOwnedArmors().includes(armorId)) return;
+    if (spendCoins(a.price)) {
+      giveArmor(armorId);
+      playSfx('coin');
+      setMessage(`${t('armor_got')} ${a.name}!`);
     } else {
       playSfx('ui_denied');
       setMessage(t('shop_insufficient'));
@@ -159,7 +175,30 @@ export function ShopOverlay({ onClose, stock: baseStock = SHOP_STOCK, title, bag
             </View>
           );
         })}
-        {bags.length > 0 && <Text style={styles.sectionTitle}>{t('shop_title')}</Text>}
+        {armors.length > 0 && <Text style={styles.sectionTitle}>{t('shop_armors')}</Text>}
+        {armors.map((armorId) => {
+          const a = ARMORS[armorId];
+          if (!a) return null;
+          const has = getOwnedArmors().includes(armorId);
+          return (
+            <View key={armorId} style={[styles.row, { borderColor: RARITY_COLOR[a.rarity] }]}>
+              <GameIcon name={a.icon} size={30} />
+              <View style={styles.rowText}>
+                <Text style={[styles.itemName, { color: RARITY_COLOR[a.rarity] }]}>
+                  {a.name} · {t(rarityKey(a.rarity))}
+                </Text>
+                <Text style={styles.itemDesc}>{a.description}</Text>
+                <Text style={styles.itemDesc}>
+                  +{a.regenPerSec} {t('armor_regen_unit')} · {a.effectText}
+                </Text>
+              </View>
+              <Pressable style={[styles.buyBtn, has && styles.buyBtnOff]} onPress={() => buyArmor(armorId)} disabled={has}>
+                <Text style={styles.buyLabel}>{has ? t('bag_owned') : `${a.price} ${CURRENCY_ABBR}`}</Text>
+              </Pressable>
+            </View>
+          );
+        })}
+        {(bags.length > 0 || armors.length > 0) && <Text style={styles.sectionTitle}>{t('shop_title')}</Text>}
         {stock.map((id) => {
           const item = ITEMS[id];
           const owned = inventory[id] ?? 0;

@@ -210,20 +210,20 @@
   - Ilha Principal – chefe "Cara Tranquilo" em (880, 950) (duelo amigável)
   - Ilha dos Fragmentos – chefe "Cara Tranquilo" em (1690, 1043) (duelo amigável)
 
-### Tocão (`tocao_npc`)
+### Sahur (`sahur_npc`)
 - Papel: Tronco Laranja
 - Aparições: **2**
-  - Ilha Principal – tile (842, 905) – só depois de vencer boss_tocao
-  - Ilha Principal – chefe "Tocão" em (840, 905) (duelo amigável)
+  - Ilha Principal – tile (842, 905) – só depois de vencer boss_sahur
+  - Ilha Principal – chefe "Sahur" em (840, 905) (duelo amigável)
 
-### Serafim (`serafim_npc`)
+### Sahur God (`sahur_god_npc`)
 - Papel: Tronco Anjo
 - Aparições: **2**
-  - Ilha do Gelo – tile (328, 1059) – só depois de vencer boss_serafim
-  - Ilha do Gelo – chefe "Serafim" em (326, 1059) (luta obrigatória)
+  - Ilha do Gelo – tile (328, 1059) – só depois de vencer boss_sahur_god
+  - Ilha do Gelo – chefe "Sahur God" em (326, 1059) (luta obrigatória)
 
-### Capiroto (`capiroto_npc`)
+### Sahur Evil (`sahur_evil_npc`)
 - Papel: Tronco Diabo
 - Aparições: **2**
-  - Ilha do Vulcão – tile (1907, 345) – só depois de vencer boss_capiroto
-  - Ilha do Vulcão – chefe "Capiroto" em (1905, 345) (luta obrigatória)
+  - Ilha do Vulcão – tile (1907, 345) – só depois de vencer boss_sahur_evil
+  - Ilha do Vulcão – chefe "Sahur Evil" em (1905, 345) (luta obrigatória)

@@ -1,5 +1,6 @@
 import { GELO_STOCK } from '@/game/items/itemDefs';
 import { GELO_BAGS } from '@/game/items/bags';
+import { GELO_ARMORS } from '@/game/items/armorDefs';
 
 export type InteriorTemplate = 'shop' | 'cozyHome' | 'humbleHome' | 'loft' | 'basement' | 'casino';
 
@@ -34,6 +35,8 @@ export interface BuildingContent {
   stock?: string[];
   /** Bag ids sold by this building's shop (see bags.ts). */
   bags?: string[];
+  /** Armor ids sold by this building's shop (see armorDefs.ts). */
+  armors?: string[];
   /** Opens the casino games (CasinoOverlay) from this building. */
   casino?: boolean;
   /** Costureira: abre a loja de cosméticos (CosmeticShopOverlay) a partir deste prédio. */
@@ -203,6 +206,7 @@ export const BUILDING_CONTENT: Record<string, BuildingContent> = {
     npcId: 'mercador_gelo',
     stock: GELO_STOCK,
     bags: GELO_BAGS,
+    armors: GELO_ARMORS,
   },
   salao_camp: {
     label: 'Salão do Acampamento',

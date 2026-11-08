@@ -1,0 +1,110 @@
+{
+ "folha": "tools/art_src/sheets/green_dragon.png",
+ "layout": "dragon",
+ "altura_corpo_px": 162,
+ "altura_corpo_original_px": 162,
+ "reducao": 1.0,
+ "poses": {
+  "portrait": {
+   "w": 419,
+   "h": 327,
+   "tipo": "solto"
+  },
+  "guard": {
+   "w": 298,
+   "h": 162,
+   "tipo": "corpo"
+  },
+  "exp4": {
+   "w": 342,
+   "h": 162,
+   "tipo": "corpo"
+  },
+  "flash": {
+   "w": 332,
+   "h": 162,
+   "tipo": "corpo"
+  },
+  "strong": {
+   "w": 276,
+   "h": 162,
+   "tipo": "corpo"
+  },
+  "idle": {
+   "w": 328,
+   "h": 162,
+   "tipo": "corpo"
+  },
+  "dash2": {
+   "w": 288,
+   "h": 162,
+   "tipo": "corpo"
+  },
+  "charge": {
+   "w": 190,
+   "h": 162,
+   "tipo": "corpo"
+  },
+  "cast": {
+   "w": 248,
+   "h": 162,
+   "tipo": "corpo"
+  },
+  "dash": {
+   "w": 384,
+   "h": 162,
+   "tipo": "corpo"
+  },
+  "blast": {
+   "w": 346,
+   "h": 162,
+   "tipo": "corpo"
+  },
+  "hurt": {
+   "w": 378,
+   "h": 162,
+   "tipo": "corpo"
+  },
+  "exp1": {
+   "w": 420,
+   "h": 162,
+   "tipo": "corpo"
+  },
+  "exp2": {
+   "w": 556,
+   "h": 162,
+   "tipo": "corpo"
+  },
+  "exp3": {
+   "w": 490,
+   "h": 162,
+   "tipo": "corpo"
+  },
+  "ko": {
+   "w": 396,
+   "h": 162,
+   "tipo": "corpo"
+  },
+  "walk1": {
+   "w": 290,
+   "h": 162,
+   "tipo": "corpo"
+  },
+  "walk2": {
+   "w": 292,
+   "h": 162,
+   "tipo": "corpo"
+  },
+  "walk3": {
+   "w": 196,
+   "h": 162,
+   "tipo": "corpo"
+  },
+  "ult": {
+   "w": 418,
+   "h": 297,
+   "tipo": "efeito"
+  }
+ },
+ "notas": "idle/walk1-3/ult = sprites ANTIGOS do dragao (voo; a folha nova nao traz um voo bom), ampliados ate o tamanho dos quadros novos; guard = voo em guarda; flash = voo/sopro curto; strong = sopro/investida grande; dash/dash2 = investida; charge = aura; cast = redemoinho (ultimate); blast = clarao; hurt = recuo; exp1-4 = poses; ko = nocaute; portrait = retrato."
+}

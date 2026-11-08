@@ -1,3 +1,7 @@
+import { migrateLegacyIds } from './legacyIds';
+// Registra a extensão 'storyHp' (vida do modo história) ANTES de qualquer carregamento de save: a tela de slots carrega o save
+// antes de a tela do mundo ser avaliada, e uma extensão ainda não registrada seria ignorada.
+import './healthState';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getPlayerStateSnapshot, restorePlayerState, resetPlayerState, type EquipSlots } from './playerState';
 import type { UpgradeStat } from '@/game/items/upgrades';
@@ -74,7 +78,7 @@ export function summarize(data: SaveData) {
 function parse(raw: string | null): SaveData | null {
   if (!raw) return null;
   try {
-    const d = JSON.parse(raw) as SaveData;
+    const d = JSON.parse(migrateLegacyIds(raw)) as SaveData;
     if (d.version !== SAVE_VERSION) return null;
     if (!isDifficulty(d.difficulty)) d.difficulty = 'medium';
     return d;

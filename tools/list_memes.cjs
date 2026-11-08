@@ -46,7 +46,7 @@ for (const p of n.OUTDOOR_NPCS) add(p.npcId, { kind: 'mundo', text: `${islandOf(
 for (const f of L.FLOOR_IDS) for (const p of L.CASINO_FLOORS[f].npcs) add(p.npcId, { kind: 'cassino', text: `${FLOOR[f]} – tile (${p.x}, ${p.y})` });
 const bossOf = {};
 for (const b of BOSSES) {
-  const id = { boss_chill: 'cara_tranquilo', boss_chill_2: 'cara_tranquilo', boss_troll: 'troll_trapaceiro', boss_tocao: 'tocao_npc', boss_serafim: 'serafim_npc', boss_capiroto: 'capiroto_npc' }[b.id];
+  const id = { boss_chill: 'cara_tranquilo', boss_chill_2: 'cara_tranquilo', boss_troll: 'troll_trapaceiro', boss_sahur: 'sahur_npc', boss_sahur_god: 'sahur_god_npc', boss_sahur_evil: 'sahur_evil_npc' }[b.id];
   if (id && b.spot) add(id, { kind: 'chefe', text: `${islandOf(b.spot.x, b.spot.y)} – chefe "${b.name}" em (${b.spot.x}, ${b.spot.y})${b.friendly ? ' (duelo amigável)' : ' (luta obrigatória)'}` });
 }
 

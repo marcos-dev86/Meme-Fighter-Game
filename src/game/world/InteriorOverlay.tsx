@@ -14,7 +14,7 @@ import { BUILDING_CONTENT, type FloorContent, type InteriorTemplate } from './bu
 import { NPCS } from './npcs';
 import { CharacterMarker } from './CharacterMarker';
 import { NpcSprite } from './NpcSprite';
-import { getIdleAspect, getSprite, SPRITE_ASPECTS } from '@/game/battle/sprites';
+import { getIdleAspect, getSprite, SPRITE_ASPECTS, walkFrames } from '@/game/battle/sprites';
 import { CapeLayer, HatLayer, getBodySprite, canWearCosmetics, preloadBodySprites } from '@/game/cosmetics/CosmeticLayers';
 import { useCosmetics } from '@/game/state/cosmeticsState';
 import { getStoryCharacterId } from '@/game/state/questState';
@@ -49,7 +49,6 @@ const NPC_MARKER_SIZE = 34;
 const STAIRS_UP_POS = { x: 7, y: 1 };
 const STAIRS_DOWN_POS = { x: 1, y: 1 };
 
-const WALK_FRAME_COUNT = 3; // o corpo vem de getBodySprite (pose + skin)
 const WALK_FRAME_MS = 140;
 // Collision uses only the player's FEET (a small box at the bottom of the
 // body), like the classic top-down RPGs: the head can overlap a wall or a
@@ -399,7 +398,7 @@ export function InteriorOverlay({ buildingId, onExit }: Props) {
       if (frameTimerRef.current >= WALK_FRAME_MS) {
         frameTimerRef.current = 0;
         setFrameIndex((i) => {
-          const next = (i + 1) % WALK_FRAME_COUNT;
+          const next = (i + 1) % walkFrames(bodyChar).length;
           if (next % 2 === 0) playSfx('step_wood', { gain: 0.4, minGapMs: 150 });
           return next;
         });
@@ -673,8 +672,8 @@ export function InteriorOverlay({ buildingId, onExit }: Props) {
           }}
         />
       )}
-      {shopOpen && <ShopOverlay vendor={building?.stock ? undefined : 'common'} shopKey={buildingId} stock={building?.stock} bags={building?.stock ? building.bags ?? [] : undefined} title={building?.stock ? building.label.toUpperCase() : undefined} onClose={() => setShopOpen(false)} />}
-      {battleShopOpen && <ShopOverlay vendor="battle" shopKey={`${buildingId}_battle`} stock={BATTLE_STOCK} bags={[]} title={t('shop_title_battle')} onClose={() => setBattleShopOpen(false)} />}
+      {shopOpen && <ShopOverlay vendor={building?.stock ? undefined : 'common'} shopKey={buildingId} stock={building?.stock} bags={building?.stock ? building.bags ?? [] : undefined} armors={building?.stock ? building.armors ?? [] : undefined} title={building?.stock ? building.label.toUpperCase() : undefined} onClose={() => setShopOpen(false)} />}
+      {battleShopOpen && <ShopOverlay vendor="battle" shopKey={`${buildingId}_battle`} stock={BATTLE_STOCK} bags={[]} armors={[]} title={t('shop_title_battle')} onClose={() => setBattleShopOpen(false)} />}
       {casinoOpen && <CasinoOverlay onClose={() => setCasinoOpen(false)} />}
       {cosmeticsOpen && <CosmeticShopOverlay onClose={() => setCosmeticsOpen(false)} />}
     </View>

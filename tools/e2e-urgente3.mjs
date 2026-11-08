@@ -145,7 +145,7 @@ async function main() {
     const errs = [], badImg = [];
     pg.on('pageerror', (e) => !/NotAllowedError|play\(\) failed|#418/i.test(String(e)) && errs.push(String(e)));
     pg.on('response', (r) => r.status() >= 400 && /\.(png|webp|gif|jpe?g)(\?|$)/i.test(r.url()) && badImg.push(r.status() + ' ' + r.url()));
-    await pg.goto(`${base}/battle?p1=capiroto&p2=serafim&p2Control=cpu&stageKey=stage_${n}`, { waitUntil: 'load' });
+    await pg.goto(`${base}/battle?p1=sahur_evil&p2=sahur_god&p2Control=cpu&stageKey=stage_${n}`, { waitUntil: 'load' });
     await pg.getByText('FLASH', { exact: true }).waitFor({ timeout: 30000 });
     await pg.waitForFunction(() => !document.body.innerText.includes('ROUND 1'), null, { timeout: 30000 }).catch(() => {});
     await pg.setViewportSize({ width: 1281, height: 720 }); await pg.setViewportSize({ width: 1280, height: 720 });

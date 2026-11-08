@@ -1,0 +1,115 @@
+{
+ "folha": "tools/art_src/sheets/dogge.png",
+ "layout": "std",
+ "altura_corpo_px": 200,
+ "altura_corpo_original_px": 238,
+ "reducao": 0.84,
+ "poses": {
+  "portrait": {
+   "w": 285,
+   "h": 361,
+   "tipo": "solto"
+  },
+  "walk1": {
+   "w": 187,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk2": {
+   "w": 183,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk3": {
+   "w": 192,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk4": {
+   "w": 195,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk5": {
+   "w": 222,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "guard": {
+   "w": 178,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "flash": {
+   "w": 193,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "strong": {
+   "w": 218,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "dash": {
+   "w": 360,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "idle": {
+   "w": 210,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "charge": {
+   "w": 230,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "orb": {
+   "w": 156,
+   "h": 130,
+   "tipo": "efeito"
+  },
+  "ult": {
+   "w": 192,
+   "h": 107,
+   "tipo": "efeito"
+  },
+  "cast": {
+   "w": 439,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "hurt": {
+   "w": 222,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp1": {
+   "w": 234,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp2": {
+   "w": 239,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp3": {
+   "w": 230,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp4": {
+   "w": 242,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "ko": {
+   "w": 287,
+   "h": 200,
+   "tipo": "corpo"
+  }
+ },
+ "notas": "idle = retrato parado (reduzido para a escala dos passos); guard = guarda; flash = soco curto; strong = soco longo; dash = investida com explosao; charge = aura; cast = pose da bola de energia (ultimate); ult = rastro (efeito do ultimate); orb = bola; exp1-4 = expressoes; ko = nocaute."
+}

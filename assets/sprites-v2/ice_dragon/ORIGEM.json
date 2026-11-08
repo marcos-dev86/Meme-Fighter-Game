@@ -1,0 +1,110 @@
+{
+ "folha": "tools/art_src/sheets/ice_dragon.png",
+ "layout": "dragon",
+ "altura_corpo_px": 181,
+ "altura_corpo_original_px": 181,
+ "reducao": 1.0,
+ "poses": {
+  "portrait": {
+   "w": 345,
+   "h": 244,
+   "tipo": "solto"
+  },
+  "guard": {
+   "w": 258,
+   "h": 181,
+   "tipo": "corpo"
+  },
+  "exp4": {
+   "w": 242,
+   "h": 181,
+   "tipo": "corpo"
+  },
+  "flash": {
+   "w": 262,
+   "h": 181,
+   "tipo": "corpo"
+  },
+  "strong": {
+   "w": 270,
+   "h": 181,
+   "tipo": "corpo"
+  },
+  "idle": {
+   "w": 276,
+   "h": 181,
+   "tipo": "corpo"
+  },
+  "dash2": {
+   "w": 436,
+   "h": 181,
+   "tipo": "corpo"
+  },
+  "charge": {
+   "w": 226,
+   "h": 181,
+   "tipo": "corpo"
+  },
+  "cast": {
+   "w": 256,
+   "h": 181,
+   "tipo": "corpo"
+  },
+  "dash": {
+   "w": 338,
+   "h": 181,
+   "tipo": "corpo"
+  },
+  "blast": {
+   "w": 390,
+   "h": 181,
+   "tipo": "corpo"
+  },
+  "hurt": {
+   "w": 444,
+   "h": 181,
+   "tipo": "corpo"
+  },
+  "exp1": {
+   "w": 494,
+   "h": 181,
+   "tipo": "corpo"
+  },
+  "exp2": {
+   "w": 540,
+   "h": 181,
+   "tipo": "corpo"
+  },
+  "exp3": {
+   "w": 492,
+   "h": 181,
+   "tipo": "corpo"
+  },
+  "ko": {
+   "w": 376,
+   "h": 181,
+   "tipo": "corpo"
+  },
+  "walk1": {
+   "w": 298,
+   "h": 181,
+   "tipo": "corpo"
+  },
+  "walk2": {
+   "w": 218,
+   "h": 181,
+   "tipo": "corpo"
+  },
+  "walk3": {
+   "w": 312,
+   "h": 181,
+   "tipo": "corpo"
+  },
+  "ult": {
+   "w": 418,
+   "h": 297,
+   "tipo": "efeito"
+  }
+ },
+ "notas": "idle/walk1-3/ult = sprites ANTIGOS do dragao (voo; a folha nova nao traz um voo bom), ampliados ate o tamanho dos quadros novos; guard = voo em guarda; flash = voo/sopro curto; strong = sopro/investida grande; dash/dash2 = investida; charge = aura; cast = redemoinho (ultimate); blast = clarao; hurt = recuo; exp1-4 = poses; ko = nocaute; portrait = retrato."
+}

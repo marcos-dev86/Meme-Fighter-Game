@@ -65,7 +65,17 @@ export interface NpcPose {
   walking: boolean;
   /** 1 = looking right, -1 = left (only while walking). */
   dir: 1 | -1;
+  /** Direção do rosto (4 direções, para as folhas de andar dos NPCs); parado = de frente. */
+  facing: NpcFacing;
   asleep: boolean;
+}
+
+export type NpcFacing = 'down' | 'left' | 'right' | 'up';
+
+/** Direção dominante de um deslocamento: horizontal quando |dx| >= |dy|, senão vertical. */
+export function facingOf(dx: number, dy: number): NpcFacing {
+  if (Math.abs(dx) >= Math.abs(dy)) return dx >= 0 ? 'right' : 'left';
+  return dy >= 0 ? 'down' : 'up';
 }
 
 function smooth(x: number): number {
@@ -76,17 +86,17 @@ function smooth(x: number): number {
 /** Where this NPC is right now (`cycleMs` = position in the 20-minute cycle; defaults to the live clock). */
 export function npcPose(p: OutdoorPlacement, cycleMs: number = getCycleMs(), map: MapDef = overworld): NpcPose {
   const plan = planFor(p, map);
-  if (!plan) return { x: p.x, y: p.y, walking: false, dir: 1, asleep: false };
+  if (!plan) return { x: p.x, y: p.y, walking: false, dir: 1, facing: 'down', asleep: false };
   const t = 6 + (cycleMs / CYCLE_MS) * 24; // game hour 6..30
   const WALK = 0.6;
   const leg = (from: { x: number; y: number }, to: { x: number; y: number }, k: number): NpcPose => {
     const e = smooth(k);
-    return { x: from.x + (to.x - from.x) * e, y: from.y + (to.y - from.y) * e, walking: k > 0 && k < 1, dir: to.x >= from.x ? 1 : -1, asleep: false };
+    return { x: from.x + (to.x - from.x) * e, y: from.y + (to.y - from.y) * e, walking: k > 0 && k < 1, dir: to.x >= from.x ? 1 : -1, facing: k > 0 && k < 1 ? facingOf(to.x - from.x, to.y - from.y) : 'down', asleep: false };
   };
-  if (t < 13 - WALK) return { x: plan.a.x, y: plan.a.y, walking: false, dir: 1, asleep: false };
+  if (t < 13 - WALK) return { x: plan.a.x, y: plan.a.y, walking: false, dir: 1, facing: 'down', asleep: false };
   if (t < 13) return leg(plan.a, plan.b, (t - (13 - WALK)) / WALK);
-  if (t < 18 - WALK) return { x: plan.b.x, y: plan.b.y, walking: false, dir: 1, asleep: false };
+  if (t < 18 - WALK) return { x: plan.b.x, y: plan.b.y, walking: false, dir: 1, facing: 'down', asleep: false };
   if (t < 18) return leg(plan.b, plan.c, (t - (18 - WALK)) / WALK);
-  if (t < 30 - WALK) return { x: plan.c.x, y: plan.c.y, walking: false, dir: 1, asleep: plan.sleeps && t > 20 };
+  if (t < 30 - WALK) return { x: plan.c.x, y: plan.c.y, walking: false, dir: 1, facing: 'down', asleep: plan.sleeps && t > 20 };
   return leg(plan.c, plan.a, (t - (30 - WALK)) / WALK);
 }

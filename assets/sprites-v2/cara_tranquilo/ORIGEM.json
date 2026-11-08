@@ -1,0 +1,115 @@
+{
+ "folha": "tools/art_src/sheets/cara_tranquilo.png",
+ "layout": "newB",
+ "altura_corpo_px": 200,
+ "altura_corpo_original_px": 240,
+ "reducao": 0.833,
+ "poses": {
+  "portrait": {
+   "w": 189,
+   "h": 309,
+   "tipo": "solto"
+  },
+  "walk1": {
+   "w": 193,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk2": {
+   "w": 242,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk3": {
+   "w": 178,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk4": {
+   "w": 208,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk5": {
+   "w": 230,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "guard": {
+   "w": 145,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "flash": {
+   "w": 250,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "strong": {
+   "w": 217,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "dash": {
+   "w": 413,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "idle": {
+   "w": 130,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "charge": {
+   "w": 207,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "ult": {
+   "w": 203,
+   "h": 132,
+   "tipo": "efeito"
+  },
+  "cast": {
+   "w": 345,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "orb": {
+   "w": 170,
+   "h": 129,
+   "tipo": "efeito"
+  },
+  "hurt": {
+   "w": 273,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp1": {
+   "w": 138,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp2": {
+   "w": 143,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp3": {
+   "w": 142,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp4": {
+   "w": 150,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "ko": {
+   "w": 315,
+   "h": 200,
+   "tipo": "corpo"
+  }
+ },
+ "notas": "idle = retrato parado; guard = guarda; flash = guarda 2; strong = conjurar; dash = conjurar + explosao; charge = aura; orb = bola/circulo; ult = rastro; cast = bola na mao; hurt = levando golpe; exp1-4 = poses; ko = nocaute."
+}

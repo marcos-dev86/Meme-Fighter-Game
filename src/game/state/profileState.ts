@@ -1,3 +1,4 @@
+import { migrateLegacyIds } from './legacyIds';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORY_CHARACTERS } from '@/game/story/characters';
@@ -23,7 +24,7 @@ export async function ensureProfileLoaded() {
   try {
     const raw = await AsyncStorage.getItem(KEY);
     if (raw) {
-      const d = JSON.parse(raw) as { unlocked?: string[] };
+      const d = JSON.parse(migrateLegacyIds(raw)) as { unlocked?: string[] };
       const ids = (d.unlocked ?? []).filter((id) => STORY_CHARACTERS[id]);
       unlocked = Array.from(new Set([...unlocked, ...ids]));
       notify();

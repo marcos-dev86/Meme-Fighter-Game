@@ -494,7 +494,7 @@
     297
    ]
   },
-  "tocao": {
+  "sahur": {
    "idle": [
     92,
     186
@@ -532,7 +532,7 @@
     297
    ]
   },
-  "serafim": {
+  "sahur_god": {
    "idle": [
     170,
     216
@@ -570,7 +570,7 @@
     297
    ]
   },
-  "capiroto": {
+  "sahur_evil": {
    "idle": [
     160,
     224
@@ -762,7 +762,7 @@
    "strong": "imagem solta f89000160 (troll face), reduzida a 60% + pose gerada por codigo",
    "ult": "gerado (bola de energia)"
   },
-  "tocao": {
+  "sahur": {
    "idle": "recorte da folha de poses enviada pelo dono",
    "walk1": "recorte da folha de poses enviada pelo dono",
    "walk2": "recorte da folha de poses enviada pelo dono",
@@ -773,7 +773,7 @@
    "walk4": "recorte da folha de poses enviada pelo dono",
    "ult": "gerado (bola de energia)"
   },
-  "serafim": {
+  "sahur_god": {
    "idle": "recorte da folha de poses enviada pelo dono",
    "walk1": "recorte da folha de poses enviada pelo dono",
    "walk2": "recorte da folha de poses enviada pelo dono",
@@ -784,7 +784,7 @@
    "walk4": "recorte da folha de poses enviada pelo dono",
    "ult": "gerado (bola de energia)"
   },
-  "capiroto": {
+  "sahur_evil": {
    "idle": "recorte da folha de poses enviada pelo dono",
    "walk1": "recorte da folha de poses enviada pelo dono",
    "walk2": "recorte da folha de poses enviada pelo dono",

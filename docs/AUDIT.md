@@ -1122,14 +1122,14 @@ Os dois mudam de padrão com 50% de vida (`hasPhases`), como os outros chefes. O
 ### Como rodar
 `node tools/test-urgente2.mjs`; navegador: `npx expo export --platform web --output-dir dist`, depois `node tools/e2e-urgente1.mjs dist` e `node tools/e2e-urgente2-world.mjs dist`.
 
-## Parte Urgente 3 — Serafim/Tocão/Capiroto, cassino gigante, memes ×3, cenários com variação, revanche
+## Parte Urgente 3 — Sahur God/Sahur/Sahur Evil, cassino gigante, memes ×3, cenários com variação, revanche
 
 ### Dano aleatório e crítico (commit `977ab1c`, ainda não entregue em ZIP)
 - Cada golpe sorteia dano em faixa; crítico base de 5%; lâminas afiadas aumentam a chance. Cobertura em `tools/test-dano.mjs` (15 testes).
 
-### Personagens Serafim (anjo), Tocão (laranja) e Capiroto (diabo)
+### Personagens Sahur God (anjo), Sahur (laranja) e Sahur Evil (diabo)
 - Sprites cortados da folha enviada pelo usuário (`tools/art_src/folha_3_personagens.png`) por `tools/folha_sprites.py` → `tools/make_legacy_sprites.py` (`from_sheet`). Poses: idle, walk1–4, dash, flash (soco curto), strong (soco longo), ult.
-- A linha do Tocão na folha não tinha um quadro separado de soco longo: foi mapeado conforme `POSE_NOTES` em `folha_sprites.py`. Asas/auréola não animam separadas do corpo (são parte do quadro).
+- A linha do Sahur na folha não tinha um quadro separado de soco longo: foi mapeado conforme `POSE_NOTES` em `folha_sprites.py`. Asas/auréola não animam separadas do corpo (são parte do quadro).
 - `tools/rig_sprites.py` (rig anterior, sem a folha) foi removido.
 
 ### Cassino gigante (Ilha Misteriosa)
@@ -1156,3 +1156,111 @@ Os dois mudam de padrão com 50% de vida (`hasPhases`), como os outros chefes. O
 - Nada testado em aparelho real nem APK. Não há teste de navegador da luta de revanche até o desconto aparecer na tela (coberto só por teste Node + tsc).
 - Variantes dusk/noite não foram vistas em batalha viva em todos os cenários (só os arquivos e o carregamento).
 - Parte 2 (cutscenes, rivais, elites, animação de caminhada dos NPCs) segue bloqueada por falta das folhas PNG limpas.
+
+## Parte 2 (Urgente 4) — sprites novos, Sahur, cume do vulcão
+
+### Renomeados (nome exibido; os ids internos foram trocados na rodada 2 — ver abaixo)
+- `sahur` → **Sahur**, `sahur_god` → **Sahur God**, `sahur_evil` → **Sahur Evil** (nome conforme escrito pelo dono; trocar é uma linha em `rosterState.ts`, `bossState.ts`, `Fighter.ts`, `npcs.ts` e `stringsUrgente3.ts`).
+
+### Cume do vulcão (mesmo piolet da montanha)
+- Platô de cinza selado na rocha a oeste do vilarejo do vulcão (x1850–1858, y300–328) com uma parede escarpada (`cliff`, x1842–1849, y312–316) que só o piolet vence (`cliff.ts`/`collision.ts`, o mesmo código da montanha de neve). Pé da parede (1840,314); bandeira no cume (1854,314), recompensa em (1854,304).
+- Missão `volcano_summit` (exige `buy_piolet`), item `volcano_flag`. A parede no vulcão é desenhada em rocha escura; a dica sem piolet agora diz "Parede escarpada" (5 idiomas).
+
+### Sprites novos (5 folhas) — ver `docs/SPRITES_V2.md`
+- Importados: orc, soldier, gadigago, dogge, sahur (andar 5 passos, hurt, ko, charge, cast, ult). Motor: `sprites.ts` (`usesV2`, `resolvePose`, `walkFrames`), `Fighter.ts` (hurt/ko/charge com quadro próprio; ultimate usa `cast`), `BattleScreen.tsx` (KO sem girar 90° quando há quadro `ko`; aura de código só sem quadro `charge`; tint de status na silhueta).
+- Dogge/Gadigago: skins, chapéu, capa e mão da arma medidos nos quadros novos (`wearV2.ts`). Preview conferido por imagem; **não** testado equipado em batalha real.
+- Desligar por personagem em `assets/sprites-v2/ACTIVE.json`.
+
+### Testes (executados)
+- `tools/test-parte2.mjs` (20) e e2e `tools/e2e-parte2.mjs` (batalha dos 5 com hurt/ko visíveis, vulcão com e sem piolet) + `e2e-urgente1` (64, altura dos 16 lutadores).
+
+
+## Parte 2, rodada 2 — renomeação total, vida persistente, armaduras, 8 folhas novas, NPCs andando, PNGs leves
+
+### Renomeação (ids, pastas, arquivos, textos)
+- `tocao` → `sahur` ("Sahur"), `serafim` → `sahur_god` ("Sahur God"), `capiroto` → `sahur_evil` ("Sahur Evil"; corrigido o "Evl"). Trocado em ids de personagem, chefes (`boss_sahur…`), NPCs (`sahur_npc…`), missões (`tronco_sahur…`), chaves de i18n, pastas (`assets/legacy-sprites/`, `assets/sprites-v2/sahur`, `tools/art_src/…`), ferramentas, testes e docs.
+- **Saves antigos**: `src/game/state/legacyIds.ts` troca os ids velhos no texto do JSON antes do parse (save, roster e perfil), então personagens liberados, chefes vencidos, missões e chave de revanche (`boss:boss_*`) migram sozinhos. Teste em `tools/test-parte3.mjs`.
+
+### Vida persistente (mundo ↔ luta de história) — `src/game/state/healthState.ts`
+- Guardada como fração (0–1) da vida máxima, salva no jogo (ext `storyHp`; saves antigos começam cheios).
+- Luta de **missão de duelo, chefe e rival** entra com a vida do mundo e, a cada quadro, devolve a vida em que está. Rounds seguintes **não** enchem a vida. Luta rápida, VERSUS e Torre não mexem.
+- **Regras de design (mude as constantes se quiser):** perder a luta volta ao mundo com **25%** (`DEFEAT_FLOOR`); desmaiar no mundo acorda com **50%** (`FAINT_HP`; antes era 100%). "Tentar de novo" na tela de derrota recomeça com a vida guardada (25%).
+- Cura: itens de cura (já usáveis no mundo e na luta), regeneração natural do mundo (após 4,5 s sem apanhar) e **armaduras**.
+- O mundo passa a pausar (sem regenerar/apanhar) enquanto outra tela, como a luta, está por cima.
+
+### Armaduras (regeneram vida no mundo e na luta) — `items/armorDefs.ts`, `items/armor.ts`
+- Colete de Couro (0,5/s, loja da praça, 320), Armadura de Ferro (1/s, loja do gelo, 850), Manto Arcano (1,7/s, recompensa do chefe Sahur Evil), Armadura da Fênix (2,6/s, recompensa do andar 40 da Torre). Uma vestida por vez, trocada no INVENTÁRIO (barra ARMADURA). Soma com a regeneração das habilidades. Ícones **provisórios** (capas/elmo existentes) — troque `icon` em `armorDefs.ts`.
+
+### Folhas novas (8) e idle parado
+- ninja, troll_face, sahur_evil, sahur_god, dogking, tank, mystic, cara_tranquilo (identificados pelo desenho). Recorte por células com pontos de corte por folha (`SHEET_CFG` em `tools/import_sheets.py`), porque os quadros de ataque encostam uns nos outros. Folhas tipo A (6) trazem 2 quadros de conjurar na linha 2 e a "hurt" é o quadro com marcas de impacto da linha 3; tipo B (mystic, cara) têm hurt na linha 2.
+- **Idle de todos os personagens novos = o retrato parado**; a guarda continua como pose `guard`. Cosméticos/âncoras de Dogge e Gadigago foram remedidos no idle novo.
+- **PNGs otimizados** (`tools/png_opt.py`): redução uniforme por personagem (corpo ≤ 200 px) + paleta de 256 cores. sprites-v2 15 MB → 3,2 MB; skins-v2 5,5 MB → 1,1 MB; nenhum quadro > 64 KB. `MF_NO_OPT=1` gera sem perdas.
+- Não usados pelo motor ainda: `orb`/`burst`/`exp1-4`/`portrait` (guardados para o VERSUS); quadros extras de conjurar das folhas tipo A não foram importados.
+
+### NPCs andando — `tools/import_npc_sheets.py`
+- 4 folhas JPG (RPG Maker: 3 passos × 4 direções, 8 personagens por folha) → `assets/npc-walk/` (fundo branco removido). A folha 4 corresponde aos NPCs `c08–c15` (conferido por comparação do quadro de frente) e eles andam com direção e passos; as folhas 1–3 são 24 personagens **novos sem NPC atribuído** (mapa editável em `assets/npc-walk/MAP.json`). NPC sem folha segue com a imagem parada de antes.
+- Limite: a folha 3 veio em 236 px (menor que as outras, 384 px) e fica mais borrada.
+
+### Erro de console corrigido
+- `MissionsScreen`: capítulo repetido (a missão do vulcão ficava em outro ponto da lista) gerava `key` duplicada; agora agrupa por nome.
+
+### Verificado (executado)
+- `tsc` limpo; todos os `tools/test-*.mjs` e `test_legacy_sprites.py`; `test-parte3.mjs` novo. Navegador (`e2e-parte3.mjs`, 30/30): 13 lutas com o idle novo, /missions sem erro, mundo com 40% vindo do save (51% após 9 s; 82% com a Armadura da Fênix). `e2e-parte3-vida.mjs`: 40% no mundo → luta de chefe começa com ~40% → derrota → mundo com 25%.
+
+### Limitações / não verificado
+- Nada testado em aparelho real nem APK. Animação de andar dos NPCs só verificada por teste Node + export; não vi um NPC andando em captura de tela. Loja do gelo e recompensas de armadura (chefe/torre) só testadas por Node.
+- Dogge/Gadigago equipados em batalha viva; troca de status (silhueta) na batalha; ciclo de rounds da luta de história com HP carregado em partida completa — só o primeiro caminho foi exercitado.
+
+---
+
+## Parte 2 — rodada 3: PERFIL, conquistas, Diamond Meme, derrota com checkpoint
+
+### Conta global (fora dos saves) — `src/game/account/`
+- **`accountCore.ts`** (puro, testado em Node) + **`accountState.ts`** (guarda em AsyncStorage, chave própria `meme_fighter_account_v1`, avisa as telas). Apagar/trocar um save **nunca** mexe na conta: apelido, favorito, ícone/fundo/moldura, Diamond Meme, conquistas, estatísticas e **cosméticos já conseguidos (chapéus, capas e skins)** moram aqui.
+- Cosméticos: `cosmeticsState.ts` agora lê/grava a posse na conta; só o que está *vestido* continua por save. Saves antigos que traziam `owned` dentro do slot são **migrados para a conta** ao carregar (nada se perde).
+- Tudo que é número de balanceamento está em **`accountConfig.ts`** (ganhos de diamante, taxa de derrota, custo de reviver, pacotes de câmbio, preços do perfil).
+
+### Menu e perfil
+- Menu inicial: JOGAR · **PERFIL** · OPÇÕES · SAIR. **Apelido** pedido no primeiro acesso (`NicknameDialog`), editável no perfil.
+- `ProfileScreen` (rota `/profile`): aba PERFIL (apelido, favorito só entre os **liberados**, estatísticas), CONQUISTAS (filtro, barra de progresso, raridade, recompensa), VISUAL (ícone, fundo, moldura + compra com diamantes).
+- **Ícones de perfil** = só o **busto** (cara + pescoço + um pouco abaixo), recortado da arte que já existe (`tools/make_avatars.py` → `assets/avatars/*.png`, 160×160, ~416 KB no total; gera `avatarArt.ts` e `avatarList.ts`). 57 ícones: 16 jogáveis (Dogge e Gadigago grátis; os outros precisam do lutador **liberado** + diamantes) e 41 amigos/memes **não jogáveis** (NPCs, 9 memes do cassino, 5 parentes, retratos antigos) que **compram direto**, sem ter encontrado no mapa. O enquadramento de cada um é uma fração na tabela `SPECS` (basta editar e rodar de novo).
+- **Fundos**: 10 cores lisas grátis; 7 com efeito/animação (degradê, estrelas, chuva verde, aurora, pulso, arco-íris) comprados com diamantes. **Molduras**: padrão grátis; 7 compradas (prata, ouro, dupla, pixel, neon, fogo, arco-íris).
+
+### Conquistas — `achievementDefs.ts`
+- 74 conquistas declarativas (id e ícone únicos, título/descrição pt+en, 5 raridades, recompensa em 💎 pela raridade). **Para criar uma nova: acrescentar uma linha** em `ACHIEVEMENTS`; não há código de verificação por conquista (a condição lê contadores/conjuntos da conta e é reavaliada a cada evento).
+- Exemplos pedidos: **NEVOU!!** ("Vá até a Ilha de Gelo") e "ZERE O MODO HISTÓRIA USANDO O PERSONAGEM DOG KING" (uma por personagem + "todos"). As de personagem ainda sem história jogável aparecem com o aviso "ainda não é jogável na história".
+- Ícones: **cada conquista tem a sua própria imagem pixel-art 16×16** (74 PNGs em `assets/achievements/`, desenhados por mim em `tools/ach/*.py` e gerados por `tools/make_achievement_icons.py`, que também gera `achievementArt.ts`), dentro de um emblema colorido pela raridade (`AchievementIcon`, `imageRendering: pixelated`). Para trocar uma: editar o desenho e rodar o script de novo.
+- Aviso na tela (`AchievementToast`) em qualquer tela, uma de cada vez.
+
+### Diamond Meme
+- Ganha: missão (1), missão final (10), 1ª vitória em chefe (3), andar **novo** da Torre (1; ×5 = 3; ×10 = 5), VERSUS **só contra a CPU** (1–5 por dificuldade, teto 30/dia), conquistas (1/2/5/10/25 por raridade). Luta contra pessoa/treino não rende.
+- Gasta: reviver, comprar ícones/fundos/molduras, **câmbio por Meme Coins** (1💎→100, 5→550, 20→2400) no menu de pausa do mundo (as moedas entram no mundo aberto).
+
+### Derrota (história e Torre) — `DefeatOverlay`, `deathRules.ts`, `checkpointState.ts`
+- Luta (quest/chefe/rival/Torre): o nocaute que **perderia a luta** congela a luta (fase `downed`) com animação de queda e escolha: **REVIVER** (3💎; animação de renascimento, volta com **100% de vida no mesmo estado** — rounds, energia, posição e vida do inimigo mantidos) ou aceitar a derrota.
+- Aceitar a derrota (história): cobra a **taxa em Meme Coins** (`25 + 5×nível`, ×0,5…×2 pela dificuldade) — **pode deixar o saldo negativo** (com dívida as lojas não vendem; ganhos pagam a dívida primeiro) — e leva ao **checkpoint**. Torre e lutas livres não cobram taxa.
+- Mundo: vida zerada abre a mesma tela; reviver no lugar ou voltar ao checkpoint com 50% da vida. **Checkpoint = último cais em que desembarcou** (sem nenhum ainda = a vila), salvo no slot.
+
+### Verificado (executado)
+- `tsc` limpo; `test-conta.mjs` (36) + todos os testes antigos; navegador `e2e-conta.mjs`: primeiro acesso/apelido, toast, perfil, compras, meme não jogável comprado direto, skins sobrevivem a apagar o save 1, derrota → reviver (100%, −3💎) → derrota → taxa e saldo negativo → checkpoint (posição salva = checkpoint) → câmbio no pause.
+### Limitações / não verificado
+- Nada em aparelho real/APK. As ligações de conquistas por evento (chefe, Torre, ilha, missão) estão testadas por código/Node; só missão, derrota, reviver, checkpoint, câmbio, compras e a conquista de apelido foram exercitadas no navegador. A vitória no VERSUS contra a CPU (diamantes + teto diário) está testada na lógica pura e por leitura do código, mas **não foi jogada até o fim no navegador**. Os 41 ícones não jogáveis são recortes de pixel-art pequena (os das folhas de NPC ficam serrilhados ao ampliar).
+- Valores escolhidos por mim (taxa de derrota, ganhos, preços, lista inicial de conquistas) estão todos em `accountConfig.ts` / `achievementDefs.ts` / `make_avatars.py`.
+
+---
+
+## Rodada 3b — avatares, derrota sem "tentar de novo", conquistas com imagem, últimas folhas (orc 2 + 3 dragões)
+
+### Pedidos atendidos
+- **Avatares corrigidos** (`tools/make_avatars.py`, função `solidify`): todos os Sahurs, cara_tranquilo (nariz) e ninja (rosto) deixaram de ficar transparentes; troll_face, gadigago e moai não cortam mais o rosto. 57 ícones regenerados.
+- **Sem "tentar novamente"**: a revanche foi **removida** (`revanche.ts` e seu teste apagados, textos tirados). Perdeu a luta → só **VOLTAR AO CHECKPOINT** (ou reviver pagando); para lutar de novo o jogador tem de renascer no checkpoint e ir até o local da luta. Como a revanche não existe mais, **não há desconto de recompensa** na 2ª tentativa (testado em `test-conta.mjs`).
+- **74 conquistas com imagem própria** (ver seção de conquistas acima).
+- **Orc 2ª folha + 3 dragões** integrados (`tools/import_sheets.py`; folhas em `tools/art_src/sheets/`): ver `docs/SPRITES_V2.md` (seção "Rodada 3: últimas folhas").
+
+### Verificado (executado)
+- `tsc` limpo; `test-dano` 15, `test-parte01` 65, `test-parte2` 22, `test-parte3` 26, `test-urgente2` 12, `test-urgente3` 40, `test-conta` 41, `test_legacy_sprites.py` ok.
+
+### Limitações / não verificado
+- Os dragões voam/andam/ult com os **quadros antigos** (pedido do dono); estilo ligeiramente diferente dos quadros novos (cores chapadas; o dragão de sombra anda no chão). O `cast` do dragão de gelo tem uma mancha preta preenchida (vem da folha). O `hurt` do orc é arte da 1ª folha reescalada.
+- Os dragões ficam um pouco mais baixos na tela (mesma largura de antes).
+- Não testado em aparelho real/APK. Cutscenes em vídeo: **ainda não criadas** (parte reservada em `docs/CUTSCENES.md`).

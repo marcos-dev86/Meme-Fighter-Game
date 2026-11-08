@@ -29,9 +29,9 @@ const CHAR_PORTRAIT: Record<CharacterKey, number> = {
   shadow_dragon: require('../../assets/legacy-sprites/shadow_dragon/idle.png'),
   cara_tranquilo: require('../../assets/legacy-sprites/cara_tranquilo/idle.png'),
   troll_face: require('../../assets/legacy-sprites/troll_face/idle.png'),
-  tocao: require('../../assets/legacy-sprites/tocao/idle.png'),
-  serafim: require('../../assets/legacy-sprites/serafim/idle.png'),
-  capiroto: require('../../assets/legacy-sprites/capiroto/idle.png'),
+  sahur: require('../../assets/legacy-sprites/sahur/idle.png'),
+  sahur_god: require('../../assets/legacy-sprites/sahur_god/idle.png'),
+  sahur_evil: require('../../assets/legacy-sprites/sahur_evil/idle.png'),
 };
 
 const CHAR_LABEL: Record<CharacterKey, string> = {
@@ -48,9 +48,9 @@ const CHAR_LABEL: Record<CharacterKey, string> = {
   shadow_dragon: 'DRAGÃO SOMBRIO',
   cara_tranquilo: 'CARA TRANQUILO',
   troll_face: 'TROLL FACE',
-  tocao: 'TOCÃO',
-  serafim: 'SERAFIM',
-  capiroto: 'CAPIROTO',
+  sahur: 'TOCÃO',
+  sahur_god: 'SAHUR GOD',
+  sahur_evil: 'SAHUR EVIL',
 };
 const ALL_CHARACTERS: CharacterKey[] = ROSTER.map((r) => r.key);
 

@@ -1,0 +1,115 @@
+{
+ "folha": "tools/art_src/sheets/mystic.png",
+ "layout": "newB",
+ "altura_corpo_px": 200,
+ "altura_corpo_original_px": 248,
+ "reducao": 0.806,
+ "poses": {
+  "portrait": {
+   "w": 269,
+   "h": 380,
+   "tipo": "solto"
+  },
+  "walk1": {
+   "w": 177,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk2": {
+   "w": 156,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk3": {
+   "w": 160,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk4": {
+   "w": 177,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk5": {
+   "w": 179,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "guard": {
+   "w": 185,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "flash": {
+   "w": 195,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "strong": {
+   "w": 305,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "dash": {
+   "w": 335,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "idle": {
+   "w": 155,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "charge": {
+   "w": 247,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "ult": {
+   "w": 193,
+   "h": 93,
+   "tipo": "efeito"
+  },
+  "cast": {
+   "w": 358,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "orb": {
+   "w": 169,
+   "h": 164,
+   "tipo": "efeito"
+  },
+  "hurt": {
+   "w": 234,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp1": {
+   "w": 147,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp2": {
+   "w": 148,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp3": {
+   "w": 158,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp4": {
+   "w": 163,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "ko": {
+   "w": 345,
+   "h": 200,
+   "tipo": "corpo"
+  }
+ },
+ "notas": "idle = retrato parado; guard = guarda; flash = guarda 2; strong = conjurar; dash = conjurar + explosao; charge = aura; orb = bola/circulo; ult = rastro; cast = bola na mao; hurt = levando golpe; exp1-4 = poses; ko = nocaute."
+}

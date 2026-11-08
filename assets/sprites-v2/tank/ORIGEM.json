@@ -1,0 +1,110 @@
+{
+ "folha": "tools/art_src/sheets/tank.png",
+ "layout": "newA",
+ "altura_corpo_px": 200,
+ "altura_corpo_original_px": 208,
+ "reducao": 0.962,
+ "poses": {
+  "portrait": {
+   "w": 209,
+   "h": 351,
+   "tipo": "solto"
+  },
+  "walk1": {
+   "w": 227,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk2": {
+   "w": 231,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk3": {
+   "w": 213,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk4": {
+   "w": 202,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk5": {
+   "w": 217,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "guard": {
+   "w": 250,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "flash": {
+   "w": 238,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "strong": {
+   "w": 258,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "dash": {
+   "w": 458,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "idle": {
+   "w": 190,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "charge": {
+   "w": 213,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "ult": {
+   "w": 285,
+   "h": 162,
+   "tipo": "efeito"
+  },
+  "cast": {
+   "w": 281,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp1": {
+   "w": 217,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp2": {
+   "w": 221,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp3": {
+   "w": 225,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp4": {
+   "w": 250,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "ko": {
+   "w": 340,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "hurt": {
+   "w": 250,
+   "h": 200,
+   "tipo": "corpo"
+  }
+ },
+ "notas": "idle = retrato parado; guard = guarda; flash = guarda 2 (soco curto); strong = conjurar; dash = conjurar + explosao; charge = aura; cast = bola na mao; ult = rastro (efeito do ultimate); hurt = quadro com marcas de impacto (linha 3); exp1-4 = poses; ko = nocaute."
+}

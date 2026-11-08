@@ -38,7 +38,7 @@ import folha_sprites  # noqa: E402  (recortes da folha de poses dos 3 troncos)
 
 POSES = ['idle', 'walk1', 'walk2', 'walk3', 'dash', 'flash', 'strong', 'ult']
 BODY = POSES[:7]
-WALK4 = ['tocao', 'serafim', 'capiroto']  # estes 3 tem um 4o passo de andar (walk4) na folha enviada
+WALK4 = ['sahur', 'sahur_god', 'sahur_evil']  # estes 3 tem um 4o passo de andar (walk4) na folha enviada
 
 # ----------------------------------------------------------------------------- utilidades de matriz RGBA
 
@@ -618,7 +618,7 @@ def build_all(src_root, repo, out, only=None):
         base = smooth(a, a.shape[1] * 0.6, a.shape[0] * 0.6)
         single('troll_face', base, 1, GOLD, (420, 300), 36, 4, 'imagem solta f89000160 (troll face), reduzida a 60%')
 
-    # ---- Urgente 3: os 3 personagens de "tronco" (Tocao, Serafim, Capiroto): quadros recortados da folha de poses enviada pelo dono.
+    # ---- Urgente 3: os 3 personagens de "tronco" (Sahur, Sahur God, Sahur Evil): quadros recortados da folha de poses enviada pelo dono.
     def from_sheet(name, pal, seed):
         """Os 3 troncos: quadros RECORTADOS da folha de poses enviada pelo dono (folha_sprites.py). Efeitos de rastro, estrela e arco
         ja vem desenhados na folha; so a bola do ult e gerada por codigo (a folha nao tem quadro de ult)."""
@@ -630,12 +630,12 @@ def build_all(src_root, repo, out, only=None):
         origin['ult'] = 'gerado (bola de energia)'
         add(name, finalize_set(F, 1, fireball(420, 300, pal, seed)), origin)
 
-    if want('tocao'):
-        from_sheet('tocao', GOLD, 41)
-    if want('serafim'):
-        from_sheet('serafim', ICE, 42)
-    if want('capiroto'):
-        from_sheet('capiroto', SHADOW, 43)
+    if want('sahur'):
+        from_sheet('sahur', GOLD, 41)
+    if want('sahur_god'):
+        from_sheet('sahur_god', ICE, 42)
+    if want('sahur_evil'):
+        from_sheet('sahur_evil', SHADOW, 43)
 
     meta = {'sizes': sizes, 'origem': origins}
     os.makedirs(out, exist_ok=True)

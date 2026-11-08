@@ -1,3 +1,4 @@
+import { migrateLegacyIds } from './legacyIds';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { CharacterKey } from '@/game/battle/Fighter';
@@ -30,16 +31,16 @@ export const ROSTER: RosterEntry[] = [
   { key: 'shadow_dragon', unlock: { kind: 'boss', bossId: 'boss_trevas' } },
   { key: 'troll_face', unlock: { kind: 'boss', bossId: 'boss_troll' } },
   { key: 'cara_tranquilo', unlock: { kind: 'boss', bossId: 'boss_chill' } },
-  { key: 'tocao', unlock: { kind: 'boss', bossId: 'boss_tocao' } },
-  { key: 'serafim', unlock: { kind: 'boss', bossId: 'boss_serafim' } },
-  { key: 'capiroto', unlock: { kind: 'boss', bossId: 'boss_capiroto' } },
+  { key: 'sahur', unlock: { kind: 'boss', bossId: 'boss_sahur' } },
+  { key: 'sahur_god', unlock: { kind: 'boss', bossId: 'boss_sahur_god' } },
+  { key: 'sahur_evil', unlock: { kind: 'boss', bossId: 'boss_sahur_evil' } },
 ];
 
 /** Nomes (em português, como no resto dos nomes de personagens) para avisos de desbloqueio. */
 export const FIGHTER_NAME: Record<string, string> = {
   dogge: 'Dogge', gadigago: 'Gadigago', orc: 'Orc', soldier: 'Soldado', dogking: 'Rei dos Cães', tank: 'Tanque',
   ninja: 'Ninja', mystic: 'Místico', green_dragon: 'Dragão da Floresta', ice_dragon: 'Dragão do Gelo', shadow_dragon: 'Dragão Sombrio',
-  troll_face: 'Troll Face', cara_tranquilo: 'Cara Tranquilo', tocao: 'Tocão', serafim: 'Serafim', capiroto: 'Capiroto',
+  troll_face: 'Troll Face', cara_tranquilo: 'Cara Tranquilo', sahur: 'Sahur', sahur_god: 'Sahur God', sahur_evil: 'Sahur Evil',
 };
 
 const KEY = 'meme_fighter_roster_v1';
@@ -55,7 +56,7 @@ export async function ensureRosterLoaded() {
   try {
     const raw = await AsyncStorage.getItem(KEY);
     if (raw) {
-      const d = JSON.parse(raw) as { unlocked?: string[] };
+      const d = JSON.parse(migrateLegacyIds(raw)) as { unlocked?: string[] };
       const known = new Set(ROSTER.map((r) => r.key as string));
       unlocked = Array.from(new Set([...DEFAULTS, ...(d.unlocked ?? []).filter((k) => known.has(k))])) as CharacterKey[];
       notify();

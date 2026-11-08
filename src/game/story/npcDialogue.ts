@@ -24,8 +24,8 @@ export function trollLines(n = trollTalks++): string[] {
   return [t(`troll_${g}1`), t(`troll_${g}2`), t(`troll_${g}3`)];
 }
 
-/** Os 3 troncos (Tocão, Serafim, Capiroto): 4 falas de história cada, no idioma escolhido. */
-const TRONCO_BY_NPC: Record<string, string> = { tocao_npc: 'tocao', serafim_npc: 'serafim', capiroto_npc: 'capiroto' };
+/** Os 3 troncos (Sahur, Sahur God, Sahur Evil): 4 falas de história cada, no idioma escolhido. */
+const TRONCO_BY_NPC: Record<string, string> = { sahur_npc: 'sahur', sahur_god_npc: 'sahur_god', sahur_evil_npc: 'sahur_evil' };
 export function troncoLines(npcId: string): string[] | null {
   const c = TRONCO_BY_NPC[npcId];
   return c ? [1, 2, 3, 4].map((i) => t(`tronco_${c}_${i}`)) : null;

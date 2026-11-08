@@ -245,6 +245,17 @@ const GATE_TRAIL: Rect = { x0: 76, y0: 773, x1: 92, y1: 776 }; // ground at the 
 const GATE_CLIFF: Rect = { x0: 88, y0: 748, x1: 92, y1: 772 }; // the climb itself
 export const MOUNTAIN_GATE_FOOT = { x: 84, y: 775 };
 
+// ---- o cume do vulcão (Parte 2): um platô de cinza selado dentro da massa de rocha a oeste do vilarejo, com UMA
+// parede escarpada ('cliff') que só o piolet vence - o MESMO item da montanha de neve (ver cliff.ts). O caminho
+// vertical que já existe em x≈1839..1841 leva ao pé da parede. ----
+const VOLCANO_PLATEAU: Rect = { x0: 1850, y0: 300, x1: 1858, y1: 328 };
+const VOLCANO_CLIFF: Rect = { x0: 1842, y0: 312, x1: 1849, y1: 316 };
+export const VOLCANO_GATE_FOOT = { x: 1840, y: 314 };
+/** Cume do vulcão (recompensa da escalada). */
+export const VOLCANO_SUMMIT_TILE = { x: 1854, y: 314 };
+/** Baú no platô do cume. */
+export const VOLCANO_CHEST_TILE = { x: 1854, y: 304 };
+
 function landingPad(center: { x: number; y: number }, r = 3): Rect {
   return { x0: center.x - r, y0: center.y - r, x1: center.x + r, y1: center.y + r };
 }
@@ -446,6 +457,8 @@ function buildGrid(): TileType[] {
   for (const v of VILLAGE_CLEARINGS) stampRect(grid, v.rect, v.tile);
   for (const seg of CONNECTORS) stampRect(grid, seg, 'path', (cur) => cur === 'snow');
   sealMountain(grid);
+  stampRect(grid, VOLCANO_PLATEAU, 'ash');
+  stampRect(grid, VOLCANO_CLIFF, 'cliff');
   for (const r of DOCK_RECTS) stampRect(grid, r, 'dock', (cur) => cur !== 'stone' && cur !== 'wall');
   for (const pr of PIERS) stampRect(grid, pr, 'dock');
   stampRect(grid, DOG_LANDING, 'sand');

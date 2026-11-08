@@ -4,6 +4,7 @@ import { costForNextLevel, MAX_LEVEL, type UpgradeStat } from '@/game/items/upgr
 import { MAX_PLAYER_LEVEL, pointsForReaching, xpToNext } from '@/game/items/levels';
 import { BAGS, DEFAULT_BAG, MAX_STACK, bagEffectsOf } from '@/game/items/bags';
 import { getBagEffects, setBagEffects } from '@/game/items/bagRuntime';
+import { ARMORS } from '@/game/items/armorDefs';
 import { playSfx } from '@/game/audio/audioManager';
 import { haptic } from '@/game/audio/haptics';
 
@@ -42,6 +43,9 @@ interface PlayerState {
   /** Bags owned and the one in use (see bags.ts). */
   bags: string[];
   bagId: string;
+  /** Armaduras (regeneram vida, ver armorDefs.ts): as que você tem e a vestida agora (null = nenhuma). */
+  armors: string[];
+  armorId: string | null;
 }
 
 function freshUpgrades(): Record<UpgradeStat, number> {
@@ -59,6 +63,8 @@ const state: PlayerState = {
   statPoints: 0,
   bags: [DEFAULT_BAG],
   bagId: DEFAULT_BAG,
+  armors: [],
+  armorId: null,
 };
 /** Latest level reached that the world hasn't announced yet (toast "NÍVEL N!"). */
 let levelNotice: number | null = null;
@@ -105,6 +111,8 @@ export function getPlayerStateSnapshot() {
     statPoints: state.statPoints,
     bags: [...state.bags],
     bagId: state.bagId,
+    armors: [...state.armors],
+    armorId: state.armorId,
   };
 }
 
@@ -122,6 +130,8 @@ export function restorePlayerState(data: {
   statPoints?: number;
   bags?: string[];
   bagId?: string;
+  armors?: string[];
+  armorId?: string | null;
 }) {
   state.coins = data.coins;
   state.inventory = { ...data.inventory };
@@ -139,6 +149,9 @@ export function restorePlayerState(data: {
   state.bags = Array.from(new Set([DEFAULT_BAG, ...(data.bags ?? []).filter((b) => BAGS[b])]));
   state.bagId = data.bagId && state.bags.includes(data.bagId) ? data.bagId : DEFAULT_BAG;
   setBagEffects(bagEffectsOf(state.bagId));
+  // Saves de antes das armaduras não têm esses campos: começam sem nenhuma.
+  state.armors = Array.from(new Set((data.armors ?? []).filter((a) => ARMORS[a])));
+  state.armorId = data.armorId && state.armors.includes(data.armorId) ? data.armorId : null;
   levelNotice = null;
   notify();
 }
@@ -155,6 +168,8 @@ export function resetPlayerState() {
   state.statPoints = 0;
   state.bags = [DEFAULT_BAG];
   state.bagId = DEFAULT_BAG;
+  state.armors = [];
+  state.armorId = null;
   setBagEffects(bagEffectsOf(DEFAULT_BAG));
   levelNotice = null;
   notify();
@@ -224,6 +239,28 @@ export function equipBag(bagId: string): boolean {
   if (slots > bag.slots || weight * bagEffectsOf(bagId).weightMult > bag.maxWeight + 1e-6) return false;
   state.bagId = bagId;
   setBagEffects(bagEffectsOf(bagId));
+  notify();
+  return true;
+}
+
+export function getOwnedArmors(): string[] {
+  return [...state.armors];
+}
+export function getEquippedArmorId(): string | null {
+  return state.armorId;
+}
+/** Adds an armor to the collection (false if already owned). The first one found is worn right away. */
+export function giveArmor(armorId: string): boolean {
+  if (!ARMORS[armorId] || state.armors.includes(armorId)) return false;
+  state.armors.push(armorId);
+  if (!state.armorId) state.armorId = armorId;
+  notify();
+  return true;
+}
+/** Wears an armor you own (null = take it off). */
+export function equipArmor(armorId: string | null): boolean {
+  if (armorId !== null && (!state.armors.includes(armorId) || !ARMORS[armorId])) return false;
+  state.armorId = armorId;
   notify();
   return true;
 }
@@ -379,6 +416,8 @@ export function usePlayerState() {
     upgrades: { ...state.upgrades },
     bags: [...state.bags],
     bagId: state.bagId,
+    armors: [...state.armors],
+    armorId: state.armorId,
   };
 }
 

@@ -89,23 +89,23 @@ export const CASSINO_MISSIONS: MissionDef[] = [
 ];
 
 /**
- * "Os Três Troncos" (Urgente 3): a história de Tocão, Serafim e Capiroto. Cada um é um chefe do mundo (amigável o Tocão);
+ * "Os Três Troncos" (Urgente 3): a história de Sahur, Sahur God e Sahur Evil. Cada um é um chefe do mundo (amigável o Sahur);
  * depois de vencido vira morador da ilha dele, e as missões levam o jogador de um ao outro. Todas opcionais.
  */
 export const TRONCOS_MISSIONS: MissionDef[] = [
   {
-    id: 'tronco_tocao', title: 'O Tronco Laranja', hint: 'Ao norte da praça, um tronco laranja quer um treino amigável. Vença-o e converse com ele.', type: 'quest', chapter: 'Os Três Troncos',
+    id: 'tronco_sahur', title: 'O Tronco Laranja', hint: 'Ao norte da praça, um tronco laranja quer um treino amigável. Vença-o e converse com ele.', type: 'quest', chapter: 'Os Três Troncos',
     requires: ['kills_12'], optional: true, reward: { coins: 60, xp: 100 },
-    objective: { kind: 'chain', steps: [{ kind: 'talk', npcId: 'tocao_npc', hint: 'Derrote o Tocão (treino amigável, perto da praça) e fale com ele.', lines: ['Boa luta! Meus irmãos também gostam de uma boa briga.', 'O Serafim vive na ilha de gelo, ao sudoeste. Ele é bonzinho, mas a luz dele queima.'] }] },
+    objective: { kind: 'chain', steps: [{ kind: 'talk', npcId: 'sahur_npc', hint: 'Derrote o Sahur (treino amigável, perto da praça) e fale com ele.', lines: ['Boa luta! Meus irmãos também gostam de uma boa briga.', 'O Sahur God vive na ilha de gelo, ao sudoeste. Ele é bonzinho, mas a luz dele queima.'] }] },
   },
   {
-    id: 'tronco_serafim', title: 'O Tronco Anjo', hint: 'O Serafim vive na ilha de gelo, ao sudoeste. Vença-o e converse.', type: 'quest', chapter: 'Os Três Troncos',
-    requires: ['tronco_tocao', 'talk_zeca'], optional: true, reward: { coins: 100, xp: 180 },
-    objective: { kind: 'chain', steps: [{ kind: 'talk', npcId: 'serafim_npc', hint: 'Vá à ilha de gelo, derrote o Serafim e fale com ele.', lines: ['A luz aprovou você. Raro.', 'Meu irmão Capiroto está no vulcão, a leste. Cuidado: ele não perde uma provocação.'] }] },
+    id: 'tronco_sahur_god', title: 'O Tronco Anjo', hint: 'O Sahur God vive na ilha de gelo, ao sudoeste. Vença-o e converse.', type: 'quest', chapter: 'Os Três Troncos',
+    requires: ['tronco_sahur', 'talk_zeca'], optional: true, reward: { coins: 100, xp: 180 },
+    objective: { kind: 'chain', steps: [{ kind: 'talk', npcId: 'sahur_god_npc', hint: 'Vá à ilha de gelo, derrote o Sahur God e fale com ele.', lines: ['A luz aprovou você. Raro.', 'Meu irmão Sahur Evil está no vulcão, a leste. Cuidado: ele não perde uma provocação.'] }] },
   },
   {
-    id: 'tronco_capiroto', title: 'O Tronco Diabo', hint: 'O Capiroto está no vulcão, a leste. Vença-o e converse.', type: 'quest', chapter: 'Os Três Troncos',
-    requires: ['tronco_serafim'], optional: true, reward: { coins: 180, xp: 320 },
-    objective: { kind: 'chain', steps: [{ kind: 'talk', npcId: 'capiroto_npc', hint: 'Vá ao vulcão, derrote o Capiroto e fale com ele.', lines: ['Hehe, você aguentou o fogo.', 'Os três troncos já foram vencidos por você. Isso rende história pra contar por muito tempo.'] }] },
+    id: 'tronco_sahur_evil', title: 'O Tronco Diabo', hint: 'O Sahur Evil está no vulcão, a leste. Vença-o e converse.', type: 'quest', chapter: 'Os Três Troncos',
+    requires: ['tronco_sahur_god'], optional: true, reward: { coins: 180, xp: 320 },
+    objective: { kind: 'chain', steps: [{ kind: 'talk', npcId: 'sahur_evil_npc', hint: 'Vá ao vulcão, derrote o Sahur Evil e fale com ele.', lines: ['Hehe, você aguentou o fogo.', 'Os três troncos já foram vencidos por você. Isso rende história pra contar por muito tempo.'] }] },
   },
 ];

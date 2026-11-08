@@ -127,8 +127,9 @@ const list: ItemDef[] = [
   def('moon_elixir', 'Elixir da Lua', 'Recupera 70 de vida e 30 de energia. Só aparece nas lojas à noite.', 'potion_moon', undefined, 90, { kind: 'heal', amount: 70 }, { kind: 'energy', amount: 30 }),
   def('night_brew', 'Poção Noturna', '+40% de dano em todos os golpes. Só aparece nas lojas à noite.', 'potion_night', undefined, 120, { kind: 'damage', mult: 1.4 }),
   // Colecionáveis (sem efeito)
-  def('piolet', 'Piolet', 'Ferramenta de escalada: deixa você subir as paredes de gelo da montanha.', 'pickaxe', undefined, 80, { kind: 'none' }),
+  def('piolet', 'Piolet', 'Ferramenta de escalada: deixa você subir as paredes escarpadas da montanha de neve e do vulcão.', 'pickaxe', undefined, 80, { kind: 'none' }),
   def('summit_flag', 'Bandeira do Pico', 'Prova de que você chegou ao topo da montanha de neve.', 'flag', undefined, null, { kind: 'none' }),
+  def('volcano_flag', 'Bandeira do Cume', 'Prova de que você escalou o vulcão.', 'flag', undefined, null, { kind: 'none' }),
   def('guild_parcel', 'Pacote Lacrado', 'Entregue pelo Mestre da Guilda. Não abra: leve ao destinatário.', 'parcel', undefined, null, { kind: 'none' }),
   def('meme_token', 'Ficha Meme', 'Um colecionável bobo. Não faz nada, é só engraçado ter.', 'card', undefined, 5, { kind: 'none' }),
   def('old_coin', 'Moeda Antiga', 'Achada, não vendida. Parece ter uma história.', 'coin', undefined, null, { kind: 'none' }),
@@ -145,7 +146,7 @@ const META: Record<string, [Rarity, number]> = {
   chili: ['uncommon', 0.1], shield_charm: ['rare', 0.1], pumpkin: ['uncommon', 1],
   w_dagger: ['common', 1], w_cutlass: ['uncommon', 2], w_club: ['uncommon', 3], w_sword: ['rare', 3],
   w_hammer: ['rare', 5], w_axe: ['epic', 5], w_shield: ['uncommon', 4], w_bomb: ['uncommon', 1],
-  piolet: ['uncommon', 2], summit_flag: ['legendary', 0.5], guild_parcel: ['common', 0.5],
+  piolet: ['uncommon', 2], summit_flag: ['legendary', 0.5], volcano_flag: ['legendary', 0.5], guild_parcel: ['common', 0.5],
   moonshroom: ['uncommon', 0.1], moon_elixir: ['rare', 0.5], night_brew: ['epic', 0.5],
   meme_token: ['common', 0.1], old_coin: ['uncommon', 0.1], map_fragment: ['rare', 0.1],
 };

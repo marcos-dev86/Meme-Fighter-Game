@@ -1,0 +1,115 @@
+{
+ "folha": "tools/art_src/sheets/gadigago.png",
+ "layout": "std",
+ "altura_corpo_px": 200,
+ "altura_corpo_original_px": 255,
+ "reducao": 0.784,
+ "poses": {
+  "portrait": {
+   "w": 275,
+   "h": 342,
+   "tipo": "solto"
+  },
+  "walk1": {
+   "w": 232,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk2": {
+   "w": 215,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk3": {
+   "w": 221,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk4": {
+   "w": 224,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk5": {
+   "w": 182,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "guard": {
+   "w": 146,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "flash": {
+   "w": 190,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "strong": {
+   "w": 229,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "dash": {
+   "w": 326,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "idle": {
+   "w": 138,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "charge": {
+   "w": 227,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "orb": {
+   "w": 138,
+   "h": 121,
+   "tipo": "efeito"
+  },
+  "ult": {
+   "w": 170,
+   "h": 98,
+   "tipo": "efeito"
+  },
+  "cast": {
+   "w": 317,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "hurt": {
+   "w": 202,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp1": {
+   "w": 163,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp2": {
+   "w": 162,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp3": {
+   "w": 147,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp4": {
+   "w": 169,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "ko": {
+   "w": 307,
+   "h": 200,
+   "tipo": "corpo"
+  }
+ },
+ "notas": "idle = retrato parado (reduzido para a escala dos passos); guard = guarda; flash = soco curto; strong = soco longo; dash = investida com explosao; charge = aura; cast = pose da bola de energia (ultimate); ult = rastro (efeito do ultimate); orb = bola; exp1-4 = expressoes; ko = nocaute."
+}

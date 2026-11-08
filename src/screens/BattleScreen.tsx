@@ -11,12 +11,11 @@ import { useGameLoop } from '@/game/core/useGameLoop';
 import { boxesOverlap, createFighter, Fighter, HIT_FLASH_MS, STATUS_COLOR, STATUS_ICON, STATUS_KINDS, type CharacterKey, type StatusKind } from '@/game/battle/Fighter';
 import { clearFx, createFx, hitKindOf, KIND_STYLE, numberVisual, particleVisual, reactionVisual, shakeOffset, spawnBurst, spawnDamageNumber, spawnImpact, stepFx, type FxState } from '@/game/battle/combatFx';
 import { grantVictory, resolveSetup, type Granted } from '@/game/battle/battleModes';
-import { applyRevanche, recordLoss, recordWin, revancheKey, revancheLabel, revancheMult } from '@/game/state/revanche';
 import { applySkills } from '@/game/items/skills';
 import { getLearned } from '@/game/state/skillState';
 import { endRun, getRun } from '@/game/state/towerState';
 import { CpuController } from '@/game/battle/CpuController';
-import { getLayoutAspect, getSprite, SPRITE_ASPECTS } from '@/game/battle/sprites';
+import { getLayoutAspect, getSprite, hasPose, resolvePose, SPRITE_ASPECTS } from '@/game/battle/sprites';
 import { stageArt } from '@/game/menu/art';
 import { STAGE_FEET, stageVariantForLight } from '@/game/battle/stages';
 import { MenuButton } from '@/game/menu/MenuButton';
@@ -24,7 +23,13 @@ import { useI18n } from '@/game/i18n/i18n';
 import { setQuestStatus, QUEST_BATTLE_DEFS, getStoryCharacterId } from '@/game/state/questState';
 import { getSession } from '@/game/state/session';
 import { refreshIslandUnlocks } from '@/game/state/islandState';
-import { addCoins, consumeEquippedItem, getEquippedItems, getLevel, getUpgradeLevels } from '@/game/state/playerState';
+import { addCoins, consumeEquippedItem, getCoins, getEquippedItems, getLevel, getUpgradeLevels } from '@/game/state/playerState';
+import { DefeatOverlay } from '@/game/account/DefeatOverlay';
+import { REVIVE_COST, currentDeathFee, payDeathFee, payRevive } from '@/game/account/deathRules';
+import { noteFightLost, noteFightWon, noteVersusCpuWin, useAccount } from '@/game/account/accountState';
+import { requestRespawn } from '@/game/state/checkpointState';
+import { getStoryHp, setStoryHp, storyHpAfterFight, usesStoryHp } from '@/game/state/healthState';
+import { applyArmorRegen } from '@/game/items/armor';
 import { rollHit } from '@/game/battle/damageRoll';
 import { getGear, isGear } from '@/game/items/gear';
 import { HeldGear, type SwingPhase } from '@/game/items/HeldGear';
@@ -67,7 +72,7 @@ const ROUND_END_MS = 1800;
 
 const RIVAL_QUEST_REWARD = 40;
 
-type Phase = 'intro' | 'fight' | 'roundEnd' | 'matchEnd';
+type Phase = 'intro' | 'fight' | 'roundEnd' | 'matchEnd' | 'downed';
 
 function clampArena(f: Fighter) {
   if (f.x < ARENA_LEFT) f.x = ARENA_LEFT;
@@ -174,10 +179,12 @@ export function BattleScreen() {
   const insets = useSafeAreaInsets();
   const itemAnchor = useItemMenuAnchor();
   const { t } = useI18n();
-  const params = useLocalSearchParams<{ p1?: string; p2?: string; p2Control?: string; stageKey?: string; questId?: string; difficulty?: string; bossId?: string; tower?: string; rival?: string; items1?: string; items2?: string }>();
+  const params = useLocalSearchParams<{ p1?: string; p2?: string; p2Control?: string; training?: string; stageKey?: string; questId?: string; difficulty?: string; bossId?: string; tower?: string; rival?: string; items1?: string; items2?: string }>();
   // What this fight is (plain / quest / boss / tower floor / rival) and how strong the opponent is.
   const setup = useRef(resolveSetup(params, { questOpponent: params.questId ? ((params.p2 as CharacterKey) || undefined) : undefined })).current;
   const ROUNDS_TO_WIN = setup.roundsToWin;
+  /** Lutas de história (missão de duelo, chefe, rival) usam a vida do mundo e devolvem a vida final. */
+  const carryStoryHp = usesStoryHp(setup.kind);
   const ROUND_TIME_MS = setup.roundMs;
   const isSpecial = setup.kind === 'boss' || setup.kind === 'tower' || setup.kind === 'rival';
 
@@ -213,6 +220,10 @@ export function BattleScreen() {
   useEffect(() => {
     applyUpgrades(p1, getUpgradeLevels());
     applySkills(p1, getStoryCharacterId(), getLearned());
+    // Armadura equipada: regenera vida durante a luta (soma com a regeneração das habilidades).
+    applyArmorRegen(p1, p1.regenPerSec);
+    // Luta de história: entra com a vida que o jogador tinha no mundo (ver state/healthState.ts).
+    if (carryStoryHp) p1.health = Math.max(1, getStoryHp() * p1.maxHealth);
     // Arma de raridade alta pode aplicar status (a chance vem da raridade, ver gearDefs.ts). Não duplica se o setup rodar de novo.
     for (const pr of getGear().procs) {
       if (!p1.onHitStatus.some((x) => x.src === pr.src && x.kind === pr.kind)) p1.onHitStatus.push(pr);
@@ -282,11 +293,16 @@ export function BattleScreen() {
   const [roundEndReason, setRoundEndReason] = useState<'ko' | 'time'>('ko');
   const [banner, setBanner] = useState<string | null>(null);
   const [granted, setGranted] = useState<Granted | null>(null);
+  // Derrota: o jogador pode reviver com Diamond Meme na hora do nocaute que perderia a luta (fase 'downed').
+  const account = useAccount();
+  const reviveEligible = setup.kind !== 'free';
+  /** taxa de derrota (só lutas de história; a Torre já perde a corrida) */
+  const chargesFee = carryStoryHp;
+  const feeRef = useRef(false);
+  const [feePaid, setFeePaid] = useState<{ fee: number; balance: number } | null>(null);
+  const [versusGain, setVersusGain] = useState(0);
+  const versusCountedRef = useRef(false);
   const towerEndedRef = useRef(false);
-  /** Revanche: perdeu e tentou de novo = prêmio menor (ver state/revanche.ts). Torre e VERSUS ficam de fora. */
-  const rKey = revancheKey(setup);
-  const lossRecordedRef = useRef(false);
-  const [rMult, setRMult] = useState(() => revancheMult(rKey));
 
   const startRoundIntro = () => {
     clearFx(fxRef.current); // sem números/partículas do round anterior
@@ -295,6 +311,8 @@ export function BattleScreen() {
     roundTimerRef.current = ROUND_TIME_MS;
     p1.resetForRound(200, groundFeetY - p1.getReferenceHeight(), 1);
     p2.resetForRound(900, groundFeetY - p2.getReferenceHeight(), -1);
+    // Luta de história: o round seguinte (e a revanche) começa com a vida em que o anterior terminou, não com a vida cheia.
+    if (carryStoryHp) p1.health = Math.max(1, getStoryHp() * p1.maxHealth);
     setPhase('intro');
     setSeconds(Math.round(ROUND_TIME_MS / 1000));
   };
@@ -433,10 +451,24 @@ export function BattleScreen() {
 
       stepFx(fxRef.current, dt, frameScale);
 
-      if (p1.isKO || p2.isKO) {
+      // A vida do jogador volta ao mundo do jeito que estiver quando a luta acabar (ou for abandonada): gravo a cada quadro.
+      // Se ele caiu (KO), volta com o piso de derrota em vez de 0 (ver DEFEAT_FLOOR).
+      if (carryStoryHp) setStoryHp(storyHpAfterFight(p1.health / p1.maxHealth));
+
+      if (reviveEligible && p1.isKO && !p2.isKO && p2.roundsWon + 1 >= ROUNDS_TO_WIN) {
+        // Este nocaute perderia a luta: congela tudo e deixa o jogador escolher (reviver com diamantes ou aceitar a derrota).
+        phaseRef.current = 'downed';
+        setPhase('downed');
+      } else if (p1.isKO || p2.isKO) {
         endRound();
       }
 
+      tick((n) => n + 1);
+    } else if (phaseRef.current === 'downed') {
+      // Simulação parada: só os efeitos e a aparência continuam andando (o golpe final termina de rodar).
+      stepFx(fxRef.current, dt, frameScale);
+      p1.tickVisuals(dt);
+      p2.tickVisuals(dt);
       tick((n) => n + 1);
     } else if (phaseRef.current === 'roundEnd') {
       // Os efeitos do golpe final terminam de rodar (antes ficavam congelados na tela até o próximo round).
@@ -448,18 +480,24 @@ export function BattleScreen() {
         if (p1.roundsWon >= ROUNDS_TO_WIN || p2.roundsWon >= ROUNDS_TO_WIN) {
           phaseRef.current = 'matchEnd';
           setPhase('matchEnd');
-          if (rKey && p1.roundsWon <= p2.roundsWon && !lossRecordedRef.current) {
-            lossRecordedRef.current = true;
-            recordLoss(rKey);
-            setRMult(revancheMult(rKey));
+          if (p1.roundsWon <= p2.roundsWon && chargesFee && !feeRef.current) {
+            feeRef.current = true;
+            setFeePaid(payDeathFee()); // taxa de derrota em Meme Coins (o saldo pode ficar negativo)
+          }
+          if (p1.roundsWon <= p2.roundsWon && setup.kind !== 'free') noteFightLost();
+          if (setup.kind === 'free' && p2IsCpu && p1.roundsWon > p2.roundsWon && !versusCountedRef.current) {
+            versusCountedRef.current = true;
+            if (params.training) noteFightWon();
+            else setVersusGain(noteVersusCpuWin(difficulty));
+          } else if (setup.kind === 'free' && !p2IsCpu && p1.roundsWon > p2.roundsWon && !versusCountedRef.current) {
+            versusCountedRef.current = true; // contra outra pessoa: conta a vitória, não rende diamantes
+            noteFightWon();
           }
           if (isSpecial && p1.roundsWon > p2.roundsWon && !questRewardGrantedRef.current) {
             questRewardGrantedRef.current = true;
             playSfx('levelup');
             haptic('success');
-            const m = revancheMult(rKey);
-            setGranted(grantVictory(setup, Math.max(0.01, p1.health / p1.maxHealth), !tookDamage.current, m));
-            recordWin(rKey);
+            setGranted(grantVictory(setup, Math.max(0.01, p1.health / p1.maxHealth), !tookDamage.current));
           } else if (setup.kind === 'tower' && p1.roundsWon <= p2.roundsWon && !towerEndedRef.current) {
             towerEndedRef.current = true;
             endRun(getSession()?.name ?? 'Dogge', getLevel());
@@ -468,9 +506,8 @@ export function BattleScreen() {
             questRewardGrantedRef.current = true;
             setQuestStatus(params.questId, 'completed');
             refreshIslandUnlocks();
-            const mq = revancheMult(rKey);
-            const reward = applyRevanche(QUEST_BATTLE_DEFS[params.questId]?.reward ?? RIVAL_QUEST_REWARD, mq);
-            recordWin(rKey);
+            const reward = QUEST_BATTLE_DEFS[params.questId]?.reward ?? RIVAL_QUEST_REWARD; // recompensa sempre cheia, mesmo depois de reviver
+            noteFightWon();
             addCoins(reward);
             setQuestReward(reward);
           }
@@ -570,9 +607,29 @@ export function BattleScreen() {
   const nextFloor = () => {
     router.replace({ pathname: '/battle', params: { p1: p1Key, p2Control: 'cpu', tower: String((setup.floor ?? 1) + 1) } });
   };
+  /** Reviver (Diamond Meme): volta com 100% de vida, no mesmo estado da luta. */
+  const handleRevive = () => {
+    if (!payRevive()) return false;
+    return true;
+  };
+  const handleRevived = () => {
+    p1.revive();
+    if (carryStoryHp) setStoryHp(1);
+    phaseRef.current = 'fight';
+    setPhase('fight');
+  };
+  const handleDeclineDeath = () => {
+    endRound();
+  };
+  /** Derrota aceita: volta ao mundo e o mundo leva o jogador ao checkpoint. */
+  const goCheckpoint = () => {
+    if (carryStoryHp) requestRespawn();
+    router.back();
+  };
+
   const startRematch = () => {
-    lossRecordedRef.current = false;
-    setRMult(revancheMult(rKey));
+    feeRef.current = false;
+    setFeePaid(null);
     p1.roundsWon = 0;
     p2.roundsWon = 0;
     roundNumberRef.current = 1;
@@ -703,6 +760,19 @@ export function BattleScreen() {
 
       {(phase === 'fight' || phase === 'intro') && !paused && <PauseButton onPress={() => setPaused(true)} />}
 
+      {phase === 'downed' && (
+        <DefeatOverlay
+          fee={chargesFee ? currentDeathFee() : 0}
+          coins={getCoins()}
+          diamonds={account.diamonds}
+          reviveCost={REVIVE_COST}
+          declineLabel={t('death_accept')}
+          onRevive={handleRevive}
+          onRevived={handleRevived}
+          onDecline={handleDeclineDeath}
+        />
+      )}
+
       {phase === 'matchEnd' && (
         <View style={styles.overlay}>
           {isSpecial ? (
@@ -715,7 +785,6 @@ export function BattleScreen() {
                   {granted.coins > 0 ? `+${granted.coins} ${CURRENCY_ABBR}   ` : ''}
                   {granted.xp > 0 ? `+${granted.xp} XP` : ''}
                 </Text>
-                {granted.mult < 1 && <Text style={styles.questRewardText}>{t('revanche_applied')} {revancheLabel(granted.mult)}</Text>}
                 {granted.lines.map((l) => (
                   <Text key={l} style={styles.questRewardText}>
                     {l}
@@ -742,37 +811,42 @@ export function BattleScreen() {
             ) : (
               <>
                 <Text style={styles.overlayTitle}>{t('quest_defeat')}</Text>
-                {rKey && <Text style={styles.questRewardText}>{t('revanche_next')} {revancheLabel(rMult)}</Text>}
-                <MenuButton label={t('quest_retry')} onPress={startRematch} />
-                <View style={{ height: 12 }} />
-                <MenuButton label={t('quest_give_up')} variant="ghost" onPress={() => router.back()} />
+                {feePaid && (
+                  <Text style={styles.questRewardText} testID="death-fee">
+                    {t('death_fee')}: -{feePaid.fee} {CURRENCY_ABBR}  ·  {t('death_balance')}: {feePaid.balance} {CURRENCY_ABBR}
+                  </Text>
+                )}
+                {/* Sem "tentar de novo": para tentar outra vez é preciso renascer no checkpoint e voltar até o local da luta. */}
+                <MenuButton label={carryStoryHp ? t('death_checkpoint') : t('quest_give_up')} variant="ghost" onPress={goCheckpoint} />
               </>
             )
           ) : isQuestBattle ? (
-            // STORY quest fight: never offer "revanche"/"menu" after a win -
-            // the only way on is back to the world. A loss lets you retry.
+            // STORY quest fight: nunca oferece "revanche"/"menu"/"tentar de novo" - o único caminho é voltar ao mundo
+            // (e, se perdeu, renascer no checkpoint e caminhar de volta até a luta).
             <>
               <Text style={styles.overlayTitle}>{questReward !== null ? (params.questId === 'final_meme_fighter' ? t('quest_final_victory') : t('quest_victory')) : t('quest_defeat')}</Text>
               {questReward !== null && (
                 <Text style={styles.questRewardText}>
                   {t('quest_reward')}: +{questReward} {CURRENCY_ABBR}
-                  {rMult < 1 ? `  (${t('revanche_applied')} ${revancheLabel(rMult)})` : ''}
                 </Text>
               )}
               {questReward !== null ? (
                 <MenuButton label={t('battle_continue')} onPress={() => router.back()} />
               ) : (
                 <>
-                  {rKey && <Text style={styles.questRewardText}>{t('revanche_next')} {revancheLabel(rMult)}</Text>}
-                  <MenuButton label={t('quest_retry')} onPress={startRematch} />
-                  <View style={{ height: 12 }} />
-                  <MenuButton label={t('quest_give_up')} variant="ghost" onPress={() => router.back()} />
+                  {feePaid && (
+                    <Text style={styles.questRewardText} testID="death-fee">
+                      {t('death_fee')}: -{feePaid.fee} {CURRENCY_ABBR}  ·  {t('death_balance')}: {feePaid.balance} {CURRENCY_ABBR}
+                    </Text>
+                  )}
+                  <MenuButton label={carryStoryHp ? t('death_checkpoint') : t('quest_give_up')} variant="ghost" onPress={goCheckpoint} />
                 </>
               )}
             </>
           ) : (
             <>
               <Text style={styles.overlayTitle}>{champion.name + ' ' + t('battle_wins_match')}</Text>
+              {versusGain > 0 && <Text style={styles.questRewardText} testID="versus-diamonds">+{versusGain} 💎 Diamond Meme</Text>}
               <MenuButton label={t('battle_rematch')} onPress={startRematch} />
               <View style={{ height: 12 }} />
               <MenuButton label={t('battle_menu')} variant="ghost" onPress={() => router.push('/')} />
@@ -829,7 +903,7 @@ export function BattleScreen() {
 }
 
 function FighterSprite({ fighter, withGear }: { fighter: Fighter; withGear?: boolean }) {
-  const poseKey = fighter.currentSpriteKey;
+  const poseKey = resolvePose(fighter.characterKey, fighter.currentSpriteKey);
   // Cosméticos (só o jogador, p1): skin troca o sprite; capa fica atrás e chapéu por cima.
   const cos = withGear && canWearCosmetics(fighter.characterKey) ? getEquipped() : null;
   const skinId = cos ? cos.skin : null;
@@ -905,7 +979,7 @@ function FighterSprite({ fighter, withGear }: { fighter: Fighter; withGear?: boo
           // removed value, and processTransform doesn't guard against
           // that - see docs/AUDIT.md). A `0deg` rotation is a no-op, so
           // this looks identical to before but never removes the prop.
-          transform: [{ rotate: fighter.state === 'ko' ? '90deg' : '0deg' }],
+          transform: [{ rotate: fighter.state === 'ko' && !hasPose(fighter.characterKey, 'ko') ? '90deg' : '0deg' }],
         },
       ]}
     >
@@ -920,7 +994,8 @@ function FighterSprite({ fighter, withGear }: { fighter: Fighter; withGear?: boo
       {cos && <HatLayer characterKey={fighter.characterKey} poseKey={poseKey} box={{ left: xOffset, top: 0, width: frameWidth, height: refHeight }} dir={fighter.facing} cosmeticId={cos.hat} />}
       {withGear && gearNode}
       {STATUS_KINDS.filter((k) => fighter.hasStatus(k)).map((k) => (
-        <View key={k} style={{ position: 'absolute', left: xOffset, top: 0, width: frameWidth, height: refHeight, backgroundColor: `rgba(${STATUS_COLOR[k]},0.22)`, borderRadius: 16 }} />
+        // Tint do status (veneno, gelo...) na silhueta do quadro: com os quadros largos dos sprites novos o retângulo antigo aparecia.
+        <Image key={k} source={source} resizeMode="stretch" style={[silhouetteBox, { tintColor: `rgb(${STATUS_COLOR[k]})`, opacity: 0.35, transform: [{ scaleX: fighter.facing }] }]} />
       ))}
       {fighter.hasStatus('stun') && <GameIcon name="star" size={30} style={{ position: 'absolute', left: fighter.drawWidth / 2 - 15, top: -30 }} />}
       {fighter.invulnTimer > 0 && <View style={[styles.shieldGlow, { width: fighter.drawWidth, height: refHeight, borderColor: 'rgba(255,90,40,0.8)', backgroundColor: 'rgba(255,90,40,0.18)' }]} />}
@@ -933,7 +1008,7 @@ function FighterSprite({ fighter, withGear }: { fighter: Fighter; withGear?: boo
         <Image testID="hit-flash" source={source} resizeMode="stretch" style={[silhouetteBox, { tintColor: '#ffffff', opacity: flashA, transform: [{ scaleX: fighter.facing }] }]} />
       )}
       {fighter.state === 'shield' && <View style={[styles.shieldGlow, { width: fighter.drawWidth, height: refHeight }]} />}
-      {fighter.state === 'charge' && <AuraEffect active width={fighter.drawWidth} height={refHeight} />}
+      {fighter.state === 'charge' && !hasPose(fighter.characterKey, 'charge') && <AuraEffect active width={fighter.drawWidth} height={refHeight} />}
       {ultActive && (
         <Image
           source={getSprite(fighter.characterKey, 'ult')}

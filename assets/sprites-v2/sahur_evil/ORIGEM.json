@@ -1,0 +1,110 @@
+{
+ "folha": "tools/art_src/sheets/sahur_evil.png",
+ "layout": "newA",
+ "altura_corpo_px": 200,
+ "altura_corpo_original_px": 246,
+ "reducao": 0.813,
+ "poses": {
+  "portrait": {
+   "w": 258,
+   "h": 342,
+   "tipo": "solto"
+  },
+  "walk1": {
+   "w": 249,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk2": {
+   "w": 210,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk3": {
+   "w": 218,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk4": {
+   "w": 187,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk5": {
+   "w": 145,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "guard": {
+   "w": 242,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "flash": {
+   "w": 278,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "strong": {
+   "w": 325,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "dash": {
+   "w": 467,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "idle": {
+   "w": 180,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "charge": {
+   "w": 239,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "ult": {
+   "w": 274,
+   "h": 130,
+   "tipo": "efeito"
+  },
+  "cast": {
+   "w": 250,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp1": {
+   "w": 151,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp2": {
+   "w": 216,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp3": {
+   "w": 224,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp4": {
+   "w": 246,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "ko": {
+   "w": 270,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "hurt": {
+   "w": 151,
+   "h": 200,
+   "tipo": "corpo"
+  }
+ },
+ "notas": "idle = retrato parado; guard = guarda; flash = guarda 2 (soco curto); strong = conjurar; dash = conjurar + explosao; charge = aura; cast = bola na mao; ult = rastro (efeito do ultimate); hurt = quadro com marcas de impacto (linha 3); exp1-4 = poses; ko = nocaute."
+}

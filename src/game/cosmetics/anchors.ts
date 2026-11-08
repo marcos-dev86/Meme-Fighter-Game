@@ -1,4 +1,6 @@
 // GERADO por tools/measure_anchors.py (medido na silhueta de cada pose). Ajuste fino: edite os números.
+import { usesV2 } from '@/game/battle/sprites';
+import { COSMETIC_ANCHORS_V2 } from './wearV2';
 /**
  * Âncoras de cosméticos por personagem e por pose. Os sprites olham para a DIREITA (a imagem é espelhada quando o
  * personagem olha para a esquerda). Coordenadas como fração da imagem da pose: x da esquerda, y de cima; `s` é o
@@ -34,8 +36,13 @@ export function canWearCosmetics(characterKey: string): boolean {
   return !!COSMETIC_ANCHORS[characterKey];
 }
 
+function anchorTable(characterKey: string): Record<string, PoseAnchors> | undefined {
+  // sprites novos (assets/sprites-v2): âncoras medidas neles (tools/make_wear_v2.py); desligados = as de sempre
+  return usesV2(characterKey) ? COSMETIC_ANCHORS_V2[characterKey] : COSMETIC_ANCHORS[characterKey];
+}
+
 export function getCosmeticAnchors(characterKey: string, poseKey: string): PoseAnchors | null {
-  const set = COSMETIC_ANCHORS[characterKey];
+  const set = anchorTable(characterKey);
   if (!set) return null;
   return set[poseKey] ?? set.idle;
 }

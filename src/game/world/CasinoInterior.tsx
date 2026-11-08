@@ -9,7 +9,7 @@ import { DPad } from '@/game/input/DPad';
 import { useDirectionalInput } from '@/game/input/useDirectionalInput';
 import type { Direction, MapDef, TileType } from '@/types/game';
 import { MenuButton } from '@/game/menu/MenuButton';
-import { SPRITE_ASPECTS } from '@/game/battle/sprites';
+import { SPRITE_ASPECTS, walkFrames } from '@/game/battle/sprites';
 import { CapeLayer, HatLayer, getBodySprite, canWearCosmetics, preloadBodySprites } from '@/game/cosmetics/CosmeticLayers';
 import { useCosmetics } from '@/game/state/cosmeticsState';
 import { getStoryCharacterId, onQuestNotice, refreshMissions, reportTalk } from '@/game/state/questState';
@@ -52,7 +52,6 @@ const FEET = { x: 3, y: 16, w: 16, h: 14 };
 const NPC_FEET = { w: 22, h: 14 };
 const TALK_RANGE = 96;
 const PLAY_RANGE = 96;
-const WALK_FRAME_COUNT = 3;
 const WALK_FRAME_MS = 140;
 
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -208,7 +207,7 @@ export function CasinoInterior({ onExit }: Props) {
       if (frameTimerRef.current >= WALK_FRAME_MS) {
         frameTimerRef.current = 0;
         setFrameIndex((i) => {
-          const next = (i + 1) % WALK_FRAME_COUNT;
+          const next = (i + 1) % walkFrames(bodyChar).length;
           if (next % 2 === 0) playSfx('step_wood', { gain: 0.4, minGapMs: 150 });
           return next;
         });

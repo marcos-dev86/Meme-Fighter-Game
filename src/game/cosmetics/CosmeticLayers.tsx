@@ -1,7 +1,8 @@
 import React from 'react';
 import { Asset } from 'expo-asset';
 import { Image, Platform, View, type ImageStyle, type ImageSourcePropType } from 'react-native';
-import { getSprite, SPRITE_ASPECTS } from '@/game/battle/sprites';
+import { getSprite, SPRITE_ASPECTS, usesV2 } from '@/game/battle/sprites';
+import { SKIN_SPRITES_V2 } from './wearV2';
 import { ICON_SOURCES } from '@/game/ui/iconRegistry';
 import { canWearCosmetics, getCosmeticAnchors } from './anchors';
 import { COSMETIC_BY_ID, skinFolder } from './cosmeticDefs';
@@ -24,7 +25,7 @@ const PIXELATED = Platform.OS === 'web' ? ({ imageRendering: 'pixelated' } as un
 /** Sprite do corpo na pose, já com a skin equipada (se houver). */
 export function getBodySprite(characterKey: string, poseKey: string, skinId: string | null): ImageSourcePropType {
   if (skinId) {
-    const s = SKIN_SPRITES[characterKey]?.[skinFolder(skinId)]?.[poseKey];
+    const s = (usesV2(characterKey) ? SKIN_SPRITES_V2 : SKIN_SPRITES)[characterKey]?.[skinFolder(skinId)]?.[poseKey];
     if (s) return s;
   }
   return getSprite(characterKey as never, poseKey);
@@ -79,7 +80,7 @@ export function HatLayer({ characterKey, poseKey, box, dir, cosmeticId }: LayerP
 
 export { canWearCosmetics };
 
-const BODY_POSES = ['idle', 'walk1', 'walk2', 'walk3', 'dash', 'flash', 'strong'];
+const BODY_POSES = ['idle', 'walk1', 'walk2', 'walk3', 'walk4', 'walk5', 'dash', 'flash', 'strong'];
 const preloaded = new Set<string>();
 /**
  * Na web uma imagem só carrega quando aparece pela primeira vez, e o corpo piscava ao trocar de pose ou de skin.

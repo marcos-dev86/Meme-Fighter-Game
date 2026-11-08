@@ -20,9 +20,11 @@ export function MissionsScreen() {
   const done = list.filter((m) => m.done).length;
 
   const chapters: { name: string; items: typeof list }[] = [];
+  // Agrupa por NOME do capítulo (a lista pode trazer o mesmo capítulo em pontos diferentes, ex.: a missão do vulcão):
+  // antes isso gerava dois blocos com a mesma `key` e o React acusava o erro no console.
   for (const m of list) {
-    const last = chapters[chapters.length - 1];
-    if (last && last.name === m.def.chapter) last.items.push(m);
+    const found = chapters.find((c) => c.name === m.def.chapter);
+    if (found) found.items.push(m);
     else chapters.push({ name: m.def.chapter, items: [m] });
   }
 

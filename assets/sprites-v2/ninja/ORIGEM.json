@@ -1,0 +1,105 @@
+{
+ "folha": "tools/art_src/sheets/ninja.png",
+ "layout": "newA",
+ "altura_corpo_px": 200,
+ "altura_corpo_original_px": 218,
+ "reducao": 0.917,
+ "poses": {
+  "portrait": {
+   "w": 263,
+   "h": 364,
+   "tipo": "solto"
+  },
+  "walk1": {
+   "w": 169,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk2": {
+   "w": 178,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk3": {
+   "w": 165,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk4": {
+   "w": 174,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk5": {
+   "w": 161,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "guard": {
+   "w": 183,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "flash": {
+   "w": 193,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "strong": {
+   "w": 321,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "dash": {
+   "w": 552,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "idle": {
+   "w": 147,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "charge": {
+   "w": 222,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "ult": {
+   "w": 256,
+   "h": 155,
+   "tipo": "efeito"
+  },
+  "cast": {
+   "w": 350,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp1": {
+   "w": 224,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp2": {
+   "w": 231,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp3": {
+   "w": 183,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "ko": {
+   "w": 358,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "hurt": {
+   "w": 231,
+   "h": 200,
+   "tipo": "corpo"
+  }
+ },
+ "notas": "idle = retrato parado; guard = guarda; flash = guarda 2 (soco curto); strong = conjurar; dash = conjurar + explosao; charge = aura; cast = bola na mao; ult = rastro (efeito do ultimate); hurt = quadro com marcas de impacto (linha 3); exp1-4 = poses; ko = nocaute."
+}

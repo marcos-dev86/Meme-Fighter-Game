@@ -1,4 +1,6 @@
 import type { CharacterKey } from './Fighter';
+import ACTIVE_V2 from '../../../assets/sprites-v2/ACTIVE.json';
+import { ASPECTS_V2, SOURCES_V2 } from './spritesV2';
 
 /**
  * Sprite registry + aspect ratios for feet-anchored rendering (see
@@ -22,7 +24,7 @@ import type { CharacterKey } from './Fighter';
  * compute.
  */
 
-const SOURCES: Record<CharacterKey, Record<string, number>> = {
+const LEGACY_SOURCES: Record<CharacterKey, Record<string, number>> = {
   dogge: {
     idle: require('../../../assets/legacy-sprites/dogge/idle.png'),
     walk1: require('../../../assets/legacy-sprites/dogge/walk1.png'),
@@ -153,43 +155,43 @@ const SOURCES: Record<CharacterKey, Record<string, number>> = {
     strong: require('../../../assets/legacy-sprites/troll_face/strong.png'),
     ult: require('../../../assets/legacy-sprites/troll_face/ult.png'),
   },
-  tocao: {
-    idle: require('../../../assets/legacy-sprites/tocao/idle.png'),
-    walk1: require('../../../assets/legacy-sprites/tocao/walk1.png'),
-    walk2: require('../../../assets/legacy-sprites/tocao/walk2.png'),
-    walk3: require('../../../assets/legacy-sprites/tocao/walk3.png'),
-    walk4: require('../../../assets/legacy-sprites/tocao/walk4.png'),
-    dash: require('../../../assets/legacy-sprites/tocao/dash.png'),
-    flash: require('../../../assets/legacy-sprites/tocao/flash.png'),
-    strong: require('../../../assets/legacy-sprites/tocao/strong.png'),
-    ult: require('../../../assets/legacy-sprites/tocao/ult.png'),
+  sahur: {
+    idle: require('../../../assets/legacy-sprites/sahur/idle.png'),
+    walk1: require('../../../assets/legacy-sprites/sahur/walk1.png'),
+    walk2: require('../../../assets/legacy-sprites/sahur/walk2.png'),
+    walk3: require('../../../assets/legacy-sprites/sahur/walk3.png'),
+    walk4: require('../../../assets/legacy-sprites/sahur/walk4.png'),
+    dash: require('../../../assets/legacy-sprites/sahur/dash.png'),
+    flash: require('../../../assets/legacy-sprites/sahur/flash.png'),
+    strong: require('../../../assets/legacy-sprites/sahur/strong.png'),
+    ult: require('../../../assets/legacy-sprites/sahur/ult.png'),
   },
-  serafim: {
-    idle: require('../../../assets/legacy-sprites/serafim/idle.png'),
-    walk1: require('../../../assets/legacy-sprites/serafim/walk1.png'),
-    walk2: require('../../../assets/legacy-sprites/serafim/walk2.png'),
-    walk3: require('../../../assets/legacy-sprites/serafim/walk3.png'),
-    walk4: require('../../../assets/legacy-sprites/serafim/walk4.png'),
-    dash: require('../../../assets/legacy-sprites/serafim/dash.png'),
-    flash: require('../../../assets/legacy-sprites/serafim/flash.png'),
-    strong: require('../../../assets/legacy-sprites/serafim/strong.png'),
-    ult: require('../../../assets/legacy-sprites/serafim/ult.png'),
+  sahur_god: {
+    idle: require('../../../assets/legacy-sprites/sahur_god/idle.png'),
+    walk1: require('../../../assets/legacy-sprites/sahur_god/walk1.png'),
+    walk2: require('../../../assets/legacy-sprites/sahur_god/walk2.png'),
+    walk3: require('../../../assets/legacy-sprites/sahur_god/walk3.png'),
+    walk4: require('../../../assets/legacy-sprites/sahur_god/walk4.png'),
+    dash: require('../../../assets/legacy-sprites/sahur_god/dash.png'),
+    flash: require('../../../assets/legacy-sprites/sahur_god/flash.png'),
+    strong: require('../../../assets/legacy-sprites/sahur_god/strong.png'),
+    ult: require('../../../assets/legacy-sprites/sahur_god/ult.png'),
   },
-  capiroto: {
-    idle: require('../../../assets/legacy-sprites/capiroto/idle.png'),
-    walk1: require('../../../assets/legacy-sprites/capiroto/walk1.png'),
-    walk2: require('../../../assets/legacy-sprites/capiroto/walk2.png'),
-    walk3: require('../../../assets/legacy-sprites/capiroto/walk3.png'),
-    walk4: require('../../../assets/legacy-sprites/capiroto/walk4.png'),
-    dash: require('../../../assets/legacy-sprites/capiroto/dash.png'),
-    flash: require('../../../assets/legacy-sprites/capiroto/flash.png'),
-    strong: require('../../../assets/legacy-sprites/capiroto/strong.png'),
-    ult: require('../../../assets/legacy-sprites/capiroto/ult.png'),
+  sahur_evil: {
+    idle: require('../../../assets/legacy-sprites/sahur_evil/idle.png'),
+    walk1: require('../../../assets/legacy-sprites/sahur_evil/walk1.png'),
+    walk2: require('../../../assets/legacy-sprites/sahur_evil/walk2.png'),
+    walk3: require('../../../assets/legacy-sprites/sahur_evil/walk3.png'),
+    walk4: require('../../../assets/legacy-sprites/sahur_evil/walk4.png'),
+    dash: require('../../../assets/legacy-sprites/sahur_evil/dash.png'),
+    flash: require('../../../assets/legacy-sprites/sahur_evil/flash.png'),
+    strong: require('../../../assets/legacy-sprites/sahur_evil/strong.png'),
+    ult: require('../../../assets/legacy-sprites/sahur_evil/ult.png'),
   },
 };
 
 // width/height, verified directly against the PNG files (assets/sprite/*/*.png), not estimated.
-export const SPRITE_ASPECTS: Record<CharacterKey, Record<string, number>> = {
+const LEGACY_ASPECTS: Record<CharacterKey, Record<string, number>> = {
   dogge: {
     idle: 146 / 164,
     walk1: 140 / 159,
@@ -325,7 +327,7 @@ export const SPRITE_ASPECTS: Record<CharacterKey, Record<string, number>> = {
     strong: 554 / 337,
     ult: 418 / 297,
   },
-  tocao: {
+  sahur: {
     idle: 92 / 186,
     walk1: 104 / 186,
     walk2: 122 / 186,
@@ -336,7 +338,7 @@ export const SPRITE_ASPECTS: Record<CharacterKey, Record<string, number>> = {
     strong: 806 / 186,
     ult: 418 / 297,
   },
-  serafim: {
+  sahur_god: {
     idle: 170 / 216,
     walk1: 152 / 216,
     walk2: 158 / 216,
@@ -347,7 +349,7 @@ export const SPRITE_ASPECTS: Record<CharacterKey, Record<string, number>> = {
     strong: 316 / 216,
     ult: 418 / 297,
   },
-  capiroto: {
+  sahur_evil: {
     idle: 160 / 224,
     walk1: 168 / 224,
     walk2: 162 / 224,
@@ -360,8 +362,48 @@ export const SPRITE_ASPECTS: Record<CharacterKey, Record<string, number>> = {
   },
 };
 
+/**
+ * Sprites NOVOS (folhas do dono, recortadas por tools/import_sheets.py em assets/sprites-v2). Cada personagem liga/desliga em
+ * assets/sprites-v2/ACTIVE.json: desligado = o desenho antigo (assets/legacy-sprites) continua valendo, sem apagar nada.
+ * Ligado, o personagem usa SO os quadros novos (nao mistura escalas).
+ */
+export function usesV2(character: string): boolean {
+  const on = (ACTIVE_V2 as Record<string, unknown>)[character] === true;
+  return on && !!SOURCES_V2[character as CharacterKey]?.idle;
+}
+
+const SOURCES: Record<CharacterKey, Record<string, number>> = { ...LEGACY_SOURCES };
+export const SPRITE_ASPECTS: Record<CharacterKey, Record<string, number>> = { ...LEGACY_ASPECTS };
+for (const k of Object.keys(LEGACY_SOURCES) as CharacterKey[]) {
+  if (usesV2(k)) {
+    SOURCES[k] = SOURCES_V2[k]!;
+    SPRITE_ASPECTS[k] = ASPECTS_V2[k]!;
+  }
+}
+
+/** Quadros alternativos quando o personagem nao tem aquele quadro (folha antiga nao traz hurt/ko/charge/cast). */
+const POSE_FALLBACK: Record<string, string> = { cast: 'dash', walk5: 'walk1', walk4: 'walk1' };
+
+export function hasPose(character: CharacterKey, poseKey: string): boolean {
+  return SOURCES[character][poseKey] !== undefined;
+}
+
+/** Quadro que de fato existe para o personagem: o pedido, ou o alternativo, ou idle. */
+export function resolvePose(character: CharacterKey, poseKey: string): string {
+  if (hasPose(character, poseKey)) return poseKey;
+  const alt = POSE_FALLBACK[poseKey];
+  if (alt && hasPose(character, alt)) return alt;
+  return 'idle';
+}
+
+/** Quadros do andar: 5 nos sprites novos, 4 em Sahur/Sahur God/Sahur Evil antigos, 3 nos demais. */
+export function walkFrames(character: CharacterKey): string[] {
+  const n = [1, 2, 3, 4, 5].filter((i) => hasPose(character, `walk${i}`)).length;
+  return Array.from({ length: Math.max(3, n) }, (_, i) => `walk${i + 1}`);
+}
+
 export function getSprite(character: CharacterKey, poseKey: string): number {
-  return SOURCES[character][poseKey] ?? SOURCES[character].idle;
+  return SOURCES[character][resolvePose(character, poseKey)];
 }
 
 export function getIdleAspect(character: CharacterKey): number {
@@ -384,6 +426,14 @@ const LAYOUT_ASPECTS: Partial<Record<CharacterKey, number>> = {
   mystic: 158 / 300,
 };
 
+/**
+ * Dragões com sprites novos: o quadro novo (idle = voo) é bem mais largo que o antigo; usar a proporção dele como referência
+ * mantém a PEGADA em tela (largura visível = drawWidth, o hitbox e o alcance) igual à de antes; só a altura fica menor, porque o voo
+ * é mais achatado que o desenho antigo (que incluía pernas/asa pendurada).
+ */
+const V2_LAYOUT_FROM_IDLE: CharacterKey[] = ['ice_dragon', 'green_dragon', 'shadow_dragon'];
+
 export function getLayoutAspect(character: CharacterKey): number {
-  return LAYOUT_ASPECTS[character] ?? getIdleAspect(character);
+  if (V2_LAYOUT_FROM_IDLE.includes(character) && usesV2(character)) return SPRITE_ASPECTS[character].idle ?? 1;
+  return LAYOUT_ASPECTS[character] ?? LEGACY_ASPECTS[character].idle ?? 1;
 }

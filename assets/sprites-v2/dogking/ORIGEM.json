@@ -1,0 +1,110 @@
+{
+ "folha": "tools/art_src/sheets/dogking.png",
+ "layout": "newA",
+ "altura_corpo_px": 200,
+ "altura_corpo_original_px": 230,
+ "reducao": 0.87,
+ "poses": {
+  "portrait": {
+   "w": 224,
+   "h": 356,
+   "tipo": "solto"
+  },
+  "walk1": {
+   "w": 160,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk2": {
+   "w": 155,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk3": {
+   "w": 160,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk4": {
+   "w": 162,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk5": {
+   "w": 151,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "guard": {
+   "w": 162,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "flash": {
+   "w": 160,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "strong": {
+   "w": 303,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "dash": {
+   "w": 586,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "idle": {
+   "w": 132,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "charge": {
+   "w": 212,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "ult": {
+   "w": 236,
+   "h": 142,
+   "tipo": "efeito"
+  },
+  "cast": {
+   "w": 334,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp1": {
+   "w": 157,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp2": {
+   "w": 165,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp3": {
+   "w": 167,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp4": {
+   "w": 167,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "ko": {
+   "w": 310,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "hurt": {
+   "w": 167,
+   "h": 200,
+   "tipo": "corpo"
+  }
+ },
+ "notas": "idle = retrato parado; guard = guarda; flash = guarda 2 (soco curto); strong = conjurar; dash = conjurar + explosao; charge = aura; cast = bola na mao; ult = rastro (efeito do ultimate); hurt = quadro com marcas de impacto (linha 3); exp1-4 = poses; ko = nocaute."
+}

@@ -176,6 +176,7 @@ const DOGGE_BASE: MissionDef[] = [
   { id: 'buy_piolet', title: 'Equipamento de Escalada', hint: 'Compre o piolet na Loja do Gelo, ao lado da cabana.', type: 'discover', chapter: CH6, objective: { kind: 'buy', itemId: 'piolet' }, requires: ['visit_gelo'], reward: { coins: 30 } },
   { id: 'mountain_trail', title: 'A Parede de Gelo', hint: 'Com o piolet, escale a parede azul no pé da montanha e siga a trilha.', type: 'discover', chapter: CH6, objective: { kind: 'pickups', ids: ['mountain_trail_point'] }, requires: ['buy_piolet'], reward: { coins: 40 } },
   { id: 'mountain_summit', title: 'O Topo do Mundo', hint: 'Chegue ao topo da montanha de neve e pegue a bandeira.', type: 'discover', chapter: CH6, objective: { kind: 'pickups', ids: ['mountain_summit'] }, requires: ['mountain_trail'], reward: { coins: 80 } },
+  { id: 'volcano_summit', title: 'O Cume do Vulcão', hint: 'Com o piolet, escale a parede escura no lado oeste do vulcão e pegue a bandeira no topo.', type: 'discover', chapter: CH5, objective: { kind: 'pickups', ids: ['volcano_summit'] }, requires: ['buy_piolet'], reward: { coins: 120, xp: 150 } },
   {
     id: 'moai_stone', title: 'A Pedra Moai', hint: 'Lá em cima ficam o Moai, o Rocha e o refúgio do pico.', type: 'quest', chapter: CH6, requires: ['mountain_summit'], reward: { coins: 100, items: { power_brew: 1 }, xp: 160 },
     objective: {

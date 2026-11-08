@@ -1,0 +1,19 @@
+{
+ "_aviso": "Liga/desliga os sprites novos por personagem. false = volta ao desenho antigo (assets/legacy-sprites).",
+ "orc": true,
+ "soldier": true,
+ "gadigago": true,
+ "dogge": true,
+ "sahur": true,
+ "ninja": true,
+ "troll_face": true,
+ "sahur_evil": true,
+ "sahur_god": true,
+ "dogking": true,
+ "tank": true,
+ "mystic": true,
+ "cara_tranquilo": true,
+ "shadow_dragon": true,
+ "ice_dragon": true,
+ "green_dragon": true
+}

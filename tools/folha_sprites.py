@@ -1,10 +1,10 @@
-"""Recorta a FOLHA DE POSES enviada pelo dono (tools/art_src/folha_3_personagens.png) nos quadros de Tocao, Serafim e Capiroto.
+"""Recorta a FOLHA DE POSES enviada pelo dono (tools/art_src/folha_3_personagens.png) nos quadros de Sahur, Sahur God e Sahur Evil.
 
 A folha tem 3 linhas (laranja, anjo, diabo) e 8 colunas: parado, 4 passos de andar, e 3 quadros de ataque. Nada aqui e
 desenhado: cada quadro e RECORTADO da folha (fundo verde removido) com seus efeitos (rastro, estrela, arco). Onde a folha nao traz um
 quadro, o mapeamento fica registrado em ORIGEM (ver POSE_NOTES).
-  * Serafim / Capiroto : dash (rastro) | flash = soco curto (estrela) | strong = soco longo (arco) -> um quadro para cada.
-  * Tocao : a linha dele traz 2 quadros de investida (um com estrela) e o arco solto: dash = investida com rastro,
+  * Sahur God / Sahur Evil : dash (rastro) | flash = soco curto (estrela) | strong = soco longo (arco) -> um quadro para cada.
+  * Sahur : a linha dele traz 2 quadros de investida (um com estrela) e o arco solto: dash = investida com rastro,
             flash = investida com estrela, strong = a mesma investida da estrela SEM a estrela + arco solto.
 """
 import os
@@ -17,13 +17,13 @@ BG = np.array([65, 115, 69], np.float32)
 SHEET = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'art_src', 'folha_3_personagens.png')
 
 # retangulos (x0, x1) por linha; y0/y1 por linha
-ROWS = {'tocao': (0, 236), 'serafim': (240, 492), 'capiroto': (500, 783)}
+ROWS = {'sahur': (0, 236), 'sahur_god': (240, 492), 'sahur_evil': (500, 783)}
 COLS = {
-    'tocao': {'idle': (15, 150), 'walk1': (195, 340), 'walk2': (365, 520), 'walk3': (560, 745), 'walk4': (770, 950),
+    'sahur': {'idle': (15, 150), 'walk1': (195, 340), 'walk2': (365, 520), 'walk3': (560, 745), 'walk4': (770, 950),
               'a': (962, 1290), 'b': (1380, 1640), 'arc': (1680, 1995)},
-    'serafim': {'idle': (0, 188), 'walk1': (190, 362), 'walk2': (364, 548), 'walk3': (556, 758), 'walk4': (768, 958),
+    'sahur_god': {'idle': (0, 188), 'walk1': (190, 362), 'walk2': (364, 548), 'walk3': (556, 758), 'walk4': (768, 958),
                 'dash': (960, 1250), 'flash': (1380, 1700), 'strong': (1712, 2008)},
-    'capiroto': {'idle': (0, 181), 'walk1': (183, 360), 'walk2': (362, 548), 'walk3': (554, 748), 'walk4': (768, 955),
+    'sahur_evil': {'idle': (0, 181), 'walk1': (183, 360), 'walk2': (362, 548), 'walk3': (554, 748), 'walk4': (768, 955),
                  'dash': (958, 1260), 'flash': (1362, 1680), 'strong': (1700, 2008)},
 }
 
@@ -79,7 +79,7 @@ def frames(name):
     out = {}
     for k in ('idle', 'walk1', 'walk2', 'walk3', 'walk4'):
         out[k] = raw[k]
-    if name == 'tocao':
+    if name == 'sahur':
         a, b, arc = raw['a'], raw['b'], raw['arc']
         out['dash'] = b
         out['flash'] = a
@@ -101,7 +101,7 @@ def frames(name):
 
 
 POSE_NOTES = {
-    'tocao': {'dash': 'folha enviada pelo dono: investida com rastro',
+    'sahur': {'dash': 'folha enviada pelo dono: investida com rastro',
               'flash': 'folha enviada pelo dono: soco curto com estrela',
               'strong': 'folha enviada pelo dono: mesma investida SEM a estrela + arco de energia solto da folha (a linha dele nao traz um quadro de soco longo proprio)'},
 }

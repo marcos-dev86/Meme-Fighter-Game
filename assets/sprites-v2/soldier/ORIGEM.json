@@ -1,0 +1,120 @@
+{
+ "folha": "tools/art_src/sheets/soldier.png",
+ "layout": "soldier",
+ "altura_corpo_px": 200,
+ "altura_corpo_original_px": 233,
+ "reducao": 0.858,
+ "poses": {
+  "portrait": {
+   "w": 285,
+   "h": 407,
+   "tipo": "solto"
+  },
+  "walk1": {
+   "w": 225,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk2": {
+   "w": 209,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk3": {
+   "w": 191,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk4": {
+   "w": 125,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk5": {
+   "w": 245,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "guard": {
+   "w": 220,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "idle": {
+   "w": 144,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "flash": {
+   "w": 213,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "strong": {
+   "w": 215,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "dash": {
+   "w": 223,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "charge": {
+   "w": 215,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "burst": {
+   "w": 256,
+   "h": 201,
+   "tipo": "efeito"
+  },
+  "orb": {
+   "w": 136,
+   "h": 136,
+   "tipo": "efeito"
+  },
+  "ult": {
+   "w": 195,
+   "h": 100,
+   "tipo": "efeito"
+  },
+  "cast": {
+   "w": 326,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "hurt": {
+   "w": 338,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp1": {
+   "w": 185,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp2": {
+   "w": 170,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp3": {
+   "w": 179,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp4": {
+   "w": 213,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "ko": {
+   "w": 252,
+   "h": 200,
+   "tipo": "corpo"
+  }
+ },
+ "notas": "idle = retrato parado; guard = guarda; flash = jab; strong = soco longo; dash = recuo/investida; charge = carregando a bola; cast = pose da bola de gelo (ultimate); ult = rastro; burst = explosao de gelo; exp1-4 = agachados; ko = nocaute."
+}

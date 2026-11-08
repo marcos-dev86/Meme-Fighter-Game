@@ -1,0 +1,110 @@
+{
+ "folha": "tools/art_src/sheets/troll_face.png",
+ "layout": "newA",
+ "altura_corpo_px": 200,
+ "altura_corpo_original_px": 201,
+ "reducao": 0.995,
+ "poses": {
+  "portrait": {
+   "w": 184,
+   "h": 392,
+   "tipo": "solto"
+  },
+  "walk1": {
+   "w": 199,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk2": {
+   "w": 217,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk3": {
+   "w": 205,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk4": {
+   "w": 211,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "walk5": {
+   "w": 201,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "guard": {
+   "w": 273,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "flash": {
+   "w": 179,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "strong": {
+   "w": 273,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "dash": {
+   "w": 589,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "idle": {
+   "w": 131,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "charge": {
+   "w": 215,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "ult": {
+   "w": 300,
+   "h": 174,
+   "tipo": "efeito"
+  },
+  "cast": {
+   "w": 446,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp1": {
+   "w": 251,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp2": {
+   "w": 213,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp3": {
+   "w": 247,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "exp4": {
+   "w": 193,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "ko": {
+   "w": 291,
+   "h": 200,
+   "tipo": "corpo"
+  },
+  "hurt": {
+   "w": 247,
+   "h": 200,
+   "tipo": "corpo"
+  }
+ },
+ "notas": "idle = retrato parado; guard = guarda; flash = guarda 2 (soco curto); strong = conjurar; dash = conjurar + explosao; charge = aura; cast = bola na mao; ult = rastro (efeito do ultimate); hurt = quadro com marcas de impacto (linha 3); exp1-4 = poses; ko = nocaute."
+}

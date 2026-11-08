@@ -77,6 +77,8 @@ const BASE_COLORS: Partial<Record<TileType, [string, string]>> = {
 };
 
 function shade(type: TileType, tx: number, ty: number): string {
+  // Parede escarpada do vulcão (a leste do mapa): rocha escura em vez de gelo azul.
+  if (type === 'cliff' && tx > 1700) return hash2(tx * 3.1, ty * 7.7) > 0.5 ? '#6e3b2f' : '#5c3027';
   const pair = BASE_COLORS[type];
   if (!pair) return FLAT_COLORS[type];
   return hash2(tx * 3.1, ty * 7.7) > 0.5 ? pair[0] : pair[1];
@@ -203,9 +205,9 @@ function DoorPlankDecal({ size, slot, left, top }: { size: number; slot: number;
 }
 
 /** Icy cliff face: pale blue rock with pick-axe footholds (a ladder of rungs). */
-function CliffDecal({ size, left, top }: { size: number; left: number; top: number }) {
+function CliffDecal({ size, left, top, volcanic }: { size: number; left: number; top: number; volcanic?: boolean }) {
   const rung = (i: number) => (
-    <View key={i} style={[styles.decalAbs, { left: left + size * 0.2, top: top + size * (0.18 + i * 0.28), width: size * 0.6, height: size * 0.1, backgroundColor: '#e9f6ff', opacity: 0.85 }]} />
+    <View key={i} style={[styles.decalAbs, { left: left + size * 0.2, top: top + size * (0.18 + i * 0.28), width: size * 0.6, height: size * 0.1, backgroundColor: volcanic ? '#f0a35c' : '#e9f6ff', opacity: 0.85 }]} />
   );
   return (
     <>
@@ -339,7 +341,7 @@ const ChunkView = React.memo(function ChunkView({ map, cx, cy }: { map: MapDef; 
         } else if (type === 'rock') {
           if (hash2(tx * 4.4, ty * 6.1) > 0.62) decals.push(<RockDecal key={`d-${lx}-${ly}`} size={size} tx={tx} ty={ty} left={left} top={top} />);
         } else if (type === 'cliff') {
-          decals.push(<CliffDecal key={`d-${lx}-${ly}`} size={size} left={left} top={top} />);
+          decals.push(<CliffDecal key={`d-${lx}-${ly}`} size={size} left={left} top={top} volcanic={tx > 1700} />);
         } else if (type === 'lava') {
           decals.push(<LavaDecal key={`d-${lx}-${ly}`} size={size} tx={tx} ty={ty} left={left} top={top} />);
         } else if (type === 'flower') {

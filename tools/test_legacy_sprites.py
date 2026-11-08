@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Confere assets/legacy-sprites contra o que o jogo espera. Uso (raiz do projeto): python3 tools/test_legacy_sprites.py
  1. todo require('...legacy-sprites/...') de src/ aponta para um arquivo que existe (lista o que falta);
- 2. cada lutador tem os 8 quadros; o tamanho de cada PNG bate com SPRITE_ASPECTS (src/game/battle/sprites.ts);
+ 2. cada lutador tem os 8 quadros; o tamanho de cada PNG bate com LEGACY_ASPECTS (src/game/battle/sprites.ts);
  3. quadros de corpo (idle..strong) com mesma altura (escala igual entre poses) - exceto Dogge/Gadigago, que sao os originais;
  4. quadros com fundo transparente, pes encostados na base (menos dragoes, que voam) e corpo centrado no quadro;
  5. o ult tem transparencia e e maior que um ponto.
@@ -16,7 +16,7 @@ from PIL import Image
 
 ROOT = os.getcwd()
 POSES = ['idle', 'walk1', 'walk2', 'walk3', 'dash', 'flash', 'strong', 'ult']
-WALK4 = ('tocao', 'serafim', 'capiroto')
+WALK4 = ('sahur', 'sahur_god', 'sahur_evil')
 ORIGINALS = {'dogge', 'gadigago'}
 DRAWN = {'orc', 'soldier', 'mystic'}  # desenhados do zero: o arranque (dash) e um salto, sem pe na base
 FLYERS = {'green_dragon', 'ice_dragon', 'shadow_dragon'}  # voam: mantem o quadro original 178x202, sem 'pes na base'
@@ -41,7 +41,7 @@ for d, n in sorted(refs):
 
 # 2) proporcoes
 src = open('src/game/battle/sprites.ts', encoding='utf-8').read()
-tab = src[src.index('export const SPRITE_ASPECTS'):]
+tab = src[src.index('const LEGACY_ASPECTS'):]
 tab = tab[:tab.index('\n};')]
 chars = re.findall(r'\n  (\w+): \{\n(.*?)\n  \},', tab, re.S)
 check(len(chars) == 16, f'SPRITE_ASPECTS deveria ter 16 lutadores, tem {len(chars)}')
@@ -78,7 +78,7 @@ for key, body in chars:
     check(len(set(imgs)) >= 6, f'{key}: so {len(set(imgs))} quadros distintos de {len(ALL)}')
 
 # personagens novos (agora no jogo desde a Urgente 2; os arquivos continuam checados)
-for c in ('cara_tranquilo', 'troll_face', 'tocao', 'serafim', 'capiroto'):
+for c in ('cara_tranquilo', 'troll_face', 'sahur', 'sahur_god', 'sahur_evil'):
     for p in POSES + (['walk4'] if c in WALK4 else []):
         check(os.path.exists(f'assets/legacy-sprites/{c}/{p}.png'), f'{c}/{p}: ausente')
 

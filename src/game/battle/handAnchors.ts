@@ -1,4 +1,6 @@
 import type { CharacterKey } from './Fighter';
+import { usesV2 } from './sprites';
+import { HAND_ANCHORS_V2 } from '@/game/cosmetics/wearV2';
 
 /**
  * Where the (front) hand is in each sprite pose, as a fraction of that
@@ -41,7 +43,7 @@ export function canHoldWeapon(character: CharacterKey): boolean {
 }
 
 export function getHandAnchor(character: CharacterKey, poseKey: string): HandPoint | null {
-  const set = HAND_ANCHORS[character];
+  const set = usesV2(character) ? HAND_ANCHORS_V2[character] : HAND_ANCHORS[character];
   if (!set) return null;
   return set[poseKey] ?? set.idle;
 }

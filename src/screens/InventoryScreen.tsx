@@ -4,7 +4,8 @@ import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { router } from 'expo-router';
 import { ArtBackdrop } from '@/game/menu/ArtBackdrop';
 import { CURRENCY_ABBR, ITEMS, isUsable } from '@/game/items/itemDefs';
-import { usePlayerState, equipItem, equipBag, getBagUsage, getOwnedBags } from '@/game/state/playerState';
+import { usePlayerState, equipItem, equipBag, equipArmor, getBagUsage, getOwnedBags, getOwnedArmors, getEquippedArmorId } from '@/game/state/playerState';
+import { ARMORS } from '@/game/items/armorDefs';
 import { BAGS } from '@/game/items/bags';
 import { RARITY_COLOR, rarityKey } from '@/game/items/rarity';
 import { itemBonusLines } from '@/game/items/itemBonusText';
@@ -68,7 +69,7 @@ export function InventoryScreen() {
         </View>
 
         <Pressable style={[styles.bagBar, { borderColor: RARITY_COLOR[bag.rarity] }]} onPress={() => { setBagsOpen((v) => !v); setBagMsg(null); }}>
-          <Text style={styles.bagIcon}>{bag.icon}</Text>
+          <GameIcon name={bag.icon} size={26} />
           <View style={{ flex: 1 }}>
             <Text style={[styles.bagName, { color: RARITY_COLOR[bag.rarity] }]}>{bag.name}</Text>
             <Text style={styles.bagStats}>
@@ -115,6 +116,39 @@ export function InventoryScreen() {
             {bagMsg && <Text style={styles.bagMsg}>{bagMsg}</Text>}
           </View>
         )}
+
+        <View style={styles.armorBox}>
+          <Text style={styles.armorTitle}>{t('armor_title')}</Text>
+          {getOwnedArmors().length === 0 ? (
+            <Text style={styles.bagStats}>{t('armor_none')} · {t('armor_none_hint')}</Text>
+          ) : (
+            getOwnedArmors().map((id) => {
+              const a = ARMORS[id];
+              const worn = getEquippedArmorId() === id;
+              return (
+                <View key={id} style={[styles.bagRow, { borderColor: RARITY_COLOR[a.rarity] }]}>
+                  <GameIcon name={a.icon} size={26} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.bagName, { color: RARITY_COLOR[a.rarity] }]}>
+                      {a.name} · {t(rarityKey(a.rarity))}
+                    </Text>
+                    <Text style={styles.bagStats}>+{a.regenPerSec} {t('armor_regen_unit')}</Text>
+                    <Text style={styles.bagStats}>{a.effectText}</Text>
+                  </View>
+                  <Pressable
+                    style={[styles.equipBtn, worn && styles.equipBtnOn]}
+                    onPress={() => {
+                      equipArmor(worn ? null : id);
+                      playSfx('equip');
+                    }}
+                  >
+                    <Text style={styles.equipBtnText}>{worn ? t('armor_take_off') : t('armor_wear')}</Text>
+                  </Pressable>
+                </View>
+              );
+            })
+          )}
+        </View>
 
         <View style={styles.equipBar}>
           <Text style={styles.equipBarTitle}>{t('equip_title')}</Text>
@@ -228,6 +262,8 @@ const styles = StyleSheet.create({
   bagStats: { color: '#e8e8e8', fontSize: 11, marginTop: 1 },
   bagOver: { color: '#ff6b6b', fontWeight: '800' },
   bagToggle: { color: '#FFD700', fontWeight: '800', fontSize: 11 },
+  armorBox: { width: 400, maxWidth: '96%', gap: 6, marginBottom: 8 },
+  armorTitle: { color: '#ffd166', fontWeight: '800', fontSize: 12, letterSpacing: 1 },
   bagList: { width: 400, maxWidth: '96%', gap: 6, marginBottom: 8 },
   bagRow: { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 2, borderRadius: 10, padding: 8, backgroundColor: 'rgba(10,10,18,0.8)' },
   bagMsg: { color: '#ff9b9b', fontSize: 11, textAlign: 'center' },
