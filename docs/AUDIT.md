@@ -1264,3 +1264,14 @@ Os dois mudam de padrão com 50% de vida (`hasPhases`), como os outros chefes. O
 - Os dragões voam/andam/ult com os **quadros antigos** (pedido do dono); estilo ligeiramente diferente dos quadros novos (cores chapadas; o dragão de sombra anda no chão). O `cast` do dragão de gelo tem uma mancha preta preenchida (vem da folha). O `hurt` do orc é arte da 1ª folha reescalada.
 - Os dragões ficam um pouco mais baixos na tela (mesma largura de antes).
 - Não testado em aparelho real/APK. Cutscenes em vídeo: **ainda não criadas** (parte reservada em `docs/CUTSCENES.md`).
+
+---
+
+## Rodada 4 — 16 cutscenes em vídeo
+- 13 cenas de história + 3 finais (um por final do jogo), todas `.mp4` em `assets/cutscenes/` (ver `docs/CUTSCENES.md`). Os finais têm 88–90 s; as outras 27–40 s.
+- Integração: `expo-video ~57.0.2` (instalado com `npm install`, pois `expo install` deu 403 no proxy), `story/cutscenes.ts` (registro/gatilhos), `cutsceneAssets.ts`, `cutsceneState.ts`,
+  `CutscenePlayer.tsx`, rota `/cutscene`, gatilho no `WorldScreen`, vídeo do final no início da `EndingScreen`, "REVER CUTSCENES" nas Opções.
+- Depois de zerar o jogo, **dá para continuar jogando** (o final aparece uma vez por save; o botão da tela de final volta ao mundo).
+- Testes: `test-cutscenes.mjs` 16 ok; `e2e-cutscenes.mjs`; os demais testes seguem verdes (conta 41, dano 15, parte01 65, parte2 22, parte3 26, urgente2 12, urgente3 40, sprites legados 802).
+- Limitações: ver CUTSCENES.md ("Não verificado").
+

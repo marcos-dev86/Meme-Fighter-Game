@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { ArtBackdrop } from '@/game/menu/ArtBackdrop';
 import { MenuButton } from '@/game/menu/MenuButton';
@@ -20,10 +20,12 @@ import {
 } from '@/game/state/settingsState';
 import { playSfx } from '@/game/audio/audioManager';
 import { haptic } from '@/game/audio/haptics';
+import { CUTSCENES } from '@/game/story/cutscenes';
+import { useSeenCutscenes } from '@/game/story/cutsceneState';
 
 const LANGS: Lang[] = ['pt', 'en', 'es', 'fr', 'ja'];
 
-type Page = 'hub' | 'sound' | 'game' | 'controls' | 'language';
+type Page = 'hub' | 'sound' | 'game' | 'controls' | 'language' | 'cutscenes';
 
 /**
  * Options are split into small pages (SONS / JOGO / CONTROLES / IDIOMA) so no
@@ -33,6 +35,7 @@ export function OptionsScreen() {
   const { lang, t } = useI18n();
   const settings = useSettings();
   const [page, setPage] = useState<Page>('hub');
+  const seenCutscenes = useSeenCutscenes();
 
   const onBack = () => {
     if (page === 'hub') router.back();
@@ -40,7 +43,7 @@ export function OptionsScreen() {
   };
 
   const title =
-    page === 'sound' ? t('opt_cat_sound') : page === 'game' ? t('opt_cat_game') : page === 'controls' ? t('opt_cat_controls') : page === 'language' ? t('options_language') : t('options_title');
+    page === 'sound' ? t('opt_cat_sound') : page === 'game' ? t('opt_cat_game') : page === 'controls' ? t('opt_cat_controls') : page === 'language' ? t('options_language') : page === 'cutscenes' ? t('opt_cat_cutscenes') : t('options_title');
 
   return (
     <ArtBackdrop onBack={onBack}>
@@ -52,6 +55,7 @@ export function OptionsScreen() {
           <MenuButton label={t('opt_cat_game')} onPress={() => setPage('game')} />
           <MenuButton label={t('opt_cat_controls')} onPress={() => setPage('controls')} />
           <MenuButton label={t('options_language')} onPress={() => setPage('language')} />
+          <MenuButton label={t('opt_cat_cutscenes')} onPress={() => setPage('cutscenes')} />
         </View>
       )}
 
@@ -123,6 +127,17 @@ export function OptionsScreen() {
         </View>
       )}
 
+      {page === 'cutscenes' && (
+        <View style={styles.col}>
+          <ScrollView style={styles.csList} contentContainerStyle={styles.csListContent}>
+            {CUTSCENES.filter((c) => seenCutscenes.includes(c.id)).map((c) => (
+              <MenuButton key={c.id} label={c.title} variant="ghost" onPress={() => router.push(`/cutscene?id=${c.id}&replay=1` as never)} />
+            ))}
+          </ScrollView>
+          <Text style={styles.note}>{seenCutscenes.length ? t('cutscenes_note') : t('cutscenes_none')}</Text>
+        </View>
+      )}
+
       {page === 'language' && (
         <View style={styles.col}>
           <View style={styles.langGrid}>
@@ -142,6 +157,8 @@ const styles = StyleSheet.create({
   title: { color: '#FFD700', fontWeight: '800', fontSize: 20, letterSpacing: 1, marginBottom: 12 },
   hub: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, justifyContent: 'center', maxWidth: 620 },
   col: { alignItems: 'center', gap: 12, maxWidth: 380 },
+  csList: { maxHeight: 210 },
+  csListContent: { alignItems: 'center', gap: 10 },
   sublabel: { color: '#fff', fontWeight: '700', fontSize: 13 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   label: { color: '#FFD700', fontWeight: '700', fontSize: 15 },

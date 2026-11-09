@@ -1,4 +1,4 @@
-# Cutscenes — roteiro (PARTE RESERVADA: só cutscenes em VÍDEO; ainda NÃO criadas, a pedido do dono)
+# Cutscenes — todas em VÍDEO (16 prontas e ligadas ao jogo)
 
 Pasta prevista para os vídeos quando liberados: `assets/cutscenes/` (um arquivo por cena, nomes abaixo). Nada foi gerado.
 
@@ -29,3 +29,43 @@ Precisa de: sprites animados (as folhas novas já têm andar, soco e nocaute), c
   botão PULAR sempre visível, volta para onde o jogador estava ao terminar, marca a cena como vista no save e, se o arquivo não existir, **pula sem travar**.
 - **Quando fazer:** só quando o dono disser "pode criar os vídeos". Esta parte é **só** de cutscenes (nenhuma outra tarefa junto) para dar para revisar cada vídeo.
 - **Aprovação:** envio uma cena por vez (arquivo `.mp4` para ver/baixar); ajusto antes de seguir para a próxima.
+
+---
+
+---
+
+## Estado atual: 16 cutscenes prontas e ligadas ao jogo
+Todas são arquivos `.mp4` em `assets/cutscenes/` (H.264 main, AAC, 1280x720, 30 fps). O jogo só abre o arquivo (decodificação nativa, `expo-video`).
+Nada é animado por código em tempo real. Total ≈ 62 MB.
+
+| Arquivo | Quando toca | Duração |
+|---|---|---|
+| 01_flashback_vovo | concluir "Bem-vindo a Meme-Fighter" (talk_bento) | 39 s |
+| 02_rival_gadigago | concluir "O Desafio do Rival" | 27 s |
+| 03_cassino_troll | chegar à Ilha Misteriosa (visit_misteriosa) | 38 s |
+| 04_legiao_ferro | concluir "Confronto no Acampamento" | 32 s |
+| 05_rei_dos_caes | concluir "O Rei da Ilha" | 34 s |
+| 06_tres_fragmentos | concluir "Os Três Fragmentos" (lore_complete) | 40 s |
+| 07_guardiao_vulcao | concluir "O Guardião do Vulcão" | 34 s |
+| 08_ilha_trevas | chegar à Ilha das Trevas | 40 s |
+| 09_topo_do_mundo | concluir "O Topo do Mundo" | 38 s |
+| 10_cume_vulcao | concluir "O Cume do Vulcão" | 36 s |
+| 11_tres_troncos | concluir as TRÊS missões dos troncos (Laranja, Anjo, Diabo) | 36 s |
+| 12_subsolo_cassino | concluir "O Segredo do Subsolo" | 40 s |
+| 13_pedra_moai | concluir "A Pedra Moai" | 40 s |
+| final_uniao | final A Ilha Inteira (antes dos slides de texto) | 88 s |
+| final_gloria | final O Verdadeiro Meme Fighter | 90 s |
+| final_poder | final O Rei das Sombras | 90 s |
+
+- **Regras de reprodução** (`story/CutscenePlayer.tsx`, rota `/cutscene?id=`): botão PULAR sempre visível; termina no fim, ao pular, em erro, se o arquivo faltar
+  ou se não carregar em 10 s (nunca trava); música/ambiente do jogo calam durante o vídeo; pausa ao ir para segundo plano; um toque inicia na web se o autoplay for bloqueado.
+- **Gatilhos** (`story/cutscenes.ts`): só tocam para missões concluídas NESTA sessão de jogo (saves antigos não recebem vídeos de repente), uma vez por save
+  (bandeira `cs:<id>`), e só com o mundo livre (sem diálogo, escolha, interior, barco ou chefe aberto). O final tem prioridade.
+- **Rever:** Opções → REVER CUTSCENES (lista as já vistas).
+- **Como foram feitas:** `tools/cutscenes/engine.py` (motor PIL + ffmpeg, offline) + `scenes_a.py`, `scenes_b.py`, `finals.py`; rodar
+  `python3 tools/cutscenes/run.py 02 03 ...` (ou sem argumentos para todas) regrava os mp4. `render_01.py` gerou a 01.
+  Usa SÓ arte/sons existentes: cenários `legacy-art/stages`, sprites-v2, NPCs, efeitos de golpe, músicas e sfx do jogo. Nenhuma arte nova foi inventada.
+- **Texto das falas:** escrito por mim a partir de `docs/HISTORIA.md` e `bossLore.ts`. Para trocar, edite as falas (`lines=[...]`) no arquivo da cena e rode de novo.
+- **Verificado:** `node tools/test-cutscenes.mjs` (registro, gatilhos, arquivos, codec H.264/AAC 1280x720, finais mais longos) e `tools/e2e-cutscenes.mjs` (rota abre, vídeo toca no Chromium, PULAR, id inexistente).
+- **Não verificado:** reprodução em aparelho real / APK (expo-video nativo), consumo de bateria/calor, e o gatilho em partida real jogada até cada missão.
+

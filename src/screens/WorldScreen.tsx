@@ -8,6 +8,10 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming, withSequence } 
 import { computeCameraPosition } from '@/game/camera/Camera';
 import { isAreaSolid, resolveMove } from '@/game/collision/collision';
 import { useGameLoop } from '@/game/core/useGameLoop';
+import { DefeatOverlay } from '@/game/account/DefeatOverlay';
+import { REVIVE_COST, currentDeathFee, payDeathFee, payRevive } from '@/game/account/deathRules';
+import { useAccount } from '@/game/account/accountState';
+import { consumeRespawn, getCheckpoint, setCheckpoint } from '@/game/state/checkpointState';
 import { DPad } from '@/game/input/DPad';
 import { ActionCluster } from '@/game/input/ActionCluster';
 import { useItemMenuAnchor } from '@/game/input/controlsLayout';
@@ -69,6 +73,8 @@ import { getStoryDifficulty } from '@/game/state/difficulty';
 import { NPCS, OUTDOOR_NPCS, type NpcDef } from '@/game/world/npcs';
 import { isPlacementActive } from '@/game/world/npcActive';
 import { endingShouldPlay } from '@/game/story/storyEnding';
+import { cutsceneForMission } from '@/game/story/cutscenes';
+import { cutsceneSeen, nextQueuedCutscene, queueCutscene } from '@/game/story/cutsceneState';
 import { BOSS_LORE } from '@/game/story/bossLore';
 import { WORLD_PICKUPS, type PickupDef } from '@/game/world/pickups';
 import { DialogueOverlay } from '@/game/dialogue/DialogueOverlay';
@@ -147,6 +153,9 @@ export function WorldScreen() {
   const frameTimerRef = useRef(0);
   const pausedRef = useRef(false);
   const endingPushedRef = useRef(false);
+  // Cutscenes em vídeo: `cutsceneGateRef` diz se o mundo está livre (sem diálogo, menu, luta por cima...) para abrir a próxima da fila.
+  const cutsceneGateRef = useRef(false);
+  const bootingRef = useRef(true);
   // O menu de pausa é um <Modal> (fica acima de tudo): some enquanto uma tela do menu (STATUS, MISSÕES...) está aberta.
   const worldFocused = useIsFocused();
   useEffect(() => () => setGamePaused(false), []);
@@ -259,6 +268,10 @@ export function WorldScreen() {
       if (!endingPushedRef.current && endingShouldPlay()) {
         endingPushedRef.current = true;
         router.push('/ending' as never);
+      } else if (!endingPushedRef.current && cutsceneGateRef.current) {
+        // Cutscene em vídeo da missão que acabou de fechar (uma por vez, só quando o mundo está livre).
+        const csId = nextQueuedCutscene();
+        if (csId && !cutsceneSeen(csId)) router.push(`/cutscene?id=${csId}` as never);
       }
       // Posição do mundo para a batalha escolher cenário, clima e hora (ver battleContext.ts).
       setWorldPosition({
@@ -372,9 +385,15 @@ export function WorldScreen() {
   const missionToastQueue = useRef<string[]>([]);
   useEffect(() => {
     const off = onMissionCompleted((def, reward) => {
+      // Cutscene em vídeo: só para missões concluídas NESTA sessão (não durante o carregamento do save).
+      if (!bootingRef.current) {
+        const cs = cutsceneForMission(def.id, (m) => getQuestStatus(m) === 'completed', cutsceneSeen);
+        if (cs) queueCutscene(cs.id);
+      }
       const bits = [def.title];
       if (reward.coins) bits.push(`+${reward.coins} ${CURRENCY_ABBR}`);
       if (reward.xp) bits.push(`+${reward.xp} XP`);
+      if (reward.diamonds) bits.push(`+${reward.diamonds} 💎`);
       missionToastQueue.current.push(bits.join('  '));
     });
     // Item received / next step of a multi-step mission.
@@ -422,6 +441,10 @@ export function WorldScreen() {
   const sinceHurtRef = useRef(99999);
   const pendingAttackRef = useRef<{ type: PlayerAttackType; delay: number } | null>(null);
   const [hurt, setHurt] = useState(false);
+  // Derrota no mundo (vida zerada): congela o jogo e deixa escolher entre reviver (Diamond Meme) e voltar ao checkpoint.
+  const account = useAccount();
+  const [downed, setDowned] = useState(false);
+  const downedRef = useRef(false);
   const [swingPhase, setSwingPhase] = useState<SwingPhase>(undefined);
 
   // Maximilian's permanent stat upgrades (see upgrades.ts) - applied once
@@ -443,6 +466,11 @@ export function WorldScreen() {
     if (booting || !worldFocused) return;
     fighter.health = Math.max(1, getStoryHp() * fighter.maxHealth);
     healthPct.value = (fighter.health / fighter.maxHealth) * 100;
+    // Perdeu uma luta de história e aceitou a derrota: volta ao checkpoint (a taxa já foi cobrada na luta).
+    if (consumeRespawn()) {
+      wakeAt(checkpointPos(), Math.max(getStoryHp(), 0.01));
+      showToast(t('death_back_checkpoint'));
+    }
     sinceHurtRef.current = 0; // voltou de uma luta: a regeneração natural do mundo espera o tempo normal
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [booting, worldFocused]);
@@ -465,7 +493,7 @@ export function WorldScreen() {
   showToastRef.current = showToast;
 
   useGameLoop((dtMs) => {
-    if (booting || !worldFocused || pausedRef.current || interior || dialogueNpc || choiceNpc || questOffer || bossOffer) return;
+    if (booting || !worldFocused || pausedRef.current || downedRef.current || interior || dialogueNpc || choiceNpc || questOffer || bossOffer) return;
     applyArmorRegen(fighter, baseRegenRef.current); // armadura equipada: regenera vida aos poucos (fighter.update aplica)
     if (sailRef.current) {
       stepSail(dtMs);
@@ -786,7 +814,7 @@ export function WorldScreen() {
     healthPct.value = (fighter.health / fighter.maxHealth) * 100;
     energyPct.value = fighter.energy;
     if (fighter.isKO || fighter.health <= 0) {
-      handleFaint();
+      beginDowned();
       return;
     }
     // Slow natural recovery once nothing has hurt us for a while.
@@ -855,20 +883,28 @@ export function WorldScreen() {
     }
   };
 
-  /** Knocked out: lose a bit of coin, wake up back at the village. */
-  const handleFaint = () => {
-    const lost = Math.min(getCoins(), Math.floor(getCoins() * 0.1));
-    if (lost > 0) spendCoins(lost);
+  /** Vida zerada: congela o mundo e mostra a tela de derrota (a escolha acontece nela). */
+  const beginDowned = () => {
+    if (downedRef.current) return;
+    downedRef.current = true;
+    attackTimerRef.current = 0;
+    pendingAttackRef.current = null;
+    setAttacking(null);
+    setSwingPhase(undefined);
+    setDowned(true);
+  };
+
+  /** Teletransporta o jogador (câmera e blocos do mapa junto) e o deixa de pé com `hpFrac` da vida. */
+  const wakeAt = (sp: { x: number; y: number }, hpFrac: number) => {
     fighter.isKO = false;
-    fighter.health = Math.max(1, FAINT_HP * fighter.maxHealth); // acorda na vila com metade da vida (não com a cheia)
-    setStoryHp(FAINT_HP);
+    fighter.health = Math.max(1, hpFrac * fighter.maxHealth);
+    setStoryHp(hpFrac);
     fighter.hitstunTimer = 0;
     fighter.currentAttack = null;
     fighter.setState('idle');
     pendingAttackRef.current = null;
     setAttacking(null);
     setSwingPhase(undefined);
-    const sp = spawnWorldPos();
     positionRef.current = { ...sp };
     playerX.value = sp.x;
     playerY.value = sp.y;
@@ -885,7 +921,34 @@ export function WorldScreen() {
     invulnRef.current = 1500;
     sinceHurtRef.current = 0;
     enemies.calmDown();
-    showToast(`${t('world_fainted')}${lost > 0 ? `  -${lost} ${CURRENCY_ABBR}` : ''}`);
+  };
+
+  /** Onde a derrota leva: o último cais em que desembarcou (checkpoint) ou, sem nenhum ainda, a vila. */
+  const checkpointPos = () => {
+    const c = getCheckpoint();
+    return c ? { x: c.x, y: c.y } : spawnWorldPos();
+  };
+
+  /** Reviver (Diamond Meme): vida cheia, no MESMO lugar e estado. O personagem volta no pico do clarão. */
+  const handleRevive = () => payRevive();
+  const handleRevived = () => {
+    fighter.revive();
+    fighter.setState('idle');
+    setStoryHp(1);
+    healthPct.value = 100;
+    invulnRef.current = 1500;
+    sinceHurtRef.current = 0;
+    enemies.calmDown();
+    downedRef.current = false;
+    setDowned(false);
+  };
+  /** Derrota aceita: paga a taxa (o saldo pode ficar negativo) e acorda no checkpoint com metade da vida. */
+  const handleDeclineDeath = () => {
+    const { fee, balance } = payDeathFee();
+    wakeAt(checkpointPos(), FAINT_HP);
+    downedRef.current = false;
+    setDowned(false);
+    showToast(`${t('world_fainted')}  -${fee} ${CURRENCY_ABBR}${balance < 0 ? `  (${t('death_debt')})` : ''}`);
   };
 
   /** Story-mode jump: a quick hop (sprite rises then lands) with a shadow
@@ -911,6 +974,8 @@ export function WorldScreen() {
 
   const [worldFx, setWorldFx] = useState<{ id: number; name: EffectName } | null>(null);
   const [itemMenuOpen, setItemMenuOpen] = useState(false);
+  bootingRef.current = booting;
+  cutsceneGateRef.current = !booting && worldFocused && !paused && !downed && !interior && !ferryOpen && !sail && !itemMenuOpen && !dialogueNpc && !choiceNpc && !questOffer && !bossOffer;
   const handleUseItem = (slot: 0 | 1) => {
     if (paused || interior || sailRef.current) return;
     const equippedId = getEquippedItems()[slot];
@@ -1045,6 +1110,7 @@ export function WorldScreen() {
     const anchor = FERRY_DOCKS[island].anchor;
     const px = anchor.x * map.tileSize;
     const py = anchor.y * map.tileSize;
+    setCheckpoint({ x: px, y: py }); // o cais onde desembarcou vira o checkpoint
     positionRef.current = { x: px, y: py };
     const idealCamera = computeCameraPosition(map, { x: px + PLAYER_SIZE.x / 2, y: py + PLAYER_SIZE.y / 2 }, { width, height });
     cameraX.value = idealCamera.x;
@@ -1336,6 +1402,19 @@ export function WorldScreen() {
         onUse={handleUseItem}
         anchor={itemAnchor}
       />
+
+      {downed && (
+        <DefeatOverlay
+          fee={currentDeathFee()}
+          coins={coins}
+          diamonds={account.diamonds}
+          reviveCost={REVIVE_COST}
+          declineLabel={t('death_checkpoint')}
+          onRevive={handleRevive}
+          onRevived={handleRevived}
+          onDecline={handleDeclineDeath}
+        />
+      )}
 
       <PauseMenu
         visible={paused && worldFocused}

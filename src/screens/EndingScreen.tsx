@@ -10,6 +10,9 @@ import { CREDITS, ENDING_TEXT, computeEnding } from '@/game/story/storyEnding';
 import { getEnding, setEnding, type Ending } from '@/game/state/storyFlags';
 import { getLang, useI18n } from '@/game/i18n/i18n';
 import { playSfx } from '@/game/audio/audioManager';
+import { CutscenePlayer } from '@/game/story/CutscenePlayer';
+import { cutsceneForEnding } from '@/game/story/cutscenes';
+import { markCutsceneSeen } from '@/game/story/cutsceneState';
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const BG = {
@@ -102,16 +105,25 @@ export function EndingScreen() {
   // 0 = título; 1..n = falas; n+1..n+3 = créditos
   const total = 1 + text.lines.length + CREDITS.length;
   const [step, setStep] = useState(0);
+  // Vídeo do final (assets/cutscenes/final_*.mp4) antes dos slides; se faltar ou falhar, o player chama onDone e segue direto.
+  const finalCutscene = useMemo(() => cutsceneForEnding(ending), [ending]);
+  const [videoDone, setVideoDone] = useState(!finalCutscene);
+  const playing = !videoDone;
 
   useEffect(() => {
     if (!getEnding()) setEnding(ending);
-    playSfx('levelup');
   }, [ending]);
   useEffect(() => {
-    if (step >= total - 1) return;
+    if (finalCutscene) markCutsceneSeen(finalCutscene.id);
+  }, [finalCutscene]);
+  useEffect(() => {
+    if (!playing) playSfx('levelup');
+  }, [playing]);
+  useEffect(() => {
+    if (playing || step >= total - 1) return;
     const id = setTimeout(() => setStep((s) => Math.min(total - 1, s + 1)), step === 0 ? 4200 : 6500);
     return () => clearTimeout(id);
-  }, [step, total]);
+  }, [step, total, playing]);
 
   const next = () => {
     playSfx('ui_hover', { gain: 0.6 });
@@ -120,6 +132,8 @@ export function EndingScreen() {
   const last = step >= total - 1;
   const label = step === 0 ? text.title[lang] : step <= text.lines.length ? text.lines[step - 1][lang] : CREDITS[step - 1 - text.lines.length][lang];
   const isTitle = step === 0 || step > text.lines.length;
+
+  if (playing && finalCutscene) return <CutscenePlayer id={finalCutscene.id} onDone={() => setVideoDone(true)} />;
 
   return (
     <Pressable style={styles.root} onPress={next}>

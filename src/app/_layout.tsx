@@ -6,9 +6,10 @@ import { playMusic } from '@/game/audio/audioManager';
 import { MENU_MUSIC } from '@/game/audio/music';
 import { warmSfx } from '@/game/audio/audioManager';
 import { TipBanner } from '@/game/menu/TipBanner';
+import { AchievementToast } from '@/game/account/AchievementToast';
 
 /** Screens that own their music (world picks by region, battle by fight); every other screen plays the title theme. */
-const OWN_MUSIC = ['/world', '/battle', '/inventory', '/missions', '/progress', '/status', '/ending'];
+const OWN_MUSIC = ['/world', '/battle', '/inventory', '/missions', '/progress', '/status', '/ending', '/cutscene'];
 
 /**
  * No tab bar / theme provider chrome here on purpose: the game owns its
@@ -31,6 +32,7 @@ export default function RootLayout() {
         <Stack.Screen name="slots" />
         <Stack.Screen name="world" />
         <Stack.Screen name="play" />
+        <Stack.Screen name="profile" />
         <Stack.Screen name="versus" />
         <Stack.Screen name="battle" />
         <Stack.Screen name="options" />
@@ -42,11 +44,13 @@ export default function RootLayout() {
         <Stack.Screen name="progress" />
         <Stack.Screen name="status" />
         <Stack.Screen name="ending" />
+        <Stack.Screen name="cutscene" />
         <Stack.Screen name="tower" />
         <Stack.Screen name="tutorial" />
         <Stack.Screen name="exit-confirm" />
       </Stack>
       <TipBanner />
+      <AchievementToast />
     </SafeAreaProvider>
   );
 }
