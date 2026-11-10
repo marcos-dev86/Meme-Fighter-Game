@@ -1,12 +1,11 @@
 """Importa as FOLHAS DE SPRITES novas (tools/art_src/sheets/<personagem>.png) para assets/sprites-v2/<personagem>/.
 
-Nada aqui e desenhado: cada quadro e RECORTADO da folha enviada pelo dono (fundo preto removido). Os sprites ANTIGOS
-(assets/legacy-sprites) NAO sao tocados: o jogo so usa os novos quando o personagem esta ligado em
-assets/sprites-v2/ACTIVE.json (desligue um personagem la e ele volta ao desenho antigo na hora).
+Nada aqui e desenhado: cada quadro e RECORTADO da folha enviada pelo dono (fundo preto removido). Os sprites v2 sao os
+unicos do jogo (os desenhos antigos foram apagados; so o voo dos 3 dragoes vem de tools/art_src/legacy_flight).
 
 Uso:   python3 tools/import_sheets.py            (reimporta todas as folhas que existem)
        python3 tools/import_sheets.py orc dogge  (so esses)
-Gera:  assets/sprites-v2/<p>/<pose>.png, assets/sprites-v2/<p>/ORIGEM.json, assets/sprites-v2/ACTIVE.json (se nao existir)
+Gera:  assets/sprites-v2/<p>/<pose>.png, assets/sprites-v2/<p>/ORIGEM.json
        src/game/battle/spritesV2.ts (GERADO: require() + proporcao de cada quadro)
 
 Layouts de folha reconhecidos (a folha segue o modelo enviado: retrato grande + 5 passos + linhas de ataque/efeitos):
@@ -57,7 +56,7 @@ CHARS = {
 }
 SHEET_FILE = {'orc': 'orc_2'}  # nome da folha quando diferente do personagem
 SUPPLEMENT = {'orc': ('orc', ['hurt', 'front', 'back', 'orb', 'burst', 'ult', 'face1', 'face2', 'face3', 'face4'])}
-# poses que vem dos sprites ANTIGOS (assets/legacy-sprites/<p>/<pose>.png), reescalados para casar com os quadros novos
+# poses que vem dos sprites ANTIGOS (tools/art_src/legacy_flight/<p>/<pose>.png), reescalados para casar com os quadros novos
 LEGACY_FLIGHT = {
     'shadow_dragon': ['idle', 'walk1', 'walk2', 'walk3', 'ult'],
     'ice_dragon': ['idle', 'walk1', 'walk2', 'walk3', 'ult'],
@@ -373,8 +372,8 @@ def up_pixelart(a, k):
 
 def legacy_flight(key, raw, log):
     """Dragoes: a folha nova nao traz um bom voo. idle/andar (e o projetil do ultimate) vem dos sprites ANTIGOS
-    (assets/legacy-sprites/<dragao>/), ampliados ate o tamanho do dragao dos quadros novos (largura mediana dos 5 voos da folha)."""
-    legacy_dir = os.path.join(ROOT, 'assets', 'legacy-sprites', key)
+    (tools/art_src/legacy_flight/<dragao>/), ampliados ate o tamanho do dragao dos quadros novos (largura mediana dos 5 voos da folha)."""
+    legacy_dir = os.path.join(ROOT, 'tools', 'art_src', 'legacy_flight', key)
     ref_w = float(np.median([raw[f'walk{i}'].shape[1] for i in range(1, 6)]))
     legs = {}
     for p in LEGACY_FLIGHT[key]:
@@ -504,16 +503,6 @@ def main():
         key, layout = CHARS[n]
         all_meta[key] = build(n, key, layout, log)
     os.makedirs(OUT, exist_ok=True)
-    act = os.path.join(OUT, 'ACTIVE.json')
-    if not os.path.exists(act):
-        with open(act, 'w') as f:
-            json.dump({'_aviso': 'Liga/desliga os sprites novos por personagem. false = volta ao desenho antigo (assets/legacy-sprites).', **{k: True for k in all_meta}}, f, ensure_ascii=False, indent=1)
-    else:  # personagem novo na pasta entra desligado? nao: entra ligado, mas nunca religa um que o dono desligou
-        cur = json.load(open(act))
-        for k in all_meta:
-            cur.setdefault(k, True)
-        with open(act, 'w') as f:
-            json.dump(cur, f, ensure_ascii=False, indent=1)
     emit_ts({k: dict(sorted(v.items(), key=lambda kv: kv[0])) for k, v in all_meta.items()})
     print('\n'.join(log))
 

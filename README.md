@@ -1,138 +1,94 @@
-# Meme-Fighter RPG
+# Meme Fighter RPG
 
-Conversão do jogo de luta **Meme-Fighter** (HTML5 Canvas) para um RPG em
-Expo/React Native/TypeScript, mantendo o sistema de batalha original como
-destino de integração futura em vez de descartá-lo.
+RPG de ação 2D em visão de cima com lutas de arena estilo "Mortal Kombat": explore o mapa, cumpra missões, derrote chefes,
+desbloqueie lutadores e jogue Versus (contra a CPU ou em 2 jogadores). Feito com Expo (SDK 57), React Native 0.86, React 19,
+expo-router e TypeScript. Roda no celular (Android/iOS via Expo Go ou APK) e no navegador.
 
-📄 Auditoria técnica completa, decisões de arquitetura e roadmap:
-**[`docs/AUDIT.md`](./docs/AUDIT.md)**: leia esse arquivo primeiro se
-você não acompanhou a conversa onde ele foi escrito.
-
----
-
-## Status atual
-
-**Novo nesta rodada:** a primeira missão de verdade: falar com o
-Gadigago (rival, na praça) oferece um desafio real, aceitar leva pra uma
-batalha de verdade contra ele, vencer dá 40 Memecoins e marca a missão
-como completa (as falas dele mudam depois disso). Perder não trava nada,
-dá pra tentar de novo. Ver `docs/AUDIT.md` pela arquitetura
-(`questState.ts`).
-
-**Rodada anterior:** mapa sem blocos de cor lisa (prédios em SVG de
-verdade), NPCs sem visual de "card colecionável", 5 idiomas em Opções,
-travessão removido do projeto inteiro. Não copiei o mapa do Pokémon
-FireRed nem busquei arte da Nintendo (motivo em `docs/AUDIT.md`).
-
-**Batalha:** fiel ao original (`fighter.js`/`battle-scene.js`), sem
-alterações de mecânica nesta rodada.
-
-**Mundo:** 720×480 tiles, estradas curvas, minimapa, vida/energia/ataques
-na HUD, pause no topo-centro, moeda própria, loja funcionando, 7 NPCs
-mais 1 rival com missão, interior próprio por prédio.
-
-### Como testar
+## Rodando
 
 ```bash
-cd meme-fighter-rpg
 npm install
-npx expo start
+npx expo start            # QR code para o Expo Go; pressione "w" para abrir no navegador
+npx expo start --web
+npx tsc --noEmit          # checagem de tipos (deve terminar sem erros)
 ```
 
-Abra no **Expo Go** ou pressione `w` pro navegador. Fale com o Gadigago
-(rival, na praça) pra testar a missão nova, com o Vovô Bento pra
-diálogo comum, ou entre na loja da Marina (prédio perto do chafariz).
+Orientação: sempre paisagem. Idiomas: português (BR), inglês, espanhol, francês e japonês (Opções).
 
-Validado antes de entregar: `tsc --noEmit` limpo, `expo export` (web e
-android) sem erros, e o servidor de dev real rodando neste ambiente:
-testei `/world` e `/battle` com os parâmetros exatos da missão
-(`questId=rival_battle`), os dois HTTP 200 sem erro. O sandbox usado
-pra isso ficou instável no meio da checagem desta vez (processo caiu
-sem motivo aparente), tentei de novo até confirmar de verdade em vez de
-assumir que tinha funcionado. Não consigo ver o jogo rodando com meus
-próprios olhos por aqui: julgar a experiência de verdade depende do seu
-teste.
+## Testes
 
----
+Todos os testes de lógica rodam no Node, sem Expo (`tools/ts-register.cjs` transpila o TypeScript na hora):
 
-## O que precisa de trabalho manual (não é código)
+```bash
+for f in tools/test-*.mjs; do node $f; done
+CUTSCENES_STRICT=1 node tools/test-cutscenes.mjs   # confere também os vídeos em disco
+```
 
-- **Sprites top-down do personagem.** O mapa hoje reaproveita
-  `idle`/`walk1-3` do Dogge (arte de perfil, feita pra luta) só pra provar
-  que o sistema funciona: funciona razoavelmente andando de lado, mas não
-  existe sprite de costas/de frente de verdade. Arte nova (ou redesenhada)
-  é necessária antes disso parecer um RPG de verdade.
-- **Tiles reais.** O mapa usa cores lisas no lugar de tileset: funciona
-  para testar colisão/câmera, mas não é arte final.
-- **Correção do bug de asset no jogo original**: `opções.png` está salvo
-  em disco como `op#U00e7#U00f5es.png` (ver `docs/AUDIT.md`, C.1): é só
-  renomear o arquivo dentro de `legacy/battle-web/assets/background/screen/`,
-  não mexi nisso porque a instrução foi não alterar o projeto atual sem
-  necessidade.
-- **Decidir o destino de `legacy/battle-web/Use Esses Arquivos no Jogo/`**: é uma pasta de origem Godot, não usada por nenhum código (ver
-  `docs/AUDIT.md`, C.2). Preservei sem excluir; avise se quiser que eu
-  remova ou aproveite algo de lá.
+| Arquivo | O que cobre |
+| --- | --- |
+| `test-parte01` / `test-parte2` / `test-parte3` / `test-urgente2` / `test-urgente3` / `test-dano` | combate, sprites, itens, mapa, vida persistente, armaduras, renomeações |
+| `test-conta` | conta, perfil, conquistas, progresso |
+| `test-cutscenes` | as 32 cutscenes (história, finais e curtas) |
+| `test-versus` | grade de seleção, tela VS, abertura ROUND/LUTE! |
+| `test-i18n` | os 5 idiomas têm as mesmas chaves, marcadores `{x}` iguais, sem texto fixo |
+| `test-saves` | saves antigos (v1, v2, ids antigos, JSON quebrado, 3 slots) e campos novos (rival, elites, opções) com padrão seguro |
+| `test-platina` / `test-platina100` | pesos da barra (soma 100), regras de nível 99/147 pontos/árvore e o teste de 100% que prova que a platina libera |
+| `test-ambient` | sons por região (floresta dia/noite, caverna, vulcão, gelo, cassino, interiores): no máximo 2 loops |
+| `test-rival-elite` | 5 aparições do rival e inimigos de elite |
+| `test-pause-timers` | pausa, timers sem limpeza e animações infinitas sem cancelamento; opções gráficas |
 
-## O que foi propositalmente deixado de fora do template do Expo
+Auditoria de traduções (5 idiomas): `node tools/check-i18n.mjs` (ou `npm run check:i18n`): chaves faltando, duplicadas, não traduzidas e problemas de estrutura.
 
-O `create-expo-app` padrão vem com navegação em abas, uma tela de boas-
-vindas e um ícone animado de demonstração: removi tudo isso
-(`explore.tsx`, `app-tabs.*`, `animated-icon.*`, `hint-row.tsx`,
-`web-badge.tsx`, `external-link.tsx`) porque não fazem sentido para um
-jogo em tela cheia. Mantive `themed-text.tsx`, `themed-view.tsx` e os
-hooks de tema: não são usados pelo código do jogo (que tem identidade
-visual própria, dourado/escuro, em vez de se adaptar ao tema do sistema),
-mas são genéricos o suficiente para servir numa tela de opções/menu mais
-pra frente.
+Testes no navegador (precisam de Playwright e de um export web):
+
+```bash
+npx expo export --platform web --output-dir dist
+node tools/e2e-versus.mjs dist      # idem: e2e-conta, e2e-cutscenes, e2e-parte01, e2e-parte2, e2e-urgente1, e2e-urgente3 ...
+```
 
 ## Estrutura
 
 ```
-src/
-  app/                    rotas
-  game/
-    core/useGameLoop.ts     loop de jogo fora do React
-    world/
-      worldGen.ts            gerador procedural (regiões, rio, estradas curvas, portas, ids de prédio)
-      overworld.ts             MapDef que expõe o gerador
-      TileMapRenderer.tsx      renderiza só os chunks perto da câmera, terreno com textura
-      BuildingSprite.tsx        prédio em SVG (telhado, parede, porta, janelas)
-      CharacterMarker.tsx       silhueta de NPC em SVG
-      Minimap.tsx               mapa de navegação
-      InteriorOverlay.tsx       interior por prédio (template + NPC + baú)
-      ShopOverlay.tsx           loja funcional
-      npcs.ts                   NPCs (identidade + falas + onde ficam + questId)
-      pickups.ts                itens escondidos no mapa
-      buildingContent.ts        nome/morador/loot de cada um dos 6 prédios
-    state/
-      playerState.ts             moedas + inventário compartilhados entre telas
-      questState.ts               progresso de missão compartilhado entre telas
-    items/itemDefs.ts          catálogo de itens + nome da moeda (Memecoin)
-    i18n/                      traduções (5 idiomas) + hook useI18n
-    dialogue/
-      DialogueOverlay.tsx        caixa de diálogo (retrato + nome + texto)
-      QuestOfferPrompt.tsx        aceitar/recusar missão
-    camera/Camera.ts
-    collision/collision.ts   colisão AABB, getTile() sob demanda
-    input/                    D-Pad (72px) + teclado (web)
-    menu/                     ArtBackdrop, MenuButton, PauseMenu
-    battle/                  Fighter.ts (usado por batalha E mundo), CpuController.ts
-  screens/                 HomeScreen, PlayMenuScreen, VersusScreen, BattleScreen, WorldScreen, InventoryScreen...
-  types/game.ts
-assets/
-  legacy-sprites/           sprites dos dois lutadores
-  legacy-art/                 arenas de batalha + efeito de escudo
-legacy/battle-web/          projeto original, intocado
-docs/AUDIT.md                auditoria + arquitetura + roadmap + changelog
+src/app/            rotas (expo-router): mapa, luta, versus, cutscene, opções ...
+src/screens/        telas (WorldScreen, BattleScreen, VersusScreen, EndingScreen ...)
+src/game/battle/    motor de luta, sprites (sprites.ts, spritesV2.ts gerado), IA, âncoras de mão
+src/game/world/     mapa, NPCs, baús, cassino, escalada, eventos
+src/game/state/     estado persistente (saves em 3 slots, missões, chefes, elenco, progresso/platina)
+src/game/story/     personagens, missões, cutscenes em vídeo (cutscenes.ts, CutscenePlayer, ShortCutsceneHost)
+src/game/versus/    Versus estilo Mortal Kombat: registro de lutadores, FighterSelect (dois toques), VersusSplash, versusLogic
+src/game/audio/     audioManager (música, sfx, ambientes com cross-fade), ambientMix (qual ambiente toca onde)
+src/game/enemies/   inimigos do mundo e elites (eliteDefs)
+src/game/i18n/      textos nos 5 idiomas (translations.ts + stringsXxx.ts mesclados por extraStrings.ts)
+assets/             sprites-v2 (lutadores), npc-walk, npc-portraits, avatars, legacy-art (cenários/menus),
+                    audio (música, sfx, ambiente), cutscenes (MP4), icons, furniture ...
+tools/              geradores de assets (Python), testes (Node) e e2e (Playwright), tools/cutscenes (renderizador dos vídeos)
+docs/               AUDIT.md (diário técnico), CUTSCENES.md, HISTORIA.md, SPRITES_V2.md, MEMES.md, PODE_APAGAR.md, APK_CHECKLIST.md
 ```
 
-## Próximos passos
+## Sistemas principais
 
-O modo de luta padrão (2D arcade) continua sendo o item pendente mais
-antigo do roadmap: ainda não voltei nele porque cada rodada trouxe pedido
-novo. Depois disso: mais missões usando os NPCs que já têm gancho de
-diálogo pra isso (Iara e Iracema já insinuam coisas escondidas), NPCs
-inimigos (a estrutura de `NpcKind` já está pronta), conectar os itens a
-efeitos reais em batalha (a poção de vida não cura nada ainda), e
-interiores com planta própria em vez dos 3 modelos atuais.
-pra isso (Iara e Iracema já insinuam coisas escondidas).
+- **Estado e saves**: cada sistema guarda seu pedaço em `registerSaveExt` (`src/game/state/saveExt.ts`); `saveState.ts` grava 3 slots (v2) e migra saves antigos. Opções (volumes, gráficos) ficam à parte em `settingsState.ts`; a conta (perfil, conquistas, cosméticos) é global em `src/game/account/`.
+- **Progresso e platina**: `progressState.ts` calcula 18 categorias (soma 100); a platina libera com todas completas (pesos e justificativa em `docs/AUDIT.md`).
+- **Rival e elites**: `rivalState.ts` + `battle/battleModes.ts` (5 aparições) e `enemies/eliteDefs.ts` (6 elites sobre spawns existentes).
+- **Áudio**: `audioManager.ts` (pausa global em `state/pauseState.ts`), ambientes em `assets/audio/ambient` (os novos saem de `python3 tools/make_ambient.py`).
+- **Opções gráficas** (Opções > Geral): MODO LEVE, partículas do clima, ondas animadas e escurecer à noite.
+
+## Regenerando assets (opcional; o repositório já traz os arquivos prontos)
+
+Os scripts em `tools/` precisam de Python 3 com Pillow e numpy (e `ffmpeg` para as cutscenes).
+
+- Sons ambiente por região: `python3 tools/make_ambient.py` (síntese determinística; precisa de numpy e ffmpeg).
+- Lutadores: `python3 tools/import_sheets.py` recorta as folhas de `tools/art_src/sheets/` para `assets/sprites-v2` e gera `spritesV2.ts`.
+- Avatares: `python3 tools/make_avatars.py` (ícones feitos à mão em `tools/art_src/avatars_fixed/` têm prioridade).
+- Cosméticos/armaduras sobre os sprites: `python3 tools/make_wear_v2.py`.
+- Cutscenes: `python3 tools/cutscenes/run.py <ids>` (usa só imagens e áudios que já existem no jogo).
+
+## Regras do projeto
+
+- Nada de sprites, animações, áudios ou dados inventados: o jogo só usa arte e som que existem em `assets/`.
+- Saves ficam só no aparelho (AsyncStorage). Formato e migrações: `src/game/state/saveState.ts`.
+- Limpezas e decisões antigas: `docs/AUDIT.md` e `docs/PODE_APAGAR.md`.
+
+## Gerar o APK
+
+Veja `docs/APK_CHECKLIST.md`.

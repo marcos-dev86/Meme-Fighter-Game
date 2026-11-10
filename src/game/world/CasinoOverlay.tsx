@@ -11,6 +11,8 @@ import { playSfx } from '@/game/audio/audioManager';
 import { haptic } from '@/game/audio/haptics';
 import { MenuButton } from '@/game/menu/MenuButton';
 import { useI18n } from '@/game/i18n/i18n';
+import { slotWinEvent } from '@/game/story/cutscenes';
+import { playShortCutscene } from '@/game/story/shortCutsceneState';
 import { DieFace, PlayingCard, RouletteWheel, POCKET_COLOR } from '@/game/casino/casinoUi';
 import {
   CARD_BETS,
@@ -152,7 +154,7 @@ export function CasinoOverlay({ onClose, initialGame }: Props) {
     playSfx('ui_confirm');
     return true;
   };
-  const settle = (bet: number, payout: number) => {
+  const settle = (bet: number, payout: number, slotEvent?: string | null) => {
     pending.current = 0;
     if (payout > 0) addCoins(payout, false);
     if (payout > bet) {
@@ -171,6 +173,9 @@ export function CasinoOverlay({ onClose, initialGame }: Props) {
     } else {
       playSfx('ui_back');
     }
+    // Cutscene curta da vitória (depois do resultado aparecer). Caça-níquel: só com 3 símbolos iguais; os outros jogos: qualquer vitória.
+    const winEvent = game === 'slots' ? slotEvent : `casino:${game}`;
+    if (net > 0 && winEvent) later(() => playShortCutscene(winEvent), 600);
   };
 
   // ---------- jogos ----------
@@ -190,7 +195,7 @@ export function CasinoOverlay({ onClose, initialGame }: Props) {
         setReels((cur2) => cur2.map((icon, k) => (k === i ? (final[i].icon as IconName) : icon)));
         if (i === 2) {
           stopTick(tick);
-          settle(bet, payout);
+          settle(bet, payout, slotWinEvent(final.map((f) => f.id)));
         }
       }, ms),
     );

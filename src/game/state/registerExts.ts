@@ -6,4 +6,5 @@ import './bossState';
 import './skillState';
 import './towerState';
 import './rivalState';
+import './eliteState';
 import './cosmeticsState';

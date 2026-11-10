@@ -246,7 +246,7 @@ export const NPCS: Record<string, NpcDef> = {
     skinColor: '#3a2a3a',
     outfitColor: '#5a1a1a',
     hairColor: '#1a0a1a',
-    portraitSprite: require('../../../assets/legacy-sprites/footman/idle.png'),
+    portraitSprite: require('../../../assets/npc-portraits/footman.png'),
     dialogue: ['Au. AU. Ninguém passa da praia sem falar com o Rei.'],
   },
   tank_dog: {
@@ -257,7 +257,7 @@ export const NPCS: Record<string, NpcDef> = {
     skinColor: '#3a2a3a',
     outfitColor: '#5a1a1a',
     hairColor: '#1a0a1a',
-    portraitSprite: require('../../../assets/legacy-sprites/tank/idle.png'),
+    portraitSprite: require('../../../assets/npc-portraits/tank_dog.png'),
     dialogue: ['(esse aqui só rosna e não sai do lugar)'],
   },
   dogking: {
@@ -283,7 +283,7 @@ export const NPCS: Record<string, NpcDef> = {
     skinColor: '#e8b98a',
     outfitColor: '#2f5c33',
     hairColor: '#1a2a1a',
-    portraitSprite: require('../../../assets/legacy-sprites/hood/idle.png'),
+    portraitSprite: require('../../../assets/npc-portraits/hood.png'),
     dialogue: ['Ando de vila em vila, sempre com o arco pronto.', 'Essa floresta tem mais trilha escondida do que parece à primeira vista.'],
   },
   tico: {
@@ -294,7 +294,7 @@ export const NPCS: Record<string, NpcDef> = {
     skinColor: '#d9b38a',
     outfitColor: '#6b4a2a',
     hairColor: '#2a1a1a',
-    portraitSprite: require('../../../assets/legacy-sprites/monk/idle.png'),
+    portraitSprite: require('../../../assets/npc-portraits/monk.png'),
     dialogue: ['A Legião Cinzenta ali na frente não recebe bem quem passa. Cuidado.', 'Viajo em busca de paz. Esse acampamento atrapalha um pouco meus planos.'],
   },
   moai: {
@@ -305,7 +305,7 @@ export const NPCS: Record<string, NpcDef> = {
     skinColor: '#8a8a7a',
     outfitColor: '#8a8a7a',
     hairColor: '#8a8a7a',
-    portraitSprite: require('../../../assets/legacy-sprites/moai/idle.png'),
+    portraitSprite: require('../../../assets/npc-portraits/moai.png'),
     dialogue: ['...', '(Sigma Boy só encara você em silêncio. Ele não precisa falar.)'],
   },
   guardiao_pedra: {
@@ -352,7 +352,7 @@ export const NPCS: Record<string, NpcDef> = {
     skinColor: '#6a9c4a',
     outfitColor: '#6a9c4a',
     hairColor: '#4a7a32',
-    portraitSprite: require('../../../assets/legacy-sprites/meme-kin/espinho.png'),
+    portraitSprite: require('../../../assets/npc-portraits/meme-kin/espinho.png'),
     dialogue: ['Calor que eu curto. É de família.', 'Já falaram que eu não pareço nada com meus parentes. E daí? Somos família igual.'],
   },
   violeta: {
@@ -363,7 +363,7 @@ export const NPCS: Record<string, NpcDef> = {
     skinColor: '#7a4ea8',
     outfitColor: '#7a4ea8',
     hairColor: '#4a2e68',
-    portraitSprite: require('../../../assets/legacy-sprites/meme-kin/violeta.png'),
+    portraitSprite: require('../../../assets/npc-portraits/meme-kin/violeta.png'),
     dialogue: ['Gosto daqui porque quase ninguém passa.', 'Sim, sou prima do Espinho. Não, não sei explicar o parentesco.'],
   },
   gemada: {
@@ -374,7 +374,7 @@ export const NPCS: Record<string, NpcDef> = {
     skinColor: '#e08a3c',
     outfitColor: '#e08a3c',
     hairColor: '#c76a1a',
-    portraitSprite: require('../../../assets/legacy-sprites/meme-kin/gemada.png'),
+    portraitSprite: require('../../../assets/npc-portraits/meme-kin/gemada.png'),
     dialogue: ['Vim parar bem longe de casa, hein?', 'A família inteira espalhada pelos cantos do mapa. Reunião de família deve ser caótica.'],
   },
   polen: {
@@ -385,7 +385,7 @@ export const NPCS: Record<string, NpcDef> = {
     skinColor: '#4ec4c4',
     outfitColor: '#d88ad8',
     hairColor: '#2e8a8a',
-    portraitSprite: require('../../../assets/legacy-sprites/meme-kin/polen.png'),
+    portraitSprite: require('../../../assets/npc-portraits/meme-kin/polen.png'),
     dialogue: ['Voei o mapa inteiro. Essa ilha é mais misteriosa de perto.', 'Minha prima Gemada nem sabe voar. Família é diversa assim mesmo.'],
   },
   penumbra: {
@@ -396,7 +396,7 @@ export const NPCS: Record<string, NpcDef> = {
     skinColor: '#c8c8d8',
     outfitColor: '#6a3f9c',
     hairColor: '#6a3f9c',
-    portraitSprite: require('../../../assets/legacy-sprites/meme-kin/penumbra.png'),
+    portraitSprite: require('../../../assets/npc-portraits/meme-kin/penumbra.png'),
     dialogue: ['Shh. Aqui é tranquilo. Quase ninguém me acha.', 'Família Parente? Sim, infelizmente. Ou felizmente. Depende do dia.'],
   },
   // v3 (earlier pass): "mais npcs memes, como o moai" - moai/Sigma Boy

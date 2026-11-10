@@ -32,9 +32,10 @@ const CASES = {
   tank: [200, 124 / 122],
   ninja: [150, 172 / 240],
   mystic: [130, 158 / 300],
-  ice_dragon: [250, 178 / 202],
-  green_dragon: [240, 178 / 202],
-  shadow_dragon: [400, 144 / 104], // redesenhado: largura 440 -> 400, altura nova ~289 px (documentado em docs/AUDIT.md)
+  // dragoes: a proporcao de layout e a do quadro idle (voo) de assets/sprites-v2 (ver V2_LAYOUT_FROM_IDLE em sprites.ts)
+  ice_dragon: [250, 'idle'],
+  green_dragon: [240, 'idle'],
+  shadow_dragon: [400, 'idle'],
   troll_face: [108, 170 / 337], // Urgente 2
   cara_tranquilo: [118, 134 / 235], // Urgente 2
   sahur: [106, 92 / 186], // Urgente 3
@@ -71,7 +72,7 @@ async function openBattle(browser, base, p1, p2) {
   page.on('response', (r) => r.status() >= 400 && /\.(png|webp|gif|jpe?g)(\?|$)/i.test(r.url()) && bad.push(r.status() + ' ' + r.url()));
   await page.goto(`${base}/battle?p1=${p1}&p2=${p2}&p2Control=cpu&stageKey=stage_1`, { waitUntil: 'load' });
   await page.getByText('FLASH', { exact: true }).waitFor({ timeout: 30000 });
-  await page.waitForFunction(() => !document.body.innerText.includes('ROUND 1'), null, { timeout: 30000 }).catch(() => {});
+  await page.waitForFunction(() => !/ROUND 1|LUTE!/.test(document.body.innerText), null, { timeout: 30000 }).catch(() => {});
   // PREEXISTENTE (tambem no original, so na exportacao web): arena pode ficar em scale(0) ate um resize depois de hidratar.
   const zeroed = await page.evaluate(() => [...document.querySelectorAll('div')].some((d) => d.style.width === '1280px' && d.style.height === '720px' && /scale\(0\)/.test(d.style.transform)));
   if (zeroed) {
@@ -108,7 +109,12 @@ async function main() {
     if (ONLY.length && !ONLY.includes(key)) continue;
     const p2 = key === 'orc' ? 'soldier' : 'orc';
     const { ctx, page, errors, bad } = await openBattle(browser, base, key, p2);
-    const want = dw / asp;
+    let a = asp;
+    if (a === 'idle') {
+      const b = fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'assets', 'sprites-v2', key, 'idle.png'));
+      a = b.readUInt32BE(16) / b.readUInt32BE(20);
+    }
+    const want = dw / a;
     const box = await fighterBox(page, dw);
     check(!!box, `[${key}] lutador encontrado na tela`);
     if (box) check(Math.abs(box.styleH - want) <= 1.5, `[${key}] altura de referencia = desenho original`, `${box.styleH.toFixed(1)} px (esperado ${want.toFixed(1)})`);

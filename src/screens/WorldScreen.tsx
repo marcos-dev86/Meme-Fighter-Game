@@ -22,14 +22,16 @@ import { useDirectionalInput, type DirectionKey } from '@/game/input/useDirectio
 import { TapDashDetector } from '@/game/input/tapDash';
 import { TileMapRenderer, type ChunkCoord } from '@/game/world/TileMapRenderer';
 import { CHUNK_SIZE, overworld } from '@/game/world/overworld';
-import { BUILDING_RECTS, TOWER, getBuildingAtDoor, REGION_ANCHORS, TRAINING_FIELD, STATUE_TILE, IGLOO_TILE, FERRY_DOCKS } from '@/game/world/worldGen';
+import { BUILDING_RECTS, TOWER, getBuildingAtDoor, FERRY_DOCKS } from '@/game/world/worldGen';
 import { computeProgress } from '@/game/state/progressState';
 import { getBagEffects } from '@/game/items/bagRuntime';
 import { playMusic, playSfx, setAmbient, stopAmbients, warmSfx } from '@/game/audio/audioManager';
+import { ALL_AMBIENTS, ambientMix, interiorKindOf, type InteriorKind } from '@/game/audio/ambientMix';
+import { BUILDING_CONTENT } from '@/game/world/buildingContent';
 import { ClockPill, LightsLayer, NightLayer, useIsNight } from '@/game/world/DayNightLayers';
 import { WeatherLayer } from '@/game/world/WeatherLayer';
 import { weatherAt, type Weather } from '@/game/state/weatherState';
-import { advanceTime, getCycleMs, getTotalMs, CYCLE_MS } from '@/game/state/timeState';
+import { advanceTime, getCycleMs, getTotalMs, isNight, CYCLE_MS } from '@/game/state/timeState';
 import { tide, tideLevelAt } from '@/game/world/waveClock';
 import { worldMusic } from '@/game/audio/music';
 import { haptic } from '@/game/audio/haptics';
@@ -62,12 +64,14 @@ import { setWorldPosition } from '@/game/state/worldPosition';
 import { createFighter, Fighter } from '@/game/battle/Fighter';
 import { FAINT_HP, getStoryHp, setStoryHp } from '@/game/state/healthState';
 import { applyArmorRegen } from '@/game/items/armor';
-import { getLayoutAspect, getSprite, SPRITE_ASPECTS, walkFrames } from '@/game/battle/sprites';
+import { getLayoutAspect, SPRITE_ASPECTS, walkFrames } from '@/game/battle/sprites';
 import { getHandAnchor } from '@/game/battle/handAnchors';
 import { rollHit } from '@/game/battle/damageRoll';
 import { getGear, isGear } from '@/game/items/gear';
 import { HeldGear, type SwingPhase } from '@/game/items/HeldGear';
 import { EnemyManager, type PlayerAttackType } from '@/game/enemies/enemySim';
+import { markEliteDefeated } from '@/game/state/eliteState';
+import { nextRivalEncounter, getRivalEncounterParam } from '@/game/state/rivalState';
 import { EnemyLayer } from '@/game/enemies/EnemyLayer';
 import { getStoryDifficulty } from '@/game/state/difficulty';
 import { NPCS, OUTDOOR_NPCS, type NpcDef } from '@/game/world/npcs';
@@ -75,6 +79,8 @@ import { isPlacementActive } from '@/game/world/npcActive';
 import { endingShouldPlay } from '@/game/story/storyEnding';
 import { cutsceneForMission } from '@/game/story/cutscenes';
 import { cutsceneSeen, nextQueuedCutscene, queueCutscene } from '@/game/story/cutsceneState';
+import { isShortCutscenePlaying, playShortCutscene, queueShortEvent, takeQueuedShortEvent } from '@/game/story/shortCutsceneState';
+import { CLIMB_COOLDOWN_MS, climbEventOnEntry } from '@/game/world/climbEvents';
 import { BOSS_LORE } from '@/game/story/bossLore';
 import { WORLD_PICKUPS, type PickupDef } from '@/game/world/pickups';
 import { DialogueOverlay } from '@/game/dialogue/DialogueOverlay';
@@ -91,7 +97,7 @@ import { getSession } from '@/game/state/session';
 import { MissionHud } from '@/game/world/MissionHud';
 import { router, useIsFocused } from 'expo-router';
 import { CURRENCY_ABBR, ITEMS, itemName, applyItemEffect, needsTarget, itemEffectName } from '@/game/items/itemDefs';
-import { addCoins, addItem, bagRoomFor, consumeEquippedItem, getCoins, spendCoins, getEquippedItems, isCollected, markCollected, usePlayerState, getUpgradeLevels, addXp, takeLevelNotice } from '@/game/state/playerState';
+import { addCoins, addItem, bagRoomFor, consumeEquippedItem, getEquippedItems, isCollected, markCollected, usePlayerState, getUpgradeLevels, addXp, takeLevelNotice } from '@/game/state/playerState';
 import { applyUpgrades, upgradeSpeedMult } from '@/game/items/upgrades';
 import { useI18n } from '@/game/i18n/i18n';
 import type { Direction, PlayerState } from '@/types/game';
@@ -155,6 +161,9 @@ export function WorldScreen() {
   const endingPushedRef = useRef(false);
   // Cutscenes em vídeo: `cutsceneGateRef` diz se o mundo está livre (sem diálogo, menu, luta por cima...) para abrir a próxima da fila.
   const cutsceneGateRef = useRef(false);
+  // Escalada (cutscene curta): estava sobre o paredão no quadro anterior? e quando tocou a última vez (cooldown).
+  const onCliffRef = useRef(false);
+  const lastClimbCutsceneRef = useRef(Date.now()); // começa com 15 s de carência: carregar o save em cima do paredão não toca vídeo
   const bootingRef = useRef(true);
   // O menu de pausa é um <Modal> (fica acima de tudo): some enquanto uma tela do menu (STATUS, MISSÕES...) está aberta.
   const worldFocused = useIsFocused();
@@ -207,6 +216,7 @@ export function WorldScreen() {
   const weatherRef = useRef<Weather>('clear');
   const thunderAtRef = useRef(0);
   const insideRef = useRef(false);
+  const interiorKindRef = useRef<InteriorKind | null>(null);
   const stepTimerRef = useRef(0);
   const bagFullAtRef = useRef(0);
   const missionRefreshRef = useRef(0);
@@ -238,6 +248,7 @@ export function WorldScreen() {
     playMusic(worldMusic({ island: musicIsland, interior: interior?.buildingId ?? null, sailing: !!sail, night }));
   }, [booting, musicIsland, interior, sail, night]);
   insideRef.current = !!interior;
+  interiorKindRef.current = interior ? interiorKindOf(interior.buildingId, BUILDING_CONTENT[interior.buildingId]?.template, CASINO_BUILDING_ID) : null;
   useEffect(() => {
     if (booting) return;
     if (night) tip('night');
@@ -262,16 +273,27 @@ export function WorldScreen() {
   useEffect(() => {
     if (booting) return;
     const id = setInterval(() => {
-      if (pausedRef.current || isWorldFrozen()) return; // pausa de verdade: relógio, clima e trovão param
+      if (pausedRef.current) return; // pausa de verdade: relógio, clima e trovão param (o audioManager pausa os ambientes e os retoma ao voltar)
+      if (isWorldFrozen()) {
+        // Luta aberta por cima do mundo: os ambientes do mundo silenciam (uma luta tem som próprio) e a mistura volta quando ela fecha.
+        stopAmbients();
+        return;
+      }
       advanceTime(500);
       // Missão final concluída: mostra o final (uma vez por save).
       if (!endingPushedRef.current && endingShouldPlay()) {
         endingPushedRef.current = true;
         router.push('/ending' as never);
-      } else if (!endingPushedRef.current && cutsceneGateRef.current) {
-        // Cutscene em vídeo da missão que acabou de fechar (uma por vez, só quando o mundo está livre).
-        const csId = nextQueuedCutscene();
-        if (csId && !cutsceneSeen(csId)) router.push(`/cutscene?id=${csId}` as never);
+      } else if (!endingPushedRef.current && cutsceneGateRef.current && !isShortCutscenePlaying()) {
+        // Cutscene curta que estava esperando o mundo ficar livre (ex.: subiu de nível numa batalha), depois a da missão que fechou.
+        const shortEv = takeQueuedShortEvent();
+        if (shortEv) {
+          playShortCutscene(shortEv);
+        } else {
+          // Cutscene em vídeo da missão que acabou de fechar (uma por vez, só quando o mundo está livre).
+          const csId = nextQueuedCutscene();
+          if (csId && !cutsceneSeen(csId)) router.push(`/cutscene?id=${csId}` as never);
+        }
       }
       // Posição do mundo para a batalha escolher cenário, clima e hora (ver battleContext.ts).
       setWorldPosition({
@@ -290,30 +312,24 @@ export function WorldScreen() {
       }
       tide.value = withTiming(tideLevelAt(getCycleMs(), CYCLE_MS), { duration: 480 });
       const inside = insideRef.current;
-      const rainy = w === 'rain' || w === 'storm';
-      const roof = inside ? 0.22 : 1;
-      setAmbient('rain', rainy ? (w === 'storm' ? 1 : 0.62) * roof : 0);
-      const windLevel = w === 'blizzard' ? 1 : w === 'storm' ? 0.5 : w === 'snow' ? 0.35 : w === 'ash' ? 0.3 : w === 'fog' ? 0.15 : 0;
-      setAmbient('wind', inside ? 0 : windLevel);
-      let waves = 0;
-      if (!inside) {
-        if (sailing) waves = 0.85;
-        else {
-          const ts = map.tileSize;
-          const bx = Math.floor((positionRef.current.x + PLAYER_SIZE.x / 2) / ts);
-          const by = Math.floor((positionRef.current.y + PLAYER_SIZE.y / 2) / ts);
-          let water = 0;
-          let n = 0;
-          for (let oy = -6; oy <= 6; oy += 2) {
-            for (let ox = -6; ox <= 6; ox += 2) {
-              n++;
-              if (map.getTile(bx + ox, by + oy) === 'water') water++;
-            }
+      let water = 0;
+      if (!inside && !sailing) {
+        const ts = map.tileSize;
+        const bx = Math.floor((positionRef.current.x + PLAYER_SIZE.x / 2) / ts);
+        const by = Math.floor((positionRef.current.y + PLAYER_SIZE.y / 2) / ts);
+        let wet = 0;
+        let n = 0;
+        for (let oy = -6; oy <= 6; oy += 2) {
+          for (let ox = -6; ox <= 6; ox += 2) {
+            n++;
+            if (map.getTile(bx + ox, by + oy) === 'water') wet++;
           }
-          waves = water === 0 ? 0 : Math.min(0.7, 0.15 + (water / n) * 0.9);
         }
+        water = wet === 0 ? 0 : Math.min(0.7, 0.15 + (wet / n) * 0.9);
       }
-      setAmbient('waves', waves);
+      // Mistura por região (audio/ambientMix.ts): uma cama regional + uma camada de clima/água, com cross-fade no audioManager.
+      const mix = ambientMix({ island: hereIslandRef.current ?? 'main', interior: interiorKindRef.current, sailing, night: isNight(), weather: w, water });
+      for (const k of ALL_AMBIENTS) setAmbient(k, mix[k]);
       if (w === 'storm' && !inside && Date.now() > thunderAtRef.current) {
         thunderAtRef.current = Date.now() + 7000 + Math.random() * 14000;
         setFlashKey((k) => k + 1);
@@ -390,6 +406,12 @@ export function WorldScreen() {
         const cs = cutsceneForMission(def.id, (m) => getQuestStatus(m) === 'completed', cutsceneSeen);
         if (cs) queueCutscene(cs.id);
       }
+      if (!bootingRef.current) {
+        // Parte 2: aparição do rival e elites que a missão libera.
+        const encNow = nextRivalEncounter((m) => getQuestStatus(m) === 'completed');
+        if (encNow && encNow.gate === def.id) missionToastQueue.current.push(t('rival_appeared'));
+        if (enemies.refreshElites((d) => getQuestStatus(d.gate) === 'completed').length > 0) missionToastQueue.current.push(t('elite_appeared'));
+      }
       const bits = [def.title];
       if (reward.coins) bits.push(`+${reward.coins} ${CURRENCY_ABBR}`);
       if (reward.xp) bits.push(`+${reward.xp} XP`);
@@ -400,7 +422,10 @@ export function WorldScreen() {
     const offNotice = onQuestNotice((text) => missionToastQueue.current.push(text));
     const id = setInterval(() => {
       const lvl = takeLevelNotice();
-      if (lvl !== null) missionToastQueue.current.unshift(`NÍVEL ${lvl}! +1 ponto de status`);
+      if (lvl !== null) {
+        missionToastQueue.current.unshift(`NÍVEL ${lvl}! +1 ponto de status`);
+        queueShortEvent('level:up'); // toca quando o mundo estiver livre (não durante batalha)
+      }
       const next = missionToastQueue.current.shift();
       if (next) showToastRef.current(next);
     }, 2300);
@@ -436,7 +461,9 @@ export function WorldScreen() {
 
   // Overworld enemies (see game/enemies): the manager owns their logic, the
   // loop below drives it, EnemyLayer draws it.
-  const enemies = useRef(new EnemyManager(map, getStoryDifficulty())).current;
+  // Próxima aparição especial do rival liberada pela história (null = só a revanche livre). Lido a cada render: é barato.
+  const rivalEnc = nextRivalEncounter((m) => getQuestStatus(m) === 'completed');
+  const enemies = useRef(new EnemyManager(map, getStoryDifficulty(), (d) => getQuestStatus(d.gate) === 'completed')).current;
   const invulnRef = useRef(0); // ms of damage immunity after a hit
   const sinceHurtRef = useRef(99999);
   const pendingAttackRef = useRef<{ type: PlayerAttackType; delay: number } | null>(null);
@@ -493,7 +520,7 @@ export function WorldScreen() {
   showToastRef.current = showToast;
 
   useGameLoop((dtMs) => {
-    if (booting || !worldFocused || pausedRef.current || downedRef.current || interior || dialogueNpc || choiceNpc || questOffer || bossOffer) return;
+    if (booting || !worldFocused || pausedRef.current || downedRef.current || interior || dialogueNpc || choiceNpc || questOffer || bossOffer || isShortCutscenePlaying()) return;
     applyArmorRegen(fighter, baseRegenRef.current); // armadura equipada: regenera vida aos poucos (fighter.update aplica)
     if (sailRef.current) {
       stepSail(dtMs);
@@ -548,6 +575,17 @@ export function WorldScreen() {
         stepTimerRef.current = usingDash ? 190 : 330;
         const under = map.getTile(Math.floor((result.position.x + PLAYER_SIZE.x / 2) / map.tileSize), Math.floor((result.position.y + PLAYER_SIZE.y) / map.tileSize));
         playSfx(under === 'dock' ? 'step_wood' : under === 'stone' || under === 'ash' || under === 'rock' || under === 'snow' || under === 'cliff' ? 'step_rock' : under === 'water' ? 'step_water' : 'step_grass', { gain: 0.45, minGapMs: 120 });
+      }
+
+      // Cutscene curta de escalada: ao ENTRAR no paredão ('cliff') vindo de fora (regra sobe/desce em climbEvents.ts).
+      {
+        const ctx = Math.floor((result.position.x + PLAYER_SIZE.x / 2) / map.tileSize);
+        const cty = Math.floor((result.position.y + PLAYER_SIZE.y) / map.tileSize);
+        const nowOnCliff = map.getTile(ctx, cty) === 'cliff';
+        if (nowOnCliff && !onCliffRef.current && Date.now() - lastClimbCutsceneRef.current > CLIMB_COOLDOWN_MS) {
+          if (playShortCutscene(climbEventOnEntry((x, y) => map.getTile(x, y), ctx, cty))) lastClimbCutsceneRef.current = Date.now();
+        }
+        onCliffRef.current = nowOnCliff;
       }
 
       if (result.blockedX || result.blockedY) {
@@ -758,6 +796,7 @@ export function WorldScreen() {
           continue;
         }
         markCollected(pickup.id);
+        if (pickup.chest) playShortCutscene('chest:open');
         playSfx(pickup.coins ? 'coin' : 'use_item');
         haptic(pickup.coins ? 'light' : 'medium');
         if (pickup.coins) {
@@ -870,6 +909,13 @@ export function WorldScreen() {
       const names: string[] = [];
       for (const k of res.kills) {
         reportKill(k.type);
+        if (k.eliteId) {
+          // Elite (Parte 2.3): o prêmio da 1ª derrota é um item já existente; o aviso usa texto traduzido.
+          names.push(t('elite_defeated'));
+          if (markEliteDefeated(k.eliteId) && k.firstDrop) {
+            if (addItem(k.firstDrop.id, k.firstDrop.n, true) > 0) names.push(`${itemName(k.firstDrop.id)} ×${k.firstDrop.n}`);
+          }
+        }
         coins += k.coins;
         xp += k.xp;
         if (k.itemId) {
@@ -1261,8 +1307,8 @@ export function WorldScreen() {
             {heldGear}
           </Animated.View>
         </Animated.View>
-        <WeatherLayer width={width} height={height} weather={weather} flashKey={flashKey} paused={paused} intensity={settings.lightMode ? 0.3 : 1} />
-        <NightLayer width={width} height={height} cx={width / 2} cy={height / 2 - 10} />
+        {settings.weatherParticles && <WeatherLayer width={width} height={height} weather={weather} flashKey={flashKey} paused={paused} intensity={settings.lightMode ? 0.3 : 1} />}
+        {settings.nightDarkening && <NightLayer width={width} height={height} cx={width / 2} cy={height / 2 - 10} />}
         <Animated.View pointerEvents="none" style={[worldStyle, { position: 'absolute', left: 0, top: 0 }]}>
           <LightsLayer tileSize={map.tileSize} />
         </Animated.View>
@@ -1348,10 +1394,10 @@ export function WorldScreen() {
         <Pressable
           style={[styles.interactBtn, styles.bossBtn, { bottom: insets.bottom + 248 }]}
           onPress={() =>
-            router.push({ pathname: '/battle', params: { p1: getStoryCharacter(getStoryCharacterId()).fighter, p2Control: 'cpu', rival: '1' } } as never)
+            router.push({ pathname: '/battle', params: { p1: getStoryCharacter(getStoryCharacterId()).fighter, p2Control: 'cpu', rival: rivalEnc ? getRivalEncounterParam(rivalEnc.n) : '1' } } as never)
           }
         >
-          <IconLabel icon="swords" size={16} textStyle={[styles.interactLabel, { color: '#ff7a6a' }]}>{t('rival_rematch')}</IconLabel>
+          <IconLabel icon="swords" size={16} textStyle={[styles.interactLabel, { color: '#ff7a6a' }]}>{rivalEnc ? t('rival_challenge').replace('{n}', String(rivalEnc.n)) : t('rival_rematch')}</IconLabel>
         </Pressable>
       )}
 

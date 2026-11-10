@@ -7,6 +7,7 @@ import { getBagEffects, setBagEffects } from '@/game/items/bagRuntime';
 import { ARMORS } from '@/game/items/armorDefs';
 import { playSfx } from '@/game/audio/audioManager';
 import { haptic } from '@/game/audio/haptics';
+import { noteLevel } from '@/game/account/accountState';
 
 /**
  * Coins/inventory need to survive navigating between screens (world ->
@@ -85,6 +86,15 @@ export function addCoins(amount: number, bonus = true) {
   notify();
 }
 
+/**
+ * Cobra Meme Coins SEM exigir saldo: a taxa de derrota pode deixar o saldo NEGATIVO (dívida). Ganhos futuros pagam a dívida
+ * primeiro, porque o saldo só soma; lojas continuam exigindo saldo >= preço (spendCoins), então com dívida não se compra nada.
+ */
+export function chargeCoins(amount: number) {
+  state.coins -= Math.max(0, Math.round(amount));
+  notify();
+}
+
 export function spendCoins(amount: number): boolean {
   if (state.coins < amount) return false;
   state.coins -= amount;
@@ -153,6 +163,7 @@ export function restorePlayerState(data: {
   state.armors = Array.from(new Set((data.armors ?? []).filter((a) => ARMORS[a])));
   state.armorId = data.armorId && state.armors.includes(data.armorId) ? data.armorId : null;
   levelNotice = null;
+  noteLevel(state.level); // conquistas de nível valem para a conta, não só para este save
   notify();
 }
 
@@ -297,6 +308,7 @@ export function addXp(amount: number): number {
   }
   if (state.level >= MAX_PLAYER_LEVEL) state.xp = 0;
   if (gained > 0) {
+    noteLevel(state.level);
     levelNotice = state.level;
     playSfx('levelup');
     haptic('success');

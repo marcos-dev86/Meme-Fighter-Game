@@ -13,7 +13,8 @@ import {
   setAmbientVolume,
   setHaptics,
   setTips,
-  setLightMode,
+  setLightMode, setWeatherParticles, setWaveAnimation, setNightDarkening,
+  setShortCutscenes,
   setMusicVolume,
   setSfxVolume,
   useSettings,
@@ -104,6 +105,31 @@ export function OptionsScreen() {
             />
           </View>
           <Text style={styles.note}>{t('opt_light_mode_note')}</Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>{t('opt_weather_particles')}</Text>
+            <MenuButton compact label={settings.weatherParticles ? t('opt_on') : t('opt_off')} variant={settings.weatherParticles ? 'primary' : 'ghost'} onPress={() => setWeatherParticles(!settings.weatherParticles)} />
+          </View>
+          <Text style={styles.note}>{t('opt_weather_particles_note')}</Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>{t('opt_wave_anim')}</Text>
+            <MenuButton compact label={settings.waveAnimation ? t('opt_on') : t('opt_off')} variant={settings.waveAnimation ? 'primary' : 'ghost'} onPress={() => setWaveAnimation(!settings.waveAnimation)} />
+          </View>
+          <Text style={styles.note}>{t('opt_wave_anim_note')}</Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>{t('opt_night_dark')}</Text>
+            <MenuButton compact label={settings.nightDarkening ? t('opt_on') : t('opt_off')} variant={settings.nightDarkening ? 'primary' : 'ghost'} onPress={() => setNightDarkening(!settings.nightDarkening)} />
+          </View>
+          <Text style={styles.note}>{t('opt_night_dark_note')}</Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>{t('opt_short_cutscenes')}</Text>
+            <MenuButton
+              compact
+              label={settings.shortCutscenes ? t('opt_on') : t('opt_off')}
+              variant={settings.shortCutscenes ? 'primary' : 'ghost'}
+              onPress={() => setShortCutscenes(!settings.shortCutscenes)}
+            />
+          </View>
+          <Text style={styles.note}>{t('opt_short_cutscenes_note')}</Text>
         </View>
       )}
 
@@ -130,7 +156,7 @@ export function OptionsScreen() {
       {page === 'cutscenes' && (
         <View style={styles.col}>
           <ScrollView style={styles.csList} contentContainerStyle={styles.csListContent}>
-            {CUTSCENES.filter((c) => seenCutscenes.includes(c.id)).map((c) => (
+            {CUTSCENES.filter((c) => !c.short && seenCutscenes.includes(c.id)).map((c) => (
               <MenuButton key={c.id} label={c.title} variant="ghost" onPress={() => router.push(`/cutscene?id=${c.id}&replay=1` as never)} />
             ))}
           </ScrollView>

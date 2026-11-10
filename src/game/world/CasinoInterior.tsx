@@ -120,7 +120,6 @@ export function CasinoInterior({ onExit }: Props) {
   const floorRef = useRef<FloorId>('ground');
   floorRef.current = floor;
   const def = CASINO_FLOORS[floor];
-  const tileToPos = (tile: { x: number; y: number }) => ({ x: tile.x * TILE + TILE / 2 - PLAYER_SIZE.x / 2, y: tile.y * TILE + TILE / 2 - PLAYER_SIZE.y / 2 });
   const startPos = { x: def.start.x * TILE + TILE / 2 - PLAYER_SIZE.x / 2, y: def.start.y * TILE };
   const positionRef = useRef({ ...startPos });
   const { stateRef: inputRef, setPressed } = useDirectionalInput();

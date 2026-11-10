@@ -16,6 +16,14 @@ export function startWaves() {
   waveT.value = withRepeat(withTiming(1, { duration: WAVE_MS, easing: Easing.linear }), -1, false);
 }
 
+/** Desliga de vez a animação das ondas (opção "ONDAS ANIMADAS" desligada): para o relógio e a espuma fica parada. */
+export function stopWaves() {
+  if (!started) return;
+  started = false;
+  cancelAnimation(waveT);
+  waveT.value = 0.25;
+}
+
 /** Pausa/retoma o vai e vem das ondas (pausa de verdade). */
 export function setWavesPaused(paused: boolean) {
   if (!started) return;

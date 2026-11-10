@@ -9,6 +9,10 @@ import { useI18n } from '@/game/i18n/i18n';
 
 const ICON: Record<string, IconName> = {
   missions: 'scroll',
+  secret: 'exclaim',
+  bosses: 'fire',
+  tower: 'tower',
+  skills: 'sparkle',
   map: 'map',
   npcs: 'bubble',
   chests: 'gift',

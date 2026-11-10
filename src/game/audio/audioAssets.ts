@@ -26,6 +26,14 @@ export const AMBIENT = {
   rain: require('../../../assets/audio/ambient/rain.mp3'),
   wind: require('../../../assets/audio/ambient/wind.mp3'),
   waves: require('../../../assets/audio/ambient/waves.mp3'),
+  // Parte 3.1: sintetizados com tools/make_ambient.py (nenhuma amostra externa)
+  birds: require('../../../assets/audio/ambient/birds.mp3'),
+  crickets: require('../../../assets/audio/ambient/crickets.mp3'),
+  cave: require('../../../assets/audio/ambient/cave.mp3'),
+  volcano: require('../../../assets/audio/ambient/volcano.mp3'),
+  casino: require('../../../assets/audio/ambient/casino.mp3'),
+  shop: require('../../../assets/audio/ambient/shop.mp3'),
+  home: require('../../../assets/audio/ambient/home.mp3'),
 } as const;
 
 export const SFX = {

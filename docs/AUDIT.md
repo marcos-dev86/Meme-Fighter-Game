@@ -1275,3 +1275,97 @@ Os dois mudam de padrão com 50% de vida (`hasPhases`), como os outros chefes. O
 - Testes: `test-cutscenes.mjs` 16 ok; `e2e-cutscenes.mjs`; os demais testes seguem verdes (conta 41, dano 15, parte01 65, parte2 22, parte3 26, urgente2 12, urgente3 40, sprites legados 802).
 - Limitações: ver CUTSCENES.md ("Não verificado").
 
+
+## Limpeza do legacy-sprites e código morto
+- `assets/legacy-sprites` removida; `sprites.ts` usa só `assets/sprites-v2` (proporções de layout explícitas em `LAYOUT_ASPECTS`, mesma altura em tela de antes). `ACTIVE.json`/`usesV2`, `skinSources.ts`, âncoras antigas e as ferramentas dos desenhos antigos saíram. Retratos de NPC em `assets/npc-portraits/`. VersusScreen usa o idle dos sprites novos.
+- Registros acima neste arquivo que citam `legacy-sprites`, `ACTIVE.json` ou `test_legacy_sprites.py` são histórico. Detalhes: `docs/PODE_APAGAR.md`.
+- Verificação: `tsc --noEmit` limpo (e `--noUnusedLocals` sem pendências além de `import React`), todos os `tools/test-*.mjs` passam.
+
+## Parte 4: VERSUS estilo Mortal Kombat (só a organização, sem copiar arte)
+- **Registro escalável de lutadores** (`src/game/versus/fighterRegistry.ts`): `getFighterRegistry()` monta a lista a partir do que já existe (`ROSTER`, `CHAR_LABEL`, `AVATAR_ART`, pose `portrait` de `sprites-v2` e `createFighter`), com id, nome, sprite/retrato, barras (vida/velocidade/força) e o necessário para começar a luta. Nada duplicado: lutador novo no `ROSTER` aparece sozinho na seleção, sem mexer na interface.
+- **Seleção** (`FighterSelect.tsx`, lógica em `versusLogic.ts`): logo oficial do Meme Fighter (`game-logo-gold.png`) no **centro** da grade; retratos reais nos espaços; **dois toques**: o 1º só seleciona e mostra a prévia ampliada à **esquerda** (nome, retrato grande, barras; bloqueado mostra o aviso e como liberar); tocar em outro troca a prévia; o 2º toque no mesmo lutador confirma. Nunca confirma no 1º toque. Bloqueados mostram a prévia, mas não confirmam. Teclado (setas/WASD, Enter/Espaço, Backspace) funciona como no toque.
+- **Responsivo** (`gridLayout(total, largura, altura)`): escolhe colunas/tamanho para qualquer quantidade de lutadores e de tela (célula de 48 a 84 px, nunca sobrepõe; se nem 48 px cabe na altura, a grade rola); sem dependência de hover; prévia visível em telas pequenas; em telas grandes mantém a identidade (logo + prévia + grade).
+- **Tela VS** (`VersusSplash.tsx`): lutadores deslizam, "VS" estoura com clarão (sons `encounter` e `hit_heavy`), nomes e arena entram, escurece e abre a luta (2,6 s; um toque pula). Voltar da luta não repete a tela VS. **Abertura** (`BattleScreen`): "ROUND n" e, nos últimos 520 ms, "LUTE!". Integra com o Versus de sempre (as configurações e habilidades de cada lutador não mudaram; sem multiplayer online).
+- Textos em 5 idiomas (`stringsVersus.ts`: `vs_tap_preview`, `vs_tap_again`, `vs_stat_*`...). Só assets que já existiam.
+- Testes: `node tools/test-versus.mjs` (lógica: dois toques, troca de prévia, confirmação, `gridLayout` para várias quantidades e telas) e `node tools/e2e-versus.mjs dist` (navegador: logo no meio, 48 px de toque, sem sobreposição, 1º toque não confirma, prévia à esquerda, bloqueado, fluxo até a luta).
+
+## Parte 5: auditoria final
+Sistemas revisados: saves (3 slots e versões antigas), traduções (5 idiomas), pausa em todo o jogo, timers/animações (vazamentos), opções gráficas, barra de platina, documentação e checklist do APK.
+
+### Problemas encontrados e corrigidos
+- **Traduções**: 3 chaves duplicadas (`tip_points`, `equip_empty`, `progress_casino`, definidas em `translations.ts` e sobrescritas em `strings36.ts`; o texto que valia foi mantido e a cópia morta apagada); texto fixo em português nas lutas (`battle_hint_controls`, agora nos 5 idiomas).
+- **Pausa e timers**: os ambientes do mundo continuavam tocando por baixo de uma luta (agora silenciam e a mistura volta ao fechar a luta); o balanço dos barcos, a aura da luta e o passo dos NPCs não paravam na pausa (agora param e retomam); as animações infinitas do menu (`ArtBackdrop`) não eram canceladas ao sair (agora são).
+- **Opções gráficas novas** (celulares fracos): PARTÍCULAS DO CLIMA, ONDAS ANIMADAS e ESCURECER À NOITE (além do MODO LEVE já existente). Valem para mundo e luta; ondas desligadas param o relógio de ondas de vez. Saves de opções antigos carregam com tudo ligado (como sempre foi) e preservam volumes.
+- **Saves**: novos campos (rival `encounters`, `elites`, opções gráficas) têm padrão seguro; os 3 slots antigos carregam sem erro.
+
+### Como usar a auditoria de traduções
+`node tools/check-i18n.mjs` (ou `npm run check:i18n`): lista chaves faltando em algum idioma, chaves duplicadas (no mesmo bloco ou em arquivos diferentes), textos iguais ao português, marcadores `{x}` diferentes, chaves fora do padrão e chaves usadas no código que não existem; sai com código 1 se achar qualquer problema. `--json` para ferramentas e `--unused` para listar chaves sem uso direto. Hoje: 0 problemas. Para texto novo: ponha a chave nos 5 idiomas num `strings*.ts` registrado em `extraStrings.ts` e rode o script.
+
+### Testes executados (todos passam)
+`npx tsc --noEmit` limpo; `node tools/test-*.mjs` (i18n 8 incl. o próprio script, saves 12, platina 7 + platina100 14, ambient 18, rival-elite 21, pause-timers 14, versus, conta, cutscenes (`CUTSCENES_STRICT=1`), dano, parte01, parte2, parte3, urgente2, urgente3); export web + Playwright (`e2e-*`, ver lista no README).
+
+### Limites conhecidos
+- A conta (cosméticos e conquistas) é global, não pertence ao save; por isso o teste de 100% roda o caso "sem cosméticos" primeiro.
+- Dificuldade sentida das lutas do rival e dos elites (os multiplicadores são testados; o "feeling" não).
+- Pausa: o clima e o relógio são parados por consulta a `isGamePaused()`/`isWorldFrozen()` (não por um agendador único); toda animação nova precisa seguir o mesmo padrão (o teste `test-pause-timers.mjs` pega timer sem limpeza e `withRepeat` sem `cancelAnimation`).
+
+### Só se confirma num aparelho Android real (não foi feito)
+Instalar o APK; som real dos ambientes novos (timbre e volume relativo nos alto-falantes) e as transições ouvidas; vídeo das cutscenes (autoplay/toque); vibração (Expo Haptics); desempenho em celular fraco com e sem as opções gráficas; toque duplo para dash; tamanho final do APK. Nada disso foi testado fora do navegador/Node.
+
+## Parte 3: sons por região e barra de platina
+
+### 3.1 Sons ambiente por região
+- Loops novos, **sintetizados** por `python3 tools/make_ambient.py` (ruído filtrado, chilreios, pulsos, gotas, murmúrio; nenhuma amostra externa), no mesmo padrão de `rain/wind/waves` (mp3 mono, 32 kHz, 48 kb/s, 16 s, emenda de loop suave): `birds`, `crickets`, `cave`, `volcano`, `casino`, `shop`, `home` em `assets/audio/ambient/`. Gelo reaproveita `wind.mp3`. O script é determinístico: rodar de novo recria os mesmos arquivos.
+- Mistura pura em `src/game/audio/ambientMix.ts` (`ambientMix(ctx)`): **uma cama regional** (floresta: pássaros de dia / grilos de noite; vulcão: ronco; cassino; loja/guilda/salões; casa; caverna e subsolo: pingos) **+ no máximo uma camada de clima/água** (chuva, vento ou ondas, vence a mais forte). Nunca mais de 2 loops. Chuva cala os bichos; camada forte (>= 0,6) abafa a cama ao ar livre; dentro de casa a chuva chega abafada; caverna e cassino não ouvem clima; vento e ondas não entram em interiores. Gelo e Trevas usam vento como ambientação.
+- `WorldScreen` chama a mistura a cada 500 ms (relógio do mundo; parada com o jogo pausado) e entrega os níveis ao `audioManager.setAmbient`, que faz o cross-fade suave (~2 s), multiplica pelo volume **AMBIENTE** das Opções e não toca na música nem nos efeitos (players separados). Pausa: `setAudioPaused` pausa os ambientes; ao despausar, só volta o que estava tocando.
+- Testes: `node tools/test-ambient.mjs` (18; inclui varredura de 4.000+ combinações de ilha/interior/clima/hora/navegação provando a regra de no máximo 2 loops).
+- Só se confirma no celular: o som real (timbre/volume relativo dos loops novos nos alto-falantes) e as transições ouvidas na prática.
+
+### 3.2 Barra de platina rebalanceada (soma 100)
+Categorias novas: chefes, Torre, árvore de habilidades e missões secretas (separadas das principais). Casino (5 jogos), cosméticos, escolhas e final já existiam.
+
+| id | peso | meta | por quê |
+|---|---|---|---|
+| missions | 20 | todas as missões principais e de caminho (sem as secretas) | o eixo da história, mas já sem o peso de 26 porque as secretas saíram dele |
+| secret | 4 | todas as missões secretas | caça a segredos, bem menos horas que a história |
+| bosses | 8 | todos os chefes do jogo (os de história contam pela missão) | desafio principal de combate |
+| tower | 5 | chegar ao andar 25 da Torre | o andar 25 já é o marco "tower_25" |
+| skills | 4 | os 25 itens dos 5 ramos da árvore (45 pontos) | construção de personagem sem exigir a árvore cheia |
+| map | 6 | 90% das células de terra exploradas | exploração |
+| npcs | 7 | falar com todos os NPCs | exploração social |
+| chests | 6 | todos os baús e coletáveis | exploração |
+| islands | 4 | visitar todas as ilhas | exploração |
+| buildings | 3 | entrar em todos os prédios | exploração |
+| level | 10 | nível 99 | progressão (era 12) |
+| points | 5 | 4 atributos no máximo (100 pontos) | build |
+| shop | 3 | comprar todos os itens da loja | economia |
+| casino | 3 | vencer nos 5 jogos | minijogos |
+| cosmetics | 3 | todos os cosméticos | colecionável |
+| monsters | 5 | 300 monstros | farm (era 7) |
+| choices | 2 | todas as 10 escolhas da história | narrativa |
+| ending | 2 | chegar a um final | narrativa |
+
+Soma = 100. Justificativa: antes, missões (26) + mapa/NPCs/baús (27) somavam mais da metade; o peso foi redistribuído para os eixos que faltavam (chefes, Torre, árvore, segredos) sem tirar o foco da história (missões + secretas continuam 24). Os 8 itens pedidos na Parte 3 estão presentes (chefes, Torre, árvore, cassino, cosméticos, secretas, finais, escolhas).
+
+### 3.3 Regras de alcançabilidade
+- Nível máximo 99; quatro atributos; **147 pontos** de status no total (níveis 2 a 50 = 1, 51 a 99 = 2); maximizar os 4 atributos = **100 pontos**; árvore cheia = **68 pontos por personagem** e **não é exigida** (sobram só 47). A platina exige os 5 ramos (25 habilidades = 45 pontos): 100 + 45 = 145 <= 147, sobram 2. A linha final (23 pontos) é opcional.
+- Escolhas da história dão pontos/XP extras: só ajudam. Respec (500 moedas) permite refazer a árvore sem perder pontos.
+
+### 3.4 Teste de 100% (`node tools/test-platina100.mjs`, 14 testes)
+- Monta um mundo pelas funções REAIS do jogo (relatórios de NPC/prédio/ilha/compra/cassino/monstros, XP até 99, `buyUpgrade` e `learnSkill` reais, missões, chefes, Torre, escolhas, final) para os dois personagens de história e prova: todas as 18 categorias chegam a 100%, soma 100, platina libera, **qualquer escolha** leva à platina, e **faltando qualquer uma** categoria (cada uma testada sozinha) a platina NÃO libera. Grava o mundo num slot, recarrega com `startSession` e confere que o 100% sobrevive.
+- Segurança dos saves: roda no Node com AsyncStorage **em memória** (nenhum save real é lido ou alterado) e o teste confere que um "save real" sentinela no slot 3 permanece idêntico.
+- Limite: a conta (cosméticos, conquistas) é global e não tem "zerar"; por isso o teste de cosméticos roda primeiro.
+
+## Parte 2 (restante): rival em 5 aparições e inimigos de elite
+### 2.2 Rival (`state/rivalState.ts` + `battle/battleModes.ts`)
+- 5 aparições especiais do Gadigago (`RIVAL_ENCOUNTERS`), **opcionais** (nenhuma missão exige vencê-las): abrem quando a missão-gatilho termina (`kills_12`, `camp_showdown`, `island_boss`, `lore_complete`, `vulcao_boss`, todas antes da missão final) e só depois de vencer a anterior. Aviso em toast; o botão do rival na praça vira "DESAFIO DO RIVAL n/5" (depois das 5 volta a ser a REVANCHE livre de sempre, que continua usando `rivalScale()`).
+- Força = base do degrau (vida 1,1 a 2,0; dano 1,0 a 1,5) x nível do jogador (`1 + 0,025 x nível` de vida, `1 + 0,01 x nível` de dano) x vitórias anteriores (`1 + 0,04 x vitórias`, `1 + 0,02 x vitórias`), com teto (vida 5, dano 2,4) para nunca ficar impossível. No nível esperado de cada gatilho não passa de ~1,5x a revanche livre (conferido em teste).
+- Status: congelar (1ª) -> + veneno (2ª) -> + atordoar (3ª) -> + queimar (4ª) -> queimar no golpe especial (5ª). Sem tipo de status novo no `Fighter` (queimar é novo só para o rival).
+- Prêmio: moedas e XP crescentes (+ itens existentes), pagos uma vez por aparição. Cada vitória soma uma vitória do rival.
+- Save: ext `rival` ganhou `encounters` (aparições vencidas); save antigo só com `{wins}` carrega com padrão vazio.
+### 2.3 Elites (`enemies/eliteDefs.ts`, `state/eliteState.ts`, `enemySim.ts`, `EnemyLayer.tsx`)
+- 6 elites, cada um é um inimigo comum de um ponto de spawn que já existe, promovido depois de uma missão (`kills_5`, `kills_12`, `camp_showdown`, `island_boss`, `lore_complete`, `vulcao_boss`). Reusam o `EnemyManager`: mesma perseguição, golpes do jogador, respawn (3x mais lento) e itens; **sem sprite novo**: o mesmo sprite maior (1,3x a 1,4x), aura dourada, coroa (ícone existente) e barra de vida dourada.
+- Vida 3,5x a 6x e dano 1,5x a 2x do comum, mais rápidos e com aggro maior; moedas 5x a 8x e XP 6x a 10x (a recompensa sempre cresce mais que a vida) e um item existente na 1ª derrota (`firstDrop`). Um aviso ("ELITE DERROTADO!") aparece no toast do prêmio.
+- Save: ext `elites` (derrotados); save antigo sem a chave carrega vazio.
+- Testes: `node tools/test-rival-elite.mjs` (21).
+- Só se confirma no aparelho/navegador jogando: dificuldade sentida das lutas do rival e dos elites (os multiplicadores foram conferidos em teste, não o "feeling").

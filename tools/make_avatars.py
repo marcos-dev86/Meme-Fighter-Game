@@ -22,8 +22,7 @@ OUT = os.path.join(ROOT, 'assets', 'avatars')
 SIZE = 160
 
 def fighter_src(k):
-    v2 = f'assets/sprites-v2/{k}/idle.png'
-    return v2 if os.path.exists(os.path.join(ROOT, v2)) else f'assets/legacy-sprites/{k}/idle.png'
+    return f'assets/sprites-v2/{k}/idle.png'
 
 # (id, nome, tipo, origem, recorte (x0,y0,x1,y1), preco)
 # tipo: fighter = jogavel (precisa estar liberado para comprar, exceto os gratis) | npc = amigavel/meme nao jogavel (compra direto)
@@ -59,16 +58,16 @@ SPECS += [
     N('toinho', 'Toinho', CH('c22'), TALL, 8), N('mercador_noturno', 'Mercador da Madrugada', CH('c16'), TALL, 8), N('cantora_chuva', 'Dona Garoa', CH('c19'), TALL, 8),
     N('pipoca', 'Pipoca', CH('c15'), TALL, 8), N('mestre_guilda', 'Mestre Gaspar', CH('c01'), CHIBI, 10), N('eremita', 'Eremita Tobias', CH('c07'), CHIBI, 10),
     N('madame_dourada', 'Madame Dourada', CH('c23'), TALL, 12),
-    N('silvana', 'Silvana', 'assets/legacy-sprites/hood/idle.png', (0.0, 0.0, 1.0, 0.55), 12),
-    N('tico', 'Irmão Tico', 'assets/legacy-sprites/monk/idle.png', (0.0, 0.0, 1.0, 0.60), 12),
-    N('moai', 'Sigma Boy', 'assets/legacy-sprites/moai/idle.png', (0.0, 0.0, 1.0, 0.92), 20),
-    N('footman', 'Footman', 'assets/legacy-sprites/footman/idle.png', (0.0, 0.0, 1.0, 0.40), 12),
-    N('tank_dog', 'Tank Cão', 'assets/legacy-sprites/tank/idle.png', (0.0, 0.0, 1.0, 0.40), 12),
-    N('espinho', 'Espinho Parente', 'assets/legacy-sprites/meme-kin/espinho.png', (0.0, 0.0, 1.0, 0.75), 12),
-    N('violeta', 'Violeta Parente', 'assets/legacy-sprites/meme-kin/violeta.png', (0.0, 0.0, 1.0, 0.75), 12),
-    N('gemada', 'Gemada Parente', 'assets/legacy-sprites/meme-kin/gemada.png', (0.0, 0.0, 1.0, 0.80), 12),
-    N('polen', 'Pólen Parente', 'assets/legacy-sprites/meme-kin/polen.png', (0.0, 0.0, 1.0, 0.75), 12),
-    N('penumbra', 'Penumbra Parente', 'assets/legacy-sprites/meme-kin/penumbra.png', (0.0, 0.0, 1.0, 0.75), 12),
+    N('silvana', 'Silvana', 'assets/npc-portraits/hood.png', (0.0, 0.0, 1.0, 0.55), 12),
+    N('tico', 'Irmão Tico', 'assets/npc-portraits/monk.png', (0.0, 0.0, 1.0, 0.60), 12),
+    N('moai', 'Sigma Boy', 'assets/npc-portraits/moai.png', (0.0, 0.0, 1.0, 0.92), 20),
+    N('footman', 'Footman', 'assets/npc-portraits/footman.png', (0.0, 0.0, 1.0, 0.40), 12),
+    N('tank_dog', 'Tank Cão', 'assets/npc-portraits/tank_dog.png', (0.0, 0.0, 1.0, 0.40), 12),
+    N('espinho', 'Espinho Parente', 'assets/npc-portraits/meme-kin/espinho.png', (0.0, 0.0, 1.0, 0.75), 12),
+    N('violeta', 'Violeta Parente', 'assets/npc-portraits/meme-kin/violeta.png', (0.0, 0.0, 1.0, 0.75), 12),
+    N('gemada', 'Gemada Parente', 'assets/npc-portraits/meme-kin/gemada.png', (0.0, 0.0, 1.0, 0.80), 12),
+    N('polen', 'Pólen Parente', 'assets/npc-portraits/meme-kin/polen.png', (0.0, 0.0, 1.0, 0.75), 12),
+    N('penumbra', 'Penumbra Parente', 'assets/npc-portraits/meme-kin/penumbra.png', (0.0, 0.0, 1.0, 0.75), 12),
     N('azulao', 'Azulão', 'assets/npcs/meme_azulao.png', (0.0, 0.0, 1.0, 0.90), 15),
     N('vermelhao', 'Vermelhão', 'assets/npcs/meme_vermelhao.png', (0.0, 0.0, 1.0, 0.90), 15),
     N('rei_dourado', 'Rei Dourado', 'assets/npcs/meme_rei_dourado.png', (0.0, 0.0, 1.0, 0.90), 25),
@@ -122,8 +121,29 @@ def solidify(im, close=0, fill=None):
     return Image.fromarray(a, 'RGBA')
 
 
+FIXED_DIR = os.path.join(ROOT, 'tools', 'art_src', 'avatars_fixed')
+
+
+def bust_fixed(path):
+    """Icone JA PRONTO (arte corrigida entregue pelo dono, em tools/art_src/avatars_fixed/<id>.png): so encaixa no quadrado 160x160 encostado embaixo."""
+    crop = Image.open(path).convert('RGBA')
+    cb = crop.getbbox()
+    if cb:
+        crop = crop.crop(cb)
+    cw, ch = crop.size
+    margin = SIZE - 12
+    sc = min(margin / cw, margin / ch)
+    crop = crop.resize((max(1, round(cw * sc)), max(1, round(ch * sc))), Image.LANCZOS)
+    out = Image.new('RGBA', (SIZE, SIZE), (0, 0, 0, 0))
+    out.paste(crop, ((SIZE - crop.width) // 2, SIZE - crop.height), crop)
+    return out
+
+
 def bust(spec):
     _id, _name, _kind, src, (x0, y0, x1, y1), _price = spec
+    fixed = os.path.join(FIXED_DIR, _id + '.png')
+    if os.path.exists(fixed):
+        return bust_fixed(fixed)
     im = solidify(Image.open(os.path.join(ROOT, src)).convert('RGBA'), FIX.get(_id, {}).get('close', 0), FIX.get(_id, {}).get('fill'))
     bx = im.getchannel('A').point(lambda a: 255 if a > 0 else 0).getbbox()
     l, t, r, b = bx

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
+import { useGamePaused } from '@/game/state/pauseState';
+import Animated, { Easing, cancelAnimation, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 
 /**
  * "Farmar aura" visual - see docs/AUDIT.md and Fighter.ts's
@@ -17,14 +18,20 @@ const SPARK_COUNT = 5;
 
 function Spark({ active, delay, dx }: { active: boolean; delay: number; dx: number }) {
   const t = useSharedValue(0);
+  const gamePaused = useGamePaused();
   useEffect(() => {
+    if (gamePaused) {
+      cancelAnimation(t); // pausa: a faísca congela onde está
+      return;
+    }
     if (active) {
       t.value = withRepeat(withSequence(withTiming(0, { duration: 0 }), withTiming(1, { duration: 620, easing: Easing.out(Easing.quad) })), -1, false);
     } else {
       t.value = withTiming(0, { duration: 120 });
     }
+    return () => cancelAnimation(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active]);
+  }, [active, gamePaused]);
 
   const style = useAnimatedStyle(() => ({
     opacity: active ? (1 - t.value) * 0.9 : 0,
@@ -36,15 +43,21 @@ function Spark({ active, delay, dx }: { active: boolean; delay: number; dx: numb
 
 export function AuraEffect({ active, width, height }: { active: boolean; width: number; height: number }) {
   const pulse = useSharedValue(0);
+  const gamePaused = useGamePaused();
 
   useEffect(() => {
+    if (gamePaused) {
+      cancelAnimation(pulse);
+      return;
+    }
     if (active) {
       pulse.value = withRepeat(withSequence(withTiming(1, { duration: 380, easing: Easing.out(Easing.quad) }), withTiming(0.45, { duration: 380, easing: Easing.in(Easing.quad) })), -1, false);
     } else {
       pulse.value = withTiming(0, { duration: 180 });
     }
+    return () => cancelAnimation(pulse);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active]);
+  }, [active, gamePaused]);
 
   const outerStyle = useAnimatedStyle(() => ({ opacity: 0.5 * pulse.value, transform: [{ scale: 0.85 + pulse.value * 0.55 }] }));
   const innerStyle = useAnimatedStyle(() => ({ opacity: 0.55 * pulse.value, transform: [{ scale: 0.7 + pulse.value * 0.35 }] }));

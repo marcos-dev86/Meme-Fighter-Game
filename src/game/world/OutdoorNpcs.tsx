@@ -1,6 +1,7 @@
+import { isGamePaused } from '@/game/state/pauseState';
 import React, { useEffect, useRef, useState } from 'react';
 import { GameIcon } from '@/game/ui/GameIcon';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import { NPCS, OUTDOOR_NPCS, type OutdoorPlacement } from './npcs';
 import { isPlacementActive } from './npcActive';
 import { npcPose } from './npcRoutine';
@@ -49,7 +50,7 @@ export function OutdoorNpcs({ tileSize, markerSize }: Props) {
   walkingRef.current = false;
   useEffect(() => {
     const id = setInterval(() => {
-      if (walkingRef.current) setFrame((f) => f + 1);
+      if (walkingRef.current && !isGamePaused()) setFrame((f) => f + 1);
     }, 170);
     return () => clearInterval(id);
   }, []);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { GameIcon, IconLabel } from '@/game/ui/GameIcon';
+import { IconLabel } from '@/game/ui/GameIcon';
 import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { ArtBackdrop } from '@/game/menu/ArtBackdrop';

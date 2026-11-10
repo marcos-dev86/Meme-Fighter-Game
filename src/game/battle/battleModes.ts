@@ -7,7 +7,7 @@ import { addCoins, addItem, addXp, giveArmor, giveBag } from '@/game/state/playe
 import { BAGS } from '@/game/items/bags';
 import { ARMORS } from '@/game/items/armorDefs';
 import { itemName } from '@/game/items/itemDefs';
-import { addRivalWin, rivalReward, rivalScale, getRivalWins } from '@/game/state/rivalState';
+import { addRivalWin, rivalReward, rivalScale, getRivalWins, rivalEncounterFromParam, rivalEncounterScale, rivalEncounterReward, markRivalEncounterDefeated, type RivalEncounter } from '@/game/state/rivalState';
 import { claim, floorCleared } from '@/game/state/towerState';
 import { noteBossDefeated, noteFightWon, noteTowerFloor } from '@/game/account/accountState';
 
@@ -31,6 +31,8 @@ export interface BattleSetup {
   title?: string;
   floor?: number;
   boss?: BossDef;
+  /** Aparição especial do rival (1..5), quando for uma. */
+  rivalEncounter?: RivalEncounter;
   /** missão de duelo (recompensa e conclusão da missão) */
   questId?: string;
   extraProcs: StatusProc[];
@@ -113,6 +115,11 @@ export function resolveSetup(p: BattleParams, opts: { questOpponent?: CharacterK
       extraProcs: o.rival ? rivalProcs() : [],
     };
   }
+  const enc = rivalEncounterFromParam(p.rival);
+  if (enc) {
+    const sc = rivalEncounterScale(enc);
+    return { ...base, kind: 'rival', opponent: 'gadigago', stageKey: enc.stageKey, hpMult: sc.hp, dmgMult: sc.dmg, roundsToWin: 2, bossFight: true, title: `RIVAL ${enc.n}/5`, extraProcs: enc.procs.map((x) => ({ ...x })), rivalEncounter: enc };
+  }
   if (p.rival) {
     const sc = rivalScale();
     return { ...base, kind: 'rival', opponent: 'gadigago', stageKey: STAGES[getRivalWins() % STAGES.length], hpMult: sc.hp, dmgMult: sc.dmg, roundsToWin: 2, bossFight: true, title: 'RIVAL', extraProcs: rivalProcs() };
@@ -165,6 +172,19 @@ export function grantVictory(s: BattleSetup, hpPct: number, flawless = false): G
       if (s.boss.reward.armor && giveArmor(s.boss.reward.armor)) g.lines.push(ARMORS[s.boss.reward.armor].name);
     } else {
       give(Math.round(s.boss.reward.coins * 0.2), Math.round(s.boss.reward.xp * 0.2)); // rematch: a small prize
+    }
+  } else if (s.kind === 'rival' && s.rivalEncounter) {
+    // Aparição especial: prêmio cheio na 1ª vitória; vencer de novo uma aparição já vencida não existe (ela só abre uma vez).
+    const enc = s.rivalEncounter;
+    const r = rivalEncounterReward(enc);
+    noteFightWon();
+    if (markRivalEncounterDefeated(enc.n)) {
+      addRivalWin();
+      give(r.coins, r.xp);
+      for (const [id, n] of Object.entries(r.items ?? {})) {
+        addItem(id, n, true);
+        g.lines.push(`${itemName(id)} ×${n}`);
+      }
     }
   } else if (s.kind === 'rival') {
     const r = rivalReward();

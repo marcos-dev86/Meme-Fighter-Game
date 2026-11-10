@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { playSfx } from '@/game/audio/audioManager';
 import Animated, {
+  cancelAnimation,
   Easing,
   interpolateColor,
   useAnimatedStyle,
@@ -38,6 +39,7 @@ export function ArtBackdrop({ children, onBack, backLabel = '< VOLTAR' }: Props)
 
   useEffect(() => {
     t.value = withRepeat(withTiming(1, { duration: 14000, easing: Easing.inOut(Easing.sin) }), -1, true);
+    return () => cancelAnimation(t);
   }, [t]);
 
   const bgStyle = useAnimatedStyle(() => ({
@@ -82,6 +84,7 @@ function Ember({ x, size, delay, duration, height }: { x: number; size: number; 
 
   useEffect(() => {
     progress.value = withRepeat(withTiming(1, { duration, easing: Easing.linear }), -1, false);
+    return () => cancelAnimation(progress);
   }, [progress, duration, delay]);
 
   const style = useAnimatedStyle(() => {

@@ -7,7 +7,12 @@ import { useCosmetics } from './cosmeticsState';
 const CASINO_GAMES = 5;
 import { getOwnedCount } from './cosmeticsState';
 import { COSMETIC_PROGRESS_TARGET } from '@/game/cosmetics/cosmeticDefs';
-import { getProgressStats, getMissionCounts, subscribeQuest } from './questState';
+import { getProgressStats, getMissionCountsSplit, getStoryCharacterId, subscribeQuest } from './questState';
+import { BOSSES, isBossDefeated } from './bossState';
+import { getBestFloor } from './towerState';
+import { getLearned } from './skillState';
+import { treeFor } from '@/game/items/skills';
+import { STORY_CHARACTERS } from '@/game/story/characters';
 import { isCollected, getLevel, getUpgradeLevels, usePlayerState } from './playerState';
 import { isExplored } from './exploredState';
 import { OUTDOOR_NPCS } from '@/game/world/npcs';
@@ -24,7 +29,7 @@ import { MAX_PLAYER_LEVEL } from '@/game/items/levels';
  * do in the game counts. Each category has a weight; the total is the
  * weighted sum. 100% needs EVERY category complete.
  */
-export type ProgressCategoryId = 'missions' | 'map' | 'npcs' | 'chests' | 'islands' | 'buildings' | 'level' | 'points' | 'shop' | 'casino' | 'cosmetics' | 'monsters' | 'choices' | 'ending';
+export type ProgressCategoryId = 'missions' | 'secret' | 'bosses' | 'tower' | 'skills' | 'map' | 'npcs' | 'chests' | 'islands' | 'buildings' | 'level' | 'points' | 'shop' | 'casino' | 'cosmetics' | 'monsters' | 'choices' | 'ending';
 
 export interface ProgressCategory {
   id: ProgressCategoryId;
@@ -44,8 +49,15 @@ export interface ProgressInfo {
 
 /** Level that counts as "done" for the level category: the level cap (99). Needed for the platinum. */
 export const PROGRESS_LEVEL_TARGET = MAX_PLAYER_LEVEL;
-const CASINO_TARGET = 5;
 const MONSTER_TARGET = 300;
+/** Torre dos Desafios: andar mais alto que precisa ser alcançado (o mesmo do segredo "tower_25"). */
+export const TOWER_TARGET_FLOOR = 25;
+/**
+ * Árvore de habilidades: NÃO exige a árvore inteira (custa 68 pontos por personagem e sobram só 147 - 100 = 47 depois de
+ * maximizar os 4 atributos). Exige os 5 ramos completos (25 habilidades, 45 pontos); a linha final (23 pontos) é opcional.
+ */
+export const SKILL_BRANCH_TARGET = 25;
+export const SKILL_BRANCH_POINTS = 45;
 /** Points needed to max all four attributes (the "points" category). */
 const ALL_STATS_POINTS = UPGRADE_STATS.length * UPGRADE_POINT_COSTS.reduce((a, b) => a + b, 0);
 /** A land cell of the map counts as explored; 90% of the land cells = fully explored (the fog reveals a radius, edges are hard to reach). */
@@ -101,9 +113,27 @@ function pointsSpent(): number {
   return sum;
 }
 
+/** Tudo que a barra precisa que exista (ids reais do conteúdo). Usado pelo teste de 100% (tools/test-platina100.mjs). */
+export function progressTargets() {
+  const islands = Array.from(new Set(Object.values(ISLANDS).map((i) => realIslandOf(i.id))));
+  return {
+    landCells: getLandCells(),
+    npcIds: getNpcIds(),
+    collectibleIds: getCollectibleIds(),
+    islands,
+    doors: Object.keys(BUILDING_DOORS),
+    stock: Array.from(new Set([...SHOP_STOCK, ...BATTLE_STOCK, ...GELO_STOCK])),
+  };
+}
+
 export function computeProgress(): ProgressInfo {
   const st = getProgressStats();
-  const missions = getMissionCounts();
+  const missions = getMissionCountsSplit();
+  const bosses = BOSSES.filter((b) => !b.storyMission || STORY_CHARACTERS[getStoryCharacterId()]?.missions.some((m) => m.id === b.storyMission));
+  const bossesDone = bosses.filter((b) => isBossDefeated(b.id)).length;
+  const learned = new Set(getLearned());
+  const branchSkills = treeFor(getStoryCharacterId()).skills.filter((sk) => sk.branch < 5);
+  const branchDone = branchSkills.filter((sk) => learned.has(sk.id)).length;
   const land = getLandCells();
   const exploredLand = land.filter((c) => isExplored(c.cx, c.cy)).length;
   const mapNeeded = Math.ceil(land.length * MAP_FULL_FRACTION);
@@ -120,20 +150,25 @@ export function computeProgress(): ProgressInfo {
   const stock = Array.from(new Set([...SHOP_STOCK, ...BATTLE_STOCK, ...GELO_STOCK]));
   const bought = stock.filter((id) => st.boughtItems.includes(id)).length;
 
+  // Pesos (soma 100) e justificativa: docs/AUDIT.md, "Barra de platina".
   const raw: Omit<ProgressCategory, 'pct'>[] = [
-    { id: 'missions', have: missions.done, total: missions.total, weight: 26 },
-    { id: 'map', have: Math.min(exploredLand, mapNeeded), total: mapNeeded, weight: 9 },
-    { id: 'npcs', have: talked, total: npcs.length, weight: 9 },
-    { id: 'chests', have: collected, total: coll.length, weight: 9 },
-    { id: 'islands', have: visited, total: islandsAll.length, weight: 5 },
-    { id: 'buildings', have: entered, total: doors.length, weight: 4 },
-    { id: 'level', have: level, total: PROGRESS_LEVEL_TARGET, weight: 12 },
+    { id: 'missions', have: missions.main.done, total: missions.main.total, weight: 20 },
+    { id: 'secret', have: missions.secret.done, total: missions.secret.total, weight: 4 },
+    { id: 'bosses', have: bossesDone, total: bosses.length, weight: 8 },
+    { id: 'tower', have: Math.min(getBestFloor(), TOWER_TARGET_FLOOR), total: TOWER_TARGET_FLOOR, weight: 5 },
+    { id: 'skills', have: Math.min(branchDone, SKILL_BRANCH_TARGET), total: Math.min(SKILL_BRANCH_TARGET, branchSkills.length), weight: 4 },
+    { id: 'map', have: Math.min(exploredLand, mapNeeded), total: mapNeeded, weight: 6 },
+    { id: 'npcs', have: talked, total: npcs.length, weight: 7 },
+    { id: 'chests', have: collected, total: coll.length, weight: 6 },
+    { id: 'islands', have: visited, total: islandsAll.length, weight: 4 },
+    { id: 'buildings', have: entered, total: doors.length, weight: 3 },
+    { id: 'level', have: level, total: PROGRESS_LEVEL_TARGET, weight: 10 },
     { id: 'points', have: spent, total: ALL_STATS_POINTS, weight: 5 },
-    { id: 'shop', have: bought, total: stock.length, weight: 4 },
+    { id: 'shop', have: bought, total: stock.length, weight: 3 },
     // 100% do cassino = ter VENCIDO nos 5 jogos (caça-níquel, cara ou coroa, dados, roleta e cartas)
     { id: 'casino', have: Math.min(getCasinoGamesWon().length, CASINO_GAMES), total: CASINO_GAMES, weight: 3 },
     { id: 'cosmetics', have: Math.min(getOwnedCount(), COSMETIC_PROGRESS_TARGET), total: COSMETIC_PROGRESS_TARGET, weight: 3 },
-    { id: 'monsters', have: Math.min(st.kills, MONSTER_TARGET), total: MONSTER_TARGET, weight: 7 },
+    { id: 'monsters', have: Math.min(st.kills, MONSTER_TARGET), total: MONSTER_TARGET, weight: 5 },
     { id: 'choices', have: Object.keys(getChoices()).length, total: CHOICE_COUNT, weight: 2 },
     { id: 'ending', have: getEnding() ? 1 : 0, total: 1, weight: 2 },
   ];

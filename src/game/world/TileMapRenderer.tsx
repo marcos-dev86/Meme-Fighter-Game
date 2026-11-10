@@ -4,7 +4,8 @@ import type { MapDef, TileType } from '@/types/game';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { CHUNK_SIZE, hash2 } from './overworld';
 import { SCENERY_GROUND, WORLD_TILES_W } from './worldGen';
-import { startWaves, tide, waveT } from './waveClock';
+import { startWaves, stopWaves, tide, waveT } from './waveClock';
+import { getSettings } from '@/game/state/settingsState';
 
 /**
  * v3 of this renderer - real performance pass (see docs/AUDIT.md: "trava
@@ -261,7 +262,9 @@ function foamParts(size: number, tx: number, ty: number, map: MapDef, left: numb
 
 /** Wrapper whose opacity follows the wave clock (phase 0 or 0.5) and the tide. */
 function WashLayer({ phase, children }: { phase: number; children: React.ReactNode }) {
+  const animated = getSettings().waveAnimation;
   const style = useAnimatedStyle(() => {
+    if (!animated) return { opacity: 0.3 };
     const wave = 0.5 + 0.5 * Math.sin((waveT.value + phase) * Math.PI * 2);
     return { opacity: (0.08 + 0.62 * wave) * (0.5 + 0.5 * tide.value) };
   });
@@ -394,7 +397,8 @@ interface Props {
 }
 
 export function TileMapRenderer({ map, activeChunks }: Props) {
-  startWaves();
+  if (getSettings().waveAnimation) startWaves();
+  else stopWaves();
   return (
     <>
       {activeChunks.map(({ cx, cy }) => (

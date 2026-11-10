@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { ROSTER, useRoster } from '@/game/state/rosterState';
-import { BOSS_BY_ID } from '@/game/state/bossState';
+import { useRoster } from '@/game/state/rosterState';
 import { ITEMS } from '@/game/items/itemDefs';
-import { GameIcon } from '@/game/ui/GameIcon';
 import { PICK_COUNT, drawOffer, drawRandomPair, encodeItems } from '@/game/battle/versusLoadout';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -12,49 +10,12 @@ import { STAGE_ART } from '@/game/menu/art';
 import { STAGE_DEFS } from '@/game/battle/stages';
 import { useI18n } from '@/game/i18n/i18n';
 import type { CharacterKey } from '@/game/battle/Fighter';
+import { FighterSelect } from '@/game/versus/FighterSelect';
+import { VersusSplash } from '@/game/versus/VersusSplash';
 import { DifficultyPicker } from '@/game/menu/DifficultyPicker';
 import type { Difficulty } from '@/game/state/difficulty';
 
-const CHAR_PORTRAIT: Record<CharacterKey, number> = {
-  dogge: require('../../assets/legacy-sprites/dogge/idle.png'),
-  gadigago: require('../../assets/legacy-sprites/gadigago/idle.png'),
-  orc: require('../../assets/legacy-sprites/orc/idle.png'),
-  soldier: require('../../assets/legacy-sprites/soldier/idle.png'),
-  dogking: require('../../assets/legacy-sprites/dogking/idle.png'),
-  tank: require('../../assets/legacy-sprites/tank_fighter/idle.png'),
-  ninja: require('../../assets/legacy-sprites/ninja/idle.png'),
-  mystic: require('../../assets/legacy-sprites/mystic/idle.png'),
-  ice_dragon: require('../../assets/legacy-sprites/ice_dragon/idle.png'),
-  green_dragon: require('../../assets/legacy-sprites/green_dragon/idle.png'),
-  shadow_dragon: require('../../assets/legacy-sprites/shadow_dragon/idle.png'),
-  cara_tranquilo: require('../../assets/legacy-sprites/cara_tranquilo/idle.png'),
-  troll_face: require('../../assets/legacy-sprites/troll_face/idle.png'),
-  sahur: require('../../assets/legacy-sprites/sahur/idle.png'),
-  sahur_god: require('../../assets/legacy-sprites/sahur_god/idle.png'),
-  sahur_evil: require('../../assets/legacy-sprites/sahur_evil/idle.png'),
-};
-
-const CHAR_LABEL: Record<CharacterKey, string> = {
-  dogge: 'DOGGE',
-  gadigago: 'GADIGAGO',
-  orc: 'ORC',
-  soldier: 'SOLDADO',
-  dogking: 'REI DOS CÃES',
-  tank: 'TANK',
-  ninja: 'SOMBRA',
-  mystic: 'ENCAPUZADO',
-  ice_dragon: 'DRAGÃO DO GELO',
-  green_dragon: 'DRAGÃO DA FLORESTA',
-  shadow_dragon: 'DRAGÃO SOMBRIO',
-  cara_tranquilo: 'CARA TRANQUILO',
-  troll_face: 'TROLL FACE',
-  sahur: 'TOCÃO',
-  sahur_god: 'SAHUR GOD',
-  sahur_evil: 'SAHUR EVIL',
-};
-const ALL_CHARACTERS: CharacterKey[] = ROSTER.map((r) => r.key);
-
-type Step = 'mode' | 'difficulty' | 'characters' | 'stage' | 'items';
+type Step = 'mode' | 'difficulty' | 'characters' | 'stage' | 'items' | 'splash';
 type Mode = 'cpu' | '2p';
 
 export function VersusScreen() {
@@ -86,13 +47,20 @@ export function VersusScreen() {
     setPicked([]);
   };
 
-  const startBattle = () => {
+  const launchBattle = () => {
     // Itens: os 2 escolhidos do sorteio (se faltar, completa com a oferta) e 2 sorteados para o outro lado.
     const mine = [...picked, ...offer.filter((o) => !picked.includes(o))].slice(0, PICK_COUNT);
     router.push({
       pathname: '/battle',
-      params: { p1, p2, p2Control: mode === 'cpu' ? 'cpu' : 'human', stageKey, difficulty: mode === 'cpu' ? difficulty : '', items1: itemsOn ? encodeItems(mine) : '', items2: itemsOn ? encodeItems(drawRandomPair()) : '' },
+      params: { p1, p2, p2Control: mode === 'cpu' ? 'cpu' : 'human', stageKey, difficulty: mode === 'cpu' ? difficulty : '', training: params.skipMode ? '1' : '', items1: itemsOn ? encodeItems(mine) : '', items2: itemsOn ? encodeItems(drawRandomPair()) : '' },
     });
+  };
+
+  /** Tela VS primeiro; ao terminar volta o passo para 'items' ANTES de abrir a luta (voltar da luta não repete a tela VS). */
+  const startBattle = () => setStep('splash');
+  const finishSplash = () => {
+    setStep('items');
+    launchBattle();
   };
 
   if (step === 'mode') {
@@ -120,15 +88,25 @@ export function VersusScreen() {
   if (step === 'characters') {
     return (
       <ArtBackdrop onBack={() => setStep(mode === 'cpu' && !params.skipMode ? 'difficulty' : 'mode')}>
-        <Text style={styles.heading}>{t('versus_choose_fighters')}</Text>
-        <View style={styles.pickRow}>
-          <CharacterPicker title={t('versus_player1')} value={p1} onChange={setP1} pool={unlocked} />
-          <Text style={styles.vs}>VS</Text>
-          <CharacterPicker title={mode === 'cpu' ? t('versus_cpu') : t('versus_player2')} value={p2} onChange={setP2} pool={mode === 'cpu' ? ALL_CHARACTERS : unlocked} />
-        </View>
-        <RosterStrip unlocked={unlocked} />
-        <MenuButton label={t('versus_next')} onPress={() => setStep('stage')} />
+        <FighterSelect
+          mode={mode}
+          unlocked={unlocked}
+          initialP1={p1}
+          initialP2={p2}
+          onDone={(a, b) => {
+            setP1(a);
+            setP2(b);
+            setStep('stage');
+          }}
+        />
       </ArtBackdrop>
+    );
+  }
+
+  if (step === 'splash') {
+    const stage = STAGE_DEFS.find((s) => s.key === stageKey);
+    return (
+      <VersusSplash p1={p1} p2={p2} p2Label={mode === 'cpu' ? 'CPU' : 'P2'} stageKey={stageKey} stageName={stage ? t(stage.nameKey) : ''} onDone={finishSplash} />
     );
   }
 
@@ -178,80 +156,8 @@ export function VersusScreen() {
   );
 }
 
-/** Faixa com todos os lutadores: os bloqueados aparecem apagados, com cadeado e a dica de como liberar. */
-function RosterStrip({ unlocked }: { unlocked: CharacterKey[] }) {
-  const { t } = useI18n();
-  const [hint, setHint] = useState<CharacterKey | null>(null);
-  const entry = ROSTER.find((r) => r.key === hint);
-  const hintText = !entry
-    ? t('roster_tap')
-    : entry.unlock.kind === 'boss'
-      ? t('roster_hint_boss').replace('{name}', BOSS_BY_ID[entry.unlock.bossId]?.name ?? '?')
-      : entry.unlock.kind === 'tower'
-        ? t('roster_hint_tower').replace('{n}', String(entry.unlock.floor))
-        : '';
-  return (
-    <View style={styles.rosterBox}>
-      <Text style={styles.rosterCount}>{t('roster_count').replace('{n}', String(unlocked.length)).replace('{m}', String(ROSTER.length))}</Text>
-      <View style={styles.rosterRow}>
-        {ROSTER.map((r) => {
-          const have = unlocked.includes(r.key);
-          return (
-            <Pressable key={r.key} onPress={() => setHint(r.key)} style={[styles.rosterCell, !have && { opacity: 0.4 }]}>
-              <Image source={CHAR_PORTRAIT[r.key]} style={styles.rosterImg} resizeMode="contain" />
-              {!have && <GameIcon name="lock" size={14} style={styles.rosterLock} />}
-            </Pressable>
-          );
-        })}
-      </View>
-      <Text style={styles.rosterHint}>{entry ? `${CHAR_LABEL[entry.key]}: ${unlocked.includes(entry.key) ? t('roster_unlocked') : hintText}` : hintText}</Text>
-    </View>
-  );
-}
-
-function CharacterPicker({ title, value, onChange, pool }: { title: string; value: CharacterKey; onChange: (c: CharacterKey) => void; pool: CharacterKey[] }) {
-  const { t } = useI18n();
-  // só cicla entre os lutadores permitidos para esse lado (ROSTER mantém a ordem)
-  const order = ALL_CHARACTERS.filter((c) => pool.includes(c));
-  const next = () => {
-    const i = order.indexOf(value);
-    onChange(order[(i + 1) % order.length]);
-  };
-  return (
-    <View style={styles.pickerCard}>
-      <Text style={styles.pickerTitle}>{title}</Text>
-      <Image source={CHAR_PORTRAIT[value]} style={styles.portrait} resizeMode="contain" />
-      <Text style={styles.charName}>{CHAR_LABEL[value]}</Text>
-      <MenuButton fit label={t('versus_next_char')} variant="ghost" onPress={next} />
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   heading: { color: '#FFD700', fontWeight: '700', fontSize: 18, marginBottom: 20 },
-  pickRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 16, marginBottom: 24 },
-  vs: { color: '#FFD700', fontWeight: '800', fontSize: 22 },
-  pickerCard: {
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255,215,0,0.5)',
-    borderRadius: 12,
-    backgroundColor: 'rgba(10,10,18,0.6)',
-    padding: 14,
-    gap: 8,
-    width: 180,
-    overflow: 'hidden',
-  },
-  pickerTitle: { color: '#fff', fontSize: 12, opacity: 0.8 },
-  portrait: { width: 90, height: 90 },
-  charName: { color: '#FFD700', fontWeight: '700', fontSize: 15 },
-  rosterBox: { alignItems: 'center', gap: 4, marginBottom: 10 },
-  rosterCount: { color: '#FFD700', fontWeight: '700', fontSize: 11 },
-  rosterRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 6 },
-  rosterCell: { width: 34, height: 34, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,215,0,0.4)', alignItems: 'center', justifyContent: 'center' },
-  rosterImg: { width: 28, height: 28 },
-  rosterLock: { position: 'absolute', right: -2, bottom: -2 },
-  rosterHint: { color: '#cfd6f5', fontSize: 10, minHeight: 14, textAlign: 'center', maxWidth: 420 },
   itemsNote: { color: '#cfd6f5', fontSize: 11, marginBottom: 8, textAlign: 'center', maxWidth: 440 },
   offerRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
   offerCard: { width: 92, alignItems: 'center', padding: 8, borderRadius: 10, borderWidth: 2, borderColor: 'rgba(255,255,255,0.25)', backgroundColor: 'rgba(10,10,18,0.6)', gap: 4 },

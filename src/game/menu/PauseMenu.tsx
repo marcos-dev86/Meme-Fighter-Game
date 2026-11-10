@@ -9,6 +9,10 @@ import { DIFFICULTY_PARAMS } from '@/game/state/difficulty';
 import { useButtonRects, withAlpha } from '@/game/input/controlsLayout';
 import { computeProgress } from '@/game/state/progressState';
 import { GameIcon } from '@/game/ui/GameIcon';
+import { COIN_PACKS } from '@/game/account/accountConfig';
+import { exchangeForCoins } from '@/game/account/exchange';
+import { useAccount } from '@/game/account/accountState';
+import { usePlayerState } from '@/game/state/playerState';
 
 interface Props {
   visible: boolean;
@@ -31,6 +35,15 @@ export function PauseMenu({ visible, onResume, onSave, onExit }: Props) {
   // behind it wouldn't be visible, since RN's <Modal> renders in its own
   // native layer on top of everything else.
   const [status, setStatus] = useState<'idle' | 'saving' | 'ok' | 'fail'>('idle');
+  // CÂMBIO: troca Diamond Meme (conta) por Meme Coins deste mundo.
+  const account = useAccount();
+  const { coins } = usePlayerState();
+  const [exchange, setExchange] = useState(false);
+  const [exMsg, setExMsg] = useState<string | null>(null);
+  const doExchange = (packId: string) => {
+    const got = exchangeForCoins(packId);
+    setExMsg(got > 0 ? `${t('exchange_done')} +${got}` : t('exchange_poor'));
+  };
 
   const handleSave = async () => {
     if (status === 'saving') return;
@@ -56,7 +69,20 @@ export function PauseMenu({ visible, onResume, onSave, onExit }: Props) {
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onResume}>
       <View style={styles.bg}>
         <View style={styles.card}>
-          <Text style={styles.title}>{t('pause_title')}</Text>
+          <Text style={styles.title}>{exchange ? t('exchange_title') : t('pause_title')}</Text>
+          {exchange ? (
+            <View style={{ alignItems: 'center', gap: 10 }} testID="exchange-panel">
+              <Text style={styles.world}>
+                💎 {account.diamonds}   ·   {coins} MC
+              </Text>
+              {COIN_PACKS.map((p) => (
+                <MenuButton key={p.id} label={`${p.diamonds} 💎  →  ${p.coins} MC`} variant="ghost" onPress={() => doExchange(p.id)} disabled={account.diamonds < p.diamonds} />
+              ))}
+              {exMsg && <Text style={styles.status}>{exMsg}</Text>}
+              <MenuButton label={t('exchange_back')} onPress={() => { setExchange(false); setExMsg(null); }} />
+            </View>
+          ) : (
+          <>
           {visible && getSession() && (
             <View style={styles.worldRow}>
               <Text style={[styles.world, { color: DIFFICULTY_PARAMS[getSession()!.difficulty].color }]}>
@@ -76,11 +102,14 @@ export function PauseMenu({ visible, onResume, onSave, onExit }: Props) {
             <ButtonColumn>
               <MenuButton label={t('pause_options')} variant="ghost" onPress={() => router.push('/options')} />
               <MenuButton label={t('pause_inventory')} variant="ghost" onPress={() => router.push('/inventory')} />
+              <MenuButton label={t('exchange_button')} variant="ghost" onPress={() => setExchange(true)} />
               <MenuButton label={t('pause_save_exit')} variant="danger" onPress={handleSaveAndExit} disabled={status === 'saving'} />
             </ButtonColumn>
           </View>
           {(status === 'ok' || status === 'fail') && (
             <Text style={[styles.status, status === 'fail' && styles.statusFail]}>{t(status === 'ok' ? 'save_success' : 'save_fail')}</Text>
+          )}
+          </>
           )}
         </View>
       </View>

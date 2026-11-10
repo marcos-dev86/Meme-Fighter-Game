@@ -23,10 +23,18 @@ export interface Settings {
   tips: boolean;
   /** MODO LEVE: reduz os efeitos (menos chuva/neve, menos faíscas nas lutas), sem tirar nenhum. Bom para celulares lentos. */
   lightMode: boolean;
+  /** Partículas do clima (chuva, neve, cinzas, relâmpago) no mundo e nas lutas. Desligar poupa o celular; o som do clima continua. */
+  weatherParticles: boolean;
+  /** Vai e vem das ondas na costa (animação contínua). Desligado, a espuma fica parada. */
+  waveAnimation: boolean;
+  /** Escurecimento da noite sobre o mundo. Desligado, a noite não escurece a tela (luzes e relógio continuam). */
+  nightDarkening: boolean;
+  /** CUTSCENES CURTAS: vídeos de 4–9 s ao escalar, ganhar no cassino, abrir baú e subir de nível. As de história não dependem disto. */
+  shortCutscenes: boolean;
 }
 
 const KEY = 'meme_fighter_settings_v1';
-let settings: Settings = { autoSave: true, autoSaveSeconds: 30, musicVolume: 0.7, sfxVolume: 0.8, ambientVolume: 0.6, haptics: true, tips: true, lightMode: false };
+let settings: Settings = { autoSave: true, autoSaveSeconds: 30, musicVolume: 0.7, sfxVolume: 0.8, ambientVolume: 0.6, haptics: true, tips: true, lightMode: false, weatherParticles: true, waveAnimation: true, nightDarkening: true, shortCutscenes: true };
 let loaded = false;
 const listeners = new Set<() => void>();
 
@@ -53,8 +61,13 @@ async function loadOnce() {
         ambientVolume: clamp01(d.ambientVolume, 0.6),
         haptics: d.haptics !== false,
         tips: d.tips !== false,
+        shortCutscenes: d.shortCutscenes !== false,
         // saves antigos: quem tinha desligado as partículas do clima passa a usar o modo leve
-        lightMode: d.lightMode === true || (d.lightMode === undefined && (d as { weatherParticles?: boolean }).weatherParticles === false),
+        // saves antigos (antes destas opções): partículas/ondas/escurecimento ligados, como sempre foi
+        lightMode: d.lightMode === true,
+        weatherParticles: d.weatherParticles !== false,
+        waveAnimation: d.waveAnimation !== false,
+        nightDarkening: d.nightDarkening !== false,
       };
       notify();
     }
@@ -113,6 +126,30 @@ export function setHaptics(on: boolean) {
 
 export function setLightMode(on: boolean) {
   settings = { ...settings, lightMode: on };
+  notify();
+  void persist();
+}
+
+export function setWeatherParticles(on: boolean) {
+  settings = { ...settings, weatherParticles: on };
+  notify();
+  void persist();
+}
+
+export function setWaveAnimation(on: boolean) {
+  settings = { ...settings, waveAnimation: on };
+  notify();
+  void persist();
+}
+
+export function setNightDarkening(on: boolean) {
+  settings = { ...settings, nightDarkening: on };
+  notify();
+  void persist();
+}
+
+export function setShortCutscenes(on: boolean) {
+  settings = { ...settings, shortCutscenes: on };
   notify();
   void persist();
 }

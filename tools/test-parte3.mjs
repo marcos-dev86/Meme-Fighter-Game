@@ -52,10 +52,10 @@ describe('renomeacao: ids novos, saves antigos migram', () => {
   });
   it('nenhum arquivo do projeto ainda usa os nomes/ids antigos (fora de legacyIds e dos testes de migracao)', () => {
     const bad = [];
-    for (const dir of ['src', 'tools', 'docs', 'assets/sprites-v2', 'assets/legacy-sprites']) {
+    for (const dir of ['src', 'tools', 'docs', 'assets/sprites-v2']) {
       for (const p of walk(dir)) {
         if (/\.(png|jpg|mp3|wav|ogg|mp4|woff2?)$/i.test(p)) { if (/tocao|serafim|capiroto/i.test(p)) bad.push(p); continue; }
-        if (/legacyIds\.ts$|docs\/AUDIT\.md$|test-parte3\.mjs$|test-parte2\.mjs$/.test(p)) continue;
+        if (/legacyIds\.ts$|docs\/AUDIT\.md$|test-parte3\.mjs$|test-parte2\.mjs$|test-saves\.mjs$/.test(p)) continue;
         const txt = read(p);
         if (/tocao|serafim|capiroto|Sahur Evl/i.test(txt) || /Toc[ãa]o/.test(txt)) bad.push(p);
         if (/tocao|serafim|capiroto/i.test(p)) bad.push(p);
@@ -64,7 +64,7 @@ describe('renomeacao: ids novos, saves antigos migram', () => {
     assert.deepEqual(bad, []);
   });
   it('pastas dos sprites com os ids novos', () => {
-    for (const k of ['sahur', 'sahur_god', 'sahur_evil']) assert.ok(fs.existsSync(new URL(`../assets/legacy-sprites/${k}/idle.png`, import.meta.url)), k);
+    for (const k of ['sahur', 'sahur_god', 'sahur_evil']) assert.ok(fs.existsSync(new URL(`../assets/sprites-v2/${k}/idle.png`, import.meta.url)), k);
     assert.ok(fs.existsSync(new URL('../assets/sprites-v2/sahur/idle.png', import.meta.url)));
     assert.ok(fs.existsSync(new URL('../tools/art_src/sheets/sahur.png', import.meta.url)));
   });
@@ -121,7 +121,8 @@ describe('vida persistente (mundo <-> luta de historia)', () => {
     const w = read('src/screens/WorldScreen.tsx');
     assert.match(w, /setStoryHp\(fighter\.health \/ fighter\.maxHealth\)/);
     assert.match(w, /fighter\.health = Math\.max\(1, getStoryHp\(\) \* fighter\.maxHealth\)/);
-    assert.match(w, /FAINT_HP \* fighter\.maxHealth/);
+    assert.match(w, /wakeAt\(checkpointPos\(\), FAINT_HP\)/); // rodada 3: derrota aceita acorda no checkpoint com metade da vida
+    assert.match(w, /hpFrac \* fighter\.maxHealth/);
     assert.match(w, /!worldFocused \|\|/);
     assert.equal(H.FAINT_HP, 0.5);
   });
@@ -178,7 +179,7 @@ describe('armaduras (regeneram vida no mundo e na luta)', () => {
     const { STRINGS_ARMADURA: S } = require('../src/game/i18n/stringsArmadura.ts');
     const base = Object.keys(S.pt).sort();
     for (const l of ['en', 'es', 'fr', 'ja']) assert.deepEqual(Object.keys(S[l]).sort(), base, l);
-    assert.match(read('src/game/i18n/extraStrings.ts'), /STRINGS_ARMADURA\]/);
+    assert.match(read('src/game/i18n/extraStrings.ts'), /STRINGS_ARMADURA[,\]]/);
   });
 });
 

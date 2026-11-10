@@ -16,7 +16,7 @@ const { STRINGS_URGENTE3 } = require('../src/game/i18n/stringsUrgente3.ts');
 const { BUILDING_DOORS } = wg;
 const { createFighter } = require('../src/game/battle/Fighter.ts');
 const { ROSTER, FIGHTER_NAME } = require('../src/game/state/rosterState.ts');
-const { getLayoutAspect, SPRITE_ASPECTS, usesV2 } = require('../src/game/battle/sprites.ts');
+const { getLayoutAspect, SPRITE_ASPECTS } = require('../src/game/battle/sprites.ts');
 const bossSrc = fs.readFileSync(new URL('../src/game/state/bossState.ts', import.meta.url), 'utf8');
 const BOSSES = [...bossSrc.matchAll(/\{ id: '(\w+)', island: '(\w+)', name: '([^']+)', character: '(\w+)'[^\n]*?spot: (null|\{ x: (\d+), y: (\d+) \})/g)].map((m) => ({ id: m[1], island: m[2], name: m[3], character: m[4], spot: m[5] === 'null' ? null : { x: +m[6], y: +m[7] } }));
 
@@ -315,20 +315,19 @@ describe('os 3 troncos: Sahur, Sahur God, Sahur Evil', () => {
       const seen = new Set();
       for (let i = 0; i < 12; i++) { seen.add(f.currentSpriteKey); f.update(130, 1); }
       // sprites novos (assets/sprites-v2) andam em 5 passos; os antigos em 4
-      assert.deepEqual([...seen].sort(), usesV2(k) ? ['walk1', 'walk2', 'walk3', 'walk4', 'walk5'] : ['walk1', 'walk2', 'walk3', 'walk4'], k);
+      assert.deepEqual([...seen].sort(), ['walk1', 'walk2', 'walk3', 'walk4', 'walk5'], k);
       for (const st of ['dash', 'flash', 'strong']) { f.setState(st); assert.equal(f.currentSpriteKey, st); }
     }
     const d = createFighter('dogge', getLayoutAspect('dogge')); d.setState('walk');
     const seen = new Set(); for (let i = 0; i < 12; i++) { seen.add(d.currentSpriteKey); d.update(130, 1); }
-    assert.deepEqual([...seen].sort(), usesV2('dogge') ? ['walk1', 'walk2', 'walk3', 'walk4', 'walk5'] : ['walk1', 'walk2', 'walk3']);
+    assert.deepEqual([...seen].sort(), ['walk1', 'walk2', 'walk3', 'walk4', 'walk5']);
   });
   it('9 poses existem em disco e as proporcoes batem com as imagens', () => {
     for (const k of KEYS) {
       const core = ['dash', 'flash', 'idle', 'strong', 'ult', 'walk1', 'walk2', 'walk3', 'walk4'];
       const have = Object.keys(SPRITE_ASPECTS[k]);
       for (const p of core) assert.ok(have.includes(p), `${k}/${p}`);
-      if (!usesV2(k)) assert.deepEqual(have.sort(), core);
-      const dir = usesV2(k) ? 'sprites-v2' : 'legacy-sprites';
+      const dir = 'sprites-v2';
       for (const p of have) assert.ok(fs.existsSync(new URL(`../assets/${dir}/${k}/${p}.png`, import.meta.url)), `${k}/${p}`);
       assert.ok(getLayoutAspect(k) > 0);
     }

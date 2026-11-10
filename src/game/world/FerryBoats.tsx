@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { isGamePaused } from '@/game/state/pauseState';
+import { isGamePaused, useGamePaused } from '@/game/state/pauseState';
 import { Image, StyleSheet } from 'react-native';
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, cancelAnimation, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import { FERRY_DOCKS } from './worldGen';
 
 /**
@@ -46,13 +46,21 @@ export function BoatImage({ dir, frame }: { dir: BoatDir; frame: number }) {
 export function FerryBoats({ tileSize, hidden }: { tileSize: number; hidden?: string | null }) {
   const bob = useSharedValue(0);
   const [frame, setFrame] = useState(0);
+  const gamePaused = useGamePaused();
   useEffect(() => {
+    if (gamePaused) {
+      cancelAnimation(bob); // pausa de verdade: o barco para de balançar
+      return;
+    }
     bob.value = withRepeat(withSequence(withTiming(-2, { duration: 900, easing: Easing.inOut(Easing.sin) }), withTiming(2, { duration: 900, easing: Easing.inOut(Easing.sin) })), -1, true);
     const id = setInterval(() => {
       if (!isGamePaused()) setFrame((f) => (f + 1) % BOAT_FRAMES.length);
     }, 420);
-    return () => clearInterval(id);
-  }, [bob]);
+    return () => {
+      clearInterval(id);
+      cancelAnimation(bob);
+    };
+  }, [bob, gamePaused]);
   const bobStyle = useAnimatedStyle(() => ({ transform: [{ translateY: bob.value }] }));
 
   return (

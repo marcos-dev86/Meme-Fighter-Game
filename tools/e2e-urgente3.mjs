@@ -147,7 +147,7 @@ async function main() {
     pg.on('response', (r) => r.status() >= 400 && /\.(png|webp|gif|jpe?g)(\?|$)/i.test(r.url()) && badImg.push(r.status() + ' ' + r.url()));
     await pg.goto(`${base}/battle?p1=sahur_evil&p2=sahur_god&p2Control=cpu&stageKey=stage_${n}`, { waitUntil: 'load' });
     await pg.getByText('FLASH', { exact: true }).waitFor({ timeout: 30000 });
-    await pg.waitForFunction(() => !document.body.innerText.includes('ROUND 1'), null, { timeout: 30000 }).catch(() => {});
+    await pg.waitForFunction(() => !/ROUND 1|LUTE!/.test(document.body.innerText), null, { timeout: 30000 }).catch(() => {});
     await pg.setViewportSize({ width: 1281, height: 720 }); await pg.setViewportSize({ width: 1280, height: 720 });
     await pg.waitForTimeout(900);
     if (SHOTS) await pg.screenshot({ path: path.join(SHOTS, `cenario_${n}.png`) });
@@ -158,7 +158,9 @@ async function main() {
     const ctx3 = await browser.newContext({ viewport: { width: 1280, height: 720 } });
     const pg = await ctx3.newPage();
     await pg.goto(`${base}/versus?skipMode=1`, { waitUntil: 'load' });
-    await pg.getByText('PRÓXIMO >', { exact: true }).first().click({ timeout: 30000 });
+    await pg.getByTestId('vs-tile-dogge').waitFor({ timeout: 30000 });
+    await pg.keyboard.press('Enter'); // P1
+    await pg.keyboard.press('Enter'); // adversario (CPU)
     await pg.waitForTimeout(800);
     const txt = await pg.evaluate(() => document.body.innerText);
     if (SHOTS) await pg.screenshot({ path: path.join(SHOTS, 'versus_cenarios.png') });

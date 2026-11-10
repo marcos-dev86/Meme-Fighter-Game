@@ -399,6 +399,23 @@ export class Fighter {
     this.phase1Stats = null;
   }
 
+  /** Renascimento (Diamond Meme): vida cheia, no MESMO lugar e estado da luta (energia, rounds e posição continuam). */
+  revive() {
+    this.isKO = false;
+    this.health = this.maxHealth;
+    this.isShielding = false;
+    this.isCharging = false;
+    this.currentAttack = null;
+    this.status = {};
+    this.hitstunTimer = 0;
+    this.dashTimer = 0;
+    this.hitFlashTimer = 0;
+    this.reactTimer = 0;
+    this.reactPower = 0;
+    this.invulnTimer = 1500; // um instante de proteção para não morrer de novo no mesmo golpe
+    this.setState('idle');
+  }
+
   resetForRound(x: number, y: number, facing: 1 | -1) {
     this.leavePhase2();
     this.health = this.maxHealth;

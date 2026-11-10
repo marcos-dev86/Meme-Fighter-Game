@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GameIcon } from '@/game/ui/GameIcon';
-import { Image, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Image, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getPlayingMusic, playMusic, playSfx } from '@/game/audio/audioManager';
 import { BATTLE_MUSIC, BOSS_MUSIC } from '@/game/audio/music';
@@ -50,7 +49,8 @@ import { BattleSkyOverlay } from '@/game/battle/BattleSkyOverlay';
 import { WeatherLayer } from '@/game/world/WeatherLayer';
 import { getSettings, useSettings } from '@/game/state/settingsState';
 import { DPad } from '@/game/input/DPad';
-import { ActionCluster, ACTION_COLORS } from '@/game/input/ActionCluster';
+import { introLabel } from '@/game/versus/versusLogic';
+import { ActionCluster } from '@/game/input/ActionCluster';
 import { SpriteEffect, type EffectName } from '@/game/battle/SpriteEffect';
 import { AuraEffect } from '@/game/battle/AuraEffect';
 import { TapDashDetector } from '@/game/input/tapDash';
@@ -176,7 +176,6 @@ interface HeldInput {
 
 export function BattleScreen() {
   const { width, height } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
   const itemAnchor = useItemMenuAnchor();
   const { t } = useI18n();
   const params = useLocalSearchParams<{ p1?: string; p2?: string; p2Control?: string; training?: string; stageKey?: string; questId?: string; difficulty?: string; bossId?: string; tower?: string; rival?: string; items1?: string; items2?: string }>();
@@ -261,12 +260,13 @@ export function BattleScreen() {
   const held1 = useRef<HeldInput>({ left: false, right: false, shield: false });
   const held2 = useRef<HeldInput>({ left: false, right: false, shield: false });
   const tapDash1 = useRef(new TapDashDetector<-1 | 1>()).current;
-  const tapDash2 = useRef(new TapDashDetector<-1 | 1>()).current;
   // Partículas, números de dano e tremor (ver combatFx.ts). Avançam no loop da luta, que já pausa sozinho.
   const fxRef = useRef<FxState>(createFx());
 
   const phaseRef = useRef<Phase>('intro');
   const phaseTimerRef = useRef(INTRO_MS);
+  /** Já tocou o som do "FIGHT!" nesta abertura de round. */
+  const fightCallRef = useRef(false);
   const roundTimerRef = useRef(ROUND_TIME_MS);
   const roundNumberRef = useRef(1);
 
@@ -308,6 +308,7 @@ export function BattleScreen() {
     clearFx(fxRef.current); // sem números/partículas do round anterior
     phaseRef.current = 'intro';
     phaseTimerRef.current = INTRO_MS;
+    fightCallRef.current = false;
     roundTimerRef.current = ROUND_TIME_MS;
     p1.resetForRound(200, groundFeetY - p1.getReferenceHeight(), 1);
     p2.resetForRound(900, groundFeetY - p2.getReferenceHeight(), -1);
@@ -358,6 +359,10 @@ export function BattleScreen() {
 
     if (phaseRef.current === 'intro') {
       phaseTimerRef.current -= dt;
+      if (!fightCallRef.current && introLabel(phaseTimerRef.current) === 'fight') {
+        fightCallRef.current = true;
+        playSfx('hit_heavy', { gain: 0.6 });
+      }
       if (phaseTimerRef.current <= 0) {
         phaseRef.current = 'fight';
         setPhase('fight');
@@ -669,7 +674,7 @@ export function BattleScreen() {
         {ambience && <BattleSkyOverlay light={1} phase="day" tint={ambience.tint} />}
         <FighterSprite fighter={p1} withGear />
         <FighterSprite fighter={p2} />
-        {ambience && ambience.weather !== 'clear' && (
+        {ambience && ambience.weather !== 'clear' && settings.weatherParticles && (
           <WeatherLayer width={ARENA_W} height={ARENA_H} weather={ambience.weather} flashKey={0} paused={paused} intensity={settings.lightMode ? 0.25 : 0.55} />
         )}
         {effects.map((e) => (
@@ -733,13 +738,11 @@ export function BattleScreen() {
               </Text>
             )}
             {setup.bossFight && <Text style={[styles.centerTextGold, styles.centerTextRed]}>{(setup.title ?? p2.name).toUpperCase()}</Text>}
-            <Text style={styles.centerText}>
-              {setup.kind === 'tower' ? '' : `${t('battle_round')} ${roundNumber}`}
+            <Text style={styles.centerText} testID="battle-intro-label">
+              {setup.kind === 'tower' ? '' : introLabel(phaseTimerRef.current) === 'fight' ? t('battle_fight') : `${t('battle_round')} ${roundNumber}`}
             </Text>
             {roundNumber === 1 && (
-              <Text style={styles.hint}>
-                P1: mover/pular/escudo no direcional . FLASH/FORTE/SUPER/AURA nos botões . toque 2x numa direção pra dash
-              </Text>
+              <Text style={styles.hint}>{t('battle_hint_controls')}</Text>
             )}
           </View>
         )}

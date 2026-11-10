@@ -1,5 +1,4 @@
 import type { CharacterKey } from './Fighter';
-import { usesV2 } from './sprites';
 import { HAND_ANCHORS_V2 } from '@/game/cosmetics/wearV2';
 
 /**
@@ -17,33 +16,12 @@ import { HAND_ANCHORS_V2 } from '@/game/cosmetics/wearV2';
  */
 export type HandPoint = { x: number; y: number };
 
-export const HAND_ANCHORS: Partial<Record<CharacterKey, Record<string, HandPoint>>> = {
-  dogge: {
-    idle: { x: 0.859, y: 0.545 },
-    walk1: { x: 0.853, y: 0.549 },
-    walk2: { x: 0.88, y: 0.562 },
-    walk3: { x: 0.89, y: 0.421 },
-    dash: { x: 0.886, y: 0.386 },
-    flash: { x: 0.893, y: 0.293 },
-    strong: { x: 0.898, y: 0.201 },
-  },
-  gadigago: {
-    idle: { x: 0.8, y: 0.62 },
-    walk1: { x: 0.87, y: 0.53 },
-    walk2: { x: 0.7, y: 0.6 },
-    walk3: { x: 0.68, y: 0.55 },
-    dash: { x: 0.9, y: 0.33 },
-    flash: { x: 0.8, y: 0.33 },
-    strong: { x: 0.82, y: 0.36 },
-  },
-};
-
 export function canHoldWeapon(character: CharacterKey): boolean {
-  return !!HAND_ANCHORS[character];
+  return !!HAND_ANCHORS_V2[character];
 }
 
 export function getHandAnchor(character: CharacterKey, poseKey: string): HandPoint | null {
-  const set = usesV2(character) ? HAND_ANCHORS_V2[character] : HAND_ANCHORS[character];
+  const set = HAND_ANCHORS_V2[character];
   if (!set) return null;
   return set[poseKey] ?? set.idle;
 }

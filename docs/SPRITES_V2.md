@@ -6,8 +6,7 @@
   `assets/sprites-v2/<personagem>/<pose>.png` + `ORIGEM.json` + `src/game/battle/spritesV2.ts` (gerado).
 - Dogge e Gadigago usam skins/chapéu/capa/arma: `python3 tools/make_wear_v2.py` (depois do importador) gera `assets/skins-v2/`
   e `src/game/cosmetics/wearV2.ts` (âncoras medidas nos quadros novos).
-- **Liga/desliga por personagem:** `assets/sprites-v2/ACTIVE.json` (`true` = sprites novos, `false` = desenho antigo de
-  `assets/legacy-sprites`, que continua no projeto). Trocar um personagem é só reenviar a folha com o mesmo nome e rodar os 2 comandos.
+- **Fonte única:** os sprites novos são os únicos do jogo (os desenhos antigos e o `ACTIVE.json` foram apagados). Trocar um personagem é só reenviar a folha com o mesmo nome e rodar os 2 comandos.
 
 ## Modelo de folha reconhecido (o mesmo dos 5 enviados)
 | Linha | `std` (gadigago, dogge, sahur) | `soldier` | `orc` |
@@ -44,4 +43,4 @@ O tamanho em tela de cada lutador **não muda**: o layout usa a proporção do i
 - `shadow_dragon.png`, `ice_dragon.png`, `green_dragon.png`: layout da folha — linha 0 retrato + 5 voos (**não usados**), linha 1 explosões/quadros (no dragão de sombra o "blast" está colado ao quadro anterior, vira `strong`), linha 2 aura/redemoinho/rastro/dash/blast, linha 3 4 poses + KO.
 - **Voo (idle/walk1-3/ult) dos dragões = sprites ANTIGOS**, ampliados (vizinho mais próximo + LANCZOS) para casar com a largura dos quadros novos (pedido do dono: a folha não trouxe voo bom).
 - `sprites.ts`: `V2_LAYOUT_FROM_IDLE` faz o tamanho em tela dos dragões vir do idle (a largura do corpo não muda).
-- Dragões em `ACTIVE.json` = true. Todas as pastas antigas que podem ser apagadas: `docs/PODE_APAGAR.md`.
+- Limpeza do que era antigo: `docs/PODE_APAGAR.md`.

@@ -1,4 +1,4 @@
-# Cutscenes — todas em VÍDEO (16 prontas e ligadas ao jogo)
+# Cutscenes — todas em VÍDEO (16 de história + 16 curtas por ação, ligadas ao jogo)
 
 Pasta prevista para os vídeos quando liberados: `assets/cutscenes/` (um arquivo por cena, nomes abaixo). Nada foi gerado.
 
@@ -68,4 +68,23 @@ Nada é animado por código em tempo real. Total ≈ 62 MB.
 - **Texto das falas:** escrito por mim a partir de `docs/HISTORIA.md` e `bossLore.ts`. Para trocar, edite as falas (`lines=[...]`) no arquivo da cena e rode de novo.
 - **Verificado:** `node tools/test-cutscenes.mjs` (registro, gatilhos, arquivos, codec H.264/AAC 1280x720, finais mais longos) e `tools/e2e-cutscenes.mjs` (rota abre, vídeo toca no Chromium, PULAR, id inexistente).
 - **Não verificado:** reprodução em aparelho real / APK (expo-video nativo), consumo de bateria/calor, e o gatilho em partida real jogada até cada missão.
+
+---
+
+## Cutscenes CURTAS por ação (repetíveis, 4–9 s) — `tools/cutscenes/shorts.py`
+Tocam **toda vez** que a ação acontece (não ficam "vistas"), em overlay por cima da tela atual (`ShortCutsceneHost`), com PULAR. Interruptor nas
+Opções: **CUTSCENES CURTAS: SIM/NÃO** (padrão SIM). Usam só ícones/móveis/sprites/sons que já existem; a parede de escalada é desenhada igual ao tile `cliff` do jogo.
+
+| Arquivo | Evento |
+|---|---|
+| climb_montanha_sobe / climb_montanha_desce | entrar no paredão de gelo pela base / pelo topo (cooldown 15 s) |
+| climb_vulcao_sobe / climb_vulcao_desce | idem, no paredão do vulcão (tx > 1700) |
+| cassino_slot_dog / banana / moai / joker / gem | caça-níquel: 3 símbolos iguais daquele símbolo |
+| cassino_slot_777 | caça-níquel: 3 sevens (jackpot, 9 s) |
+| cassino_cara_coroa / dados / roleta / cartas | vitória no jogo (lucro > 0) |
+| bau_tesouro | abrir baú/tesouro (`bau_igreja`, `volcano_cache`, `frag_b_treasure`) |
+| subiu_de_nivel | subir de nível (só toca com o mundo livre) |
+
+Regra sobe/desce: ao passar de fora para dentro do paredão, mede-se a faixa contínua de tiles `cliff` da coluna; entrou pela metade de baixo = sobe, pela de cima = desce.
+Sair do paredão não toca nada. Não testado no mapa real (só paredão simulado) nem em aparelho.
 

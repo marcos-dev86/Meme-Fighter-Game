@@ -4,14 +4,14 @@
 import os, sys
 sys.path.insert(0, os.path.dirname(__file__))
 import engine
-import scenes_a, scenes_b
+import scenes_a, scenes_b, shorts
 try:
     import finals
 except ImportError:
     finals = None
 
 REG = {}
-for mod in (scenes_a, scenes_b, finals):
+for mod in (scenes_a, scenes_b, shorts, finals):
     if mod:
         for k in dir(mod):
             if k.startswith('scene_'):

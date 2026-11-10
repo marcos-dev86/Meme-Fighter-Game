@@ -48,7 +48,7 @@ async function openBattle(browser, base, p1, p2) {
   const w = watchers(page);
   await page.goto(`${base}/battle?p1=${p1}&p2=${p2}&p2Control=cpu&stageKey=stage_1`, { waitUntil: 'load' });
   await page.getByText('FLASH', { exact: true }).waitFor({ timeout: 30000 });
-  await page.waitForFunction(() => !document.body.innerText.includes('ROUND 1'), null, { timeout: 30000 }).catch(() => {});
+  await page.waitForFunction(() => !/ROUND 1|LUTE!/.test(document.body.innerText), null, { timeout: 30000 }).catch(() => {});
   const zeroed = await page.evaluate(() => [...document.querySelectorAll('div')].some((d) => d.style.width === '1280px' && d.style.height === '720px' && /scale\(0\)/.test(d.style.transform)));
   if (zeroed) { await page.setViewportSize({ width: 1281, height: 720 }); await page.setViewportSize({ width: 1280, height: 720 }); }
   await page.waitForTimeout(700);

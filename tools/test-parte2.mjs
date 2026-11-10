@@ -4,7 +4,6 @@
  */
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
-import { spawnSync } from 'node:child_process';
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -124,7 +123,6 @@ function png(file) {
 }
 
 describe('sprites novos (assets/sprites-v2): importados das folhas, antigos intactos', () => {
-  const active = JSON.parse(fs.readFileSync(url('assets/sprites-v2/ACTIVE.json'), 'utf8'));
   it('as 5 folhas originais estao guardadas e cada personagem tem os quadros do motor', () => {
     for (const c of CHARS) {
       assert.ok(fs.existsSync(url(`tools/art_src/sheets/${c}.png`)), `folha ${c}`);
@@ -147,28 +145,13 @@ describe('sprites novos (assets/sprites-v2): importados das folhas, antigos inta
       assert.equal(hs.size, 1, `${c}: ${[...hs]}`);
     }
   });
-  it('sprites antigos continuam em disco (nada foi apagado) e a chave liga/desliga cada personagem', () => {
-    for (const c of CHARS) {
-      assert.equal(typeof active[c], 'boolean', c);
-      for (const p of ['idle', 'walk1', 'walk2', 'walk3', 'dash', 'flash', 'strong', 'ult']) assert.ok(fs.existsSync(url(`assets/legacy-sprites/${c}/${p}.png`)), `${c}/${p}`);
-    }
-  });
-  it('desligar um personagem no ACTIVE.json volta ao desenho antigo (processo separado, arquivo restaurado)', () => {
-    const f = new URL('../assets/sprites-v2/ACTIVE.json', import.meta.url);
-    const orig = fs.readFileSync(f, 'utf8');
-    try {
-      const off = { ...JSON.parse(orig), orc: false };
-      fs.writeFileSync(f, JSON.stringify(off));
-      const r = spawnSync(process.execPath, ['-e', "require('./tools/ts-register.cjs');const s=require('./src/game/battle/sprites.ts');console.log(JSON.stringify([s.usesV2('orc'),s.usesV2('dogge'),s.walkFrames('orc').length,s.hasPose('orc','hurt'),s.resolvePose('orc','hurt'),s.resolvePose('orc','cast')]))"], { cwd: new URL('..', import.meta.url).pathname, encoding: 'utf8' });
-      assert.equal(r.status, 0, r.stderr);
-      assert.deepEqual(JSON.parse(r.stdout.trim().split('\n').pop()), [false, true, 3, false, 'idle', 'dash']);
-    } finally {
-      fs.writeFileSync(f, orig);
-    }
+  it('os desenhos antigos foram apagados: so existem sprites-v2 e nenhuma chave liga/desliga', () => {
+    assert.ok(!fs.existsSync(url('assets/legacy-sprites')));
+    assert.ok(!fs.existsSync(url('assets/sprites-v2/ACTIVE.json')));
+    for (const c of CHARS) for (const p of ['idle', 'walk1', 'walk2', 'walk3', 'dash', 'flash', 'strong', 'ult']) assert.ok(fs.existsSync(url(`assets/sprites-v2/${c}/${p}.png`)), `${c}/${p}`);
   });
   it('motor: andar 5 passos, hurt/ko/charge com quadro proprio, ultimate na pose de conjurar', () => {
     for (const c of CHARS) {
-      if (!S.usesV2(c)) continue;
       assert.deepEqual(S.walkFrames(c), ['walk1', 'walk2', 'walk3', 'walk4', 'walk5']);
       for (const p of ['hurt', 'ko', 'charge', 'cast']) assert.equal(S.resolvePose(c, p), S.hasPose(c, p) ? p : 'idle', `${c}/${p}`);
       assert.ok(S.hasPose(c, 'hurt') && S.hasPose(c, 'ko') && S.hasPose(c, 'cast'), c);
@@ -185,7 +168,6 @@ describe('sprites novos (assets/sprites-v2): importados das folhas, antigos inta
   });
   it('os 3 dragoes usam a folha nova, com o voo (idle e andar de 3 passos) vindo dos sprites antigos', () => {
     for (const c of ['ice_dragon', 'green_dragon', 'shadow_dragon']) {
-      assert.equal(S.usesV2(c), true, c);
       assert.equal(S.walkFrames(c).length, 3, c); // o andar so tem os 3 quadros antigos (walk4/walk5 da folha nova nao entram)
       assert.equal(S.hasPose(c, 'walk4'), false, c);
       assert.equal(S.resolvePose(c, 'cast'), 'cast');
@@ -225,7 +207,7 @@ describe('Dogge e Gadigago com sprites novos: skins, chapeu, capa e arma na mao'
       assert.ok(a && h, `${c}/${p}`);
       for (const v of [a.hat.x, a.hat.y, a.back.x, h.x, h.y]) assert.ok(v >= 0 && v <= 1, `${c}/${p} ${v}`);
       assert.ok(a.hat.s >= 0.26 && a.hat.s <= 0.46);
-      if (S.usesV2(c)) { assert.deepEqual(T.getCosmeticAnchors(c, p), a); assert.deepEqual(H.getHandAnchor(c, p), h); }
+      assert.deepEqual(T.getCosmeticAnchors(c, p), a); assert.deepEqual(H.getHandAnchor(c, p), h);
     }
     assert.ok(T.canWearCosmetics('dogge') && T.canWearCosmetics('gadigago') && H.canHoldWeapon('dogge'));
   });

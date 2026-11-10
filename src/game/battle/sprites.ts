@@ -1,5 +1,4 @@
 import type { CharacterKey } from './Fighter';
-import ACTIVE_V2 from '../../../assets/sprites-v2/ACTIVE.json';
 import { ASPECTS_V2, SOURCES_V2 } from './spritesV2';
 
 /**
@@ -24,362 +23,12 @@ import { ASPECTS_V2, SOURCES_V2 } from './spritesV2';
  * compute.
  */
 
-const LEGACY_SOURCES: Record<CharacterKey, Record<string, number>> = {
-  dogge: {
-    idle: require('../../../assets/legacy-sprites/dogge/idle.png'),
-    walk1: require('../../../assets/legacy-sprites/dogge/walk1.png'),
-    walk2: require('../../../assets/legacy-sprites/dogge/walk2.png'),
-    walk3: require('../../../assets/legacy-sprites/dogge/walk3.png'),
-    dash: require('../../../assets/legacy-sprites/dogge/dash.png'),
-    flash: require('../../../assets/legacy-sprites/dogge/flash.png'),
-    strong: require('../../../assets/legacy-sprites/dogge/strong.png'),
-    ult: require('../../../assets/legacy-sprites/dogge/ult.png'),
-  },
-  gadigago: {
-    idle: require('../../../assets/legacy-sprites/gadigago/idle.png'),
-    walk1: require('../../../assets/legacy-sprites/gadigago/walk1.png'),
-    walk2: require('../../../assets/legacy-sprites/gadigago/walk2.png'),
-    walk3: require('../../../assets/legacy-sprites/gadigago/walk3.png'),
-    dash: require('../../../assets/legacy-sprites/gadigago/dash.png'),
-    flash: require('../../../assets/legacy-sprites/gadigago/flash.png'),
-    strong: require('../../../assets/legacy-sprites/gadigago/strong.png'),
-    ult: require('../../../assets/legacy-sprites/gadigago/ult.png'),
-  },
-  orc: {
-    idle: require('../../../assets/legacy-sprites/orc/idle.png'),
-    walk1: require('../../../assets/legacy-sprites/orc/walk1.png'),
-    walk2: require('../../../assets/legacy-sprites/orc/walk2.png'),
-    walk3: require('../../../assets/legacy-sprites/orc/walk3.png'),
-    dash: require('../../../assets/legacy-sprites/orc/dash.png'),
-    flash: require('../../../assets/legacy-sprites/orc/flash.png'),
-    strong: require('../../../assets/legacy-sprites/orc/strong.png'),
-    ult: require('../../../assets/legacy-sprites/orc/ult.png'),
-  },
-  soldier: {
-    idle: require('../../../assets/legacy-sprites/soldier/idle.png'),
-    walk1: require('../../../assets/legacy-sprites/soldier/walk1.png'),
-    walk2: require('../../../assets/legacy-sprites/soldier/walk2.png'),
-    walk3: require('../../../assets/legacy-sprites/soldier/walk3.png'),
-    dash: require('../../../assets/legacy-sprites/soldier/dash.png'),
-    flash: require('../../../assets/legacy-sprites/soldier/flash.png'),
-    strong: require('../../../assets/legacy-sprites/soldier/strong.png'),
-    ult: require('../../../assets/legacy-sprites/soldier/ult.png'),
-  },
-  dogking: {
-    idle: require('../../../assets/legacy-sprites/dogking/idle.png'),
-    walk1: require('../../../assets/legacy-sprites/dogking/walk1.png'),
-    walk2: require('../../../assets/legacy-sprites/dogking/walk2.png'),
-    walk3: require('../../../assets/legacy-sprites/dogking/walk3.png'),
-    dash: require('../../../assets/legacy-sprites/dogking/dash.png'),
-    flash: require('../../../assets/legacy-sprites/dogking/flash.png'),
-    strong: require('../../../assets/legacy-sprites/dogking/strong.png'),
-    ult: require('../../../assets/legacy-sprites/dogking/ult.png'),
-  },
-  tank: {
-    idle: require('../../../assets/legacy-sprites/tank_fighter/idle.png'),
-    walk1: require('../../../assets/legacy-sprites/tank_fighter/walk1.png'),
-    walk2: require('../../../assets/legacy-sprites/tank_fighter/walk2.png'),
-    walk3: require('../../../assets/legacy-sprites/tank_fighter/walk3.png'),
-    dash: require('../../../assets/legacy-sprites/tank_fighter/dash.png'),
-    flash: require('../../../assets/legacy-sprites/tank_fighter/flash.png'),
-    strong: require('../../../assets/legacy-sprites/tank_fighter/strong.png'),
-    ult: require('../../../assets/legacy-sprites/tank_fighter/ult.png'),
-  },
-  shadow_dragon: {
-    idle: require('../../../assets/legacy-sprites/shadow_dragon/idle.png'),
-    walk1: require('../../../assets/legacy-sprites/shadow_dragon/walk1.png'),
-    walk2: require('../../../assets/legacy-sprites/shadow_dragon/walk2.png'),
-    walk3: require('../../../assets/legacy-sprites/shadow_dragon/walk3.png'),
-    dash: require('../../../assets/legacy-sprites/shadow_dragon/dash.png'),
-    flash: require('../../../assets/legacy-sprites/shadow_dragon/flash.png'),
-    strong: require('../../../assets/legacy-sprites/shadow_dragon/strong.png'),
-    ult: require('../../../assets/legacy-sprites/shadow_dragon/ult.png'),
-  },
-  green_dragon: {
-    idle: require('../../../assets/legacy-sprites/green_dragon/idle.png'),
-    walk1: require('../../../assets/legacy-sprites/green_dragon/walk1.png'),
-    walk2: require('../../../assets/legacy-sprites/green_dragon/walk2.png'),
-    walk3: require('../../../assets/legacy-sprites/green_dragon/walk3.png'),
-    dash: require('../../../assets/legacy-sprites/green_dragon/dash.png'),
-    flash: require('../../../assets/legacy-sprites/green_dragon/flash.png'),
-    strong: require('../../../assets/legacy-sprites/green_dragon/strong.png'),
-    ult: require('../../../assets/legacy-sprites/green_dragon/ult.png'),
-  },
-  ice_dragon: {
-    idle: require('../../../assets/legacy-sprites/ice_dragon/idle.png'),
-    walk1: require('../../../assets/legacy-sprites/ice_dragon/walk1.png'),
-    walk2: require('../../../assets/legacy-sprites/ice_dragon/walk2.png'),
-    walk3: require('../../../assets/legacy-sprites/ice_dragon/walk3.png'),
-    dash: require('../../../assets/legacy-sprites/ice_dragon/dash.png'),
-    flash: require('../../../assets/legacy-sprites/ice_dragon/flash.png'),
-    strong: require('../../../assets/legacy-sprites/ice_dragon/strong.png'),
-    ult: require('../../../assets/legacy-sprites/ice_dragon/ult.png'),
-  },
-  ninja: {
-    idle: require('../../../assets/legacy-sprites/ninja/idle.png'),
-    walk1: require('../../../assets/legacy-sprites/ninja/walk1.png'),
-    walk2: require('../../../assets/legacy-sprites/ninja/walk2.png'),
-    walk3: require('../../../assets/legacy-sprites/ninja/walk3.png'),
-    dash: require('../../../assets/legacy-sprites/ninja/dash.png'),
-    flash: require('../../../assets/legacy-sprites/ninja/flash.png'),
-    strong: require('../../../assets/legacy-sprites/ninja/strong.png'),
-    ult: require('../../../assets/legacy-sprites/ninja/ult.png'),
-  },
-  mystic: {
-    idle: require('../../../assets/legacy-sprites/mystic/idle.png'),
-    walk1: require('../../../assets/legacy-sprites/mystic/walk1.png'),
-    walk2: require('../../../assets/legacy-sprites/mystic/walk2.png'),
-    walk3: require('../../../assets/legacy-sprites/mystic/walk3.png'),
-    dash: require('../../../assets/legacy-sprites/mystic/dash.png'),
-    flash: require('../../../assets/legacy-sprites/mystic/flash.png'),
-    strong: require('../../../assets/legacy-sprites/mystic/strong.png'),
-    ult: require('../../../assets/legacy-sprites/mystic/ult.png'),
-  },
-  cara_tranquilo: {
-    idle: require('../../../assets/legacy-sprites/cara_tranquilo/idle.png'),
-    walk1: require('../../../assets/legacy-sprites/cara_tranquilo/walk1.png'),
-    walk2: require('../../../assets/legacy-sprites/cara_tranquilo/walk2.png'),
-    walk3: require('../../../assets/legacy-sprites/cara_tranquilo/walk3.png'),
-    dash: require('../../../assets/legacy-sprites/cara_tranquilo/dash.png'),
-    flash: require('../../../assets/legacy-sprites/cara_tranquilo/flash.png'),
-    strong: require('../../../assets/legacy-sprites/cara_tranquilo/strong.png'),
-    ult: require('../../../assets/legacy-sprites/cara_tranquilo/ult.png'),
-  },
-  troll_face: {
-    idle: require('../../../assets/legacy-sprites/troll_face/idle.png'),
-    walk1: require('../../../assets/legacy-sprites/troll_face/walk1.png'),
-    walk2: require('../../../assets/legacy-sprites/troll_face/walk2.png'),
-    walk3: require('../../../assets/legacy-sprites/troll_face/walk3.png'),
-    dash: require('../../../assets/legacy-sprites/troll_face/dash.png'),
-    flash: require('../../../assets/legacy-sprites/troll_face/flash.png'),
-    strong: require('../../../assets/legacy-sprites/troll_face/strong.png'),
-    ult: require('../../../assets/legacy-sprites/troll_face/ult.png'),
-  },
-  sahur: {
-    idle: require('../../../assets/legacy-sprites/sahur/idle.png'),
-    walk1: require('../../../assets/legacy-sprites/sahur/walk1.png'),
-    walk2: require('../../../assets/legacy-sprites/sahur/walk2.png'),
-    walk3: require('../../../assets/legacy-sprites/sahur/walk3.png'),
-    walk4: require('../../../assets/legacy-sprites/sahur/walk4.png'),
-    dash: require('../../../assets/legacy-sprites/sahur/dash.png'),
-    flash: require('../../../assets/legacy-sprites/sahur/flash.png'),
-    strong: require('../../../assets/legacy-sprites/sahur/strong.png'),
-    ult: require('../../../assets/legacy-sprites/sahur/ult.png'),
-  },
-  sahur_god: {
-    idle: require('../../../assets/legacy-sprites/sahur_god/idle.png'),
-    walk1: require('../../../assets/legacy-sprites/sahur_god/walk1.png'),
-    walk2: require('../../../assets/legacy-sprites/sahur_god/walk2.png'),
-    walk3: require('../../../assets/legacy-sprites/sahur_god/walk3.png'),
-    walk4: require('../../../assets/legacy-sprites/sahur_god/walk4.png'),
-    dash: require('../../../assets/legacy-sprites/sahur_god/dash.png'),
-    flash: require('../../../assets/legacy-sprites/sahur_god/flash.png'),
-    strong: require('../../../assets/legacy-sprites/sahur_god/strong.png'),
-    ult: require('../../../assets/legacy-sprites/sahur_god/ult.png'),
-  },
-  sahur_evil: {
-    idle: require('../../../assets/legacy-sprites/sahur_evil/idle.png'),
-    walk1: require('../../../assets/legacy-sprites/sahur_evil/walk1.png'),
-    walk2: require('../../../assets/legacy-sprites/sahur_evil/walk2.png'),
-    walk3: require('../../../assets/legacy-sprites/sahur_evil/walk3.png'),
-    walk4: require('../../../assets/legacy-sprites/sahur_evil/walk4.png'),
-    dash: require('../../../assets/legacy-sprites/sahur_evil/dash.png'),
-    flash: require('../../../assets/legacy-sprites/sahur_evil/flash.png'),
-    strong: require('../../../assets/legacy-sprites/sahur_evil/strong.png'),
-    ult: require('../../../assets/legacy-sprites/sahur_evil/ult.png'),
-  },
-};
-
-// width/height, verified directly against the PNG files (assets/sprite/*/*.png), not estimated.
-const LEGACY_ASPECTS: Record<CharacterKey, Record<string, number>> = {
-  dogge: {
-    idle: 146 / 164,
-    walk1: 140 / 159,
-    walk2: 137 / 164,
-    walk3: 143 / 164,
-    dash: 149 / 156,
-    flash: 143 / 156,
-    strong: 157 / 158,
-    ult: 488 / 242,
-  },
-  gadigago: {
-    idle: 237 / 359,
-    walk1: 83 / 146,
-    walk2: 55 / 143,
-    walk3: 72 / 116,
-    dash: 101 / 113,
-    flash: 85 / 124,
-    strong: 92 / 112,
-    ult: 364 / 346,
-  },
-  // Sliced from the medieval villain pack (see docs/AUDIT.md) - measured
-  // straight from the saved PNGs the same way as above, not estimated.
-  orc: {
-    idle: 304 / 248,
-    walk1: 304 / 248,
-    walk2: 304 / 248,
-    walk3: 304 / 248,
-    dash: 304 / 248,
-    flash: 304 / 248,
-    strong: 304 / 248,
-    ult: 450 / 420,
-  },
-  soldier: {
-    idle: 304 / 268,
-    walk1: 304 / 268,
-    walk2: 304 / 268,
-    walk3: 304 / 268,
-    dash: 304 / 268,
-    flash: 304 / 268,
-    strong: 304 / 268,
-    ult: 286 / 319,
-  },
-  // Sliced from the "evil dog family" pack, upscaled 4x with nearest-
-  // neighbour so the boss reads as deliberately chunky retro pixel art
-  // instead of a blurry tiny sprite.
-  dogking: {
-    idle: 112 / 136,
-    walk1: 192 / 136,
-    walk2: 192 / 136,
-    walk3: 192 / 136,
-    dash: 192 / 136,
-    flash: 152 / 136,
-    strong: 264 / 136,
-    ult: 336 / 324,
-  },
-  tank: {
-    idle: 120 / 148,
-    walk1: 120 / 148,
-    walk2: 120 / 148,
-    walk3: 120 / 148,
-    dash: 208 / 148,
-    flash: 120 / 148,
-    strong: 304 / 148,
-    ult: 465 / 420,
-  },
-  shadow_dragon: {
-    idle: 576 / 416,
-    walk1: 576 / 416,
-    walk2: 576 / 416,
-    walk3: 576 / 416,
-    dash: 576 / 416,
-    flash: 576 / 416,
-    strong: 576 / 416,
-    ult: 418 / 297,
-  },
-  green_dragon: {
-    idle: 178 / 202,
-    walk1: 178 / 202,
-    walk2: 178 / 202,
-    walk3: 178 / 202,
-    dash: 428 / 202,
-    flash: 178 / 202,
-    strong: 270 / 202,
-    ult: 418 / 297,
-  },
-  ice_dragon: {
-    idle: 178 / 202,
-    walk1: 178 / 202,
-    walk2: 178 / 202,
-    walk3: 178 / 202,
-    dash: 428 / 202,
-    flash: 178 / 202,
-    strong: 270 / 202,
-    ult: 418 / 297,
-  },
-  ninja: {
-    idle: 108 / 184,
-    walk1: 144 / 184,
-    walk2: 108 / 184,
-    walk3: 134 / 184,
-    dash: 272 / 184,
-    flash: 216 / 184,
-    strong: 324 / 184,
-    ult: 418 / 297,
-  },
-  mystic: {
-    idle: 228 / 270,
-    walk1: 228 / 270,
-    walk2: 228 / 270,
-    walk3: 228 / 270,
-    dash: 228 / 270,
-    flash: 228 / 270,
-    strong: 228 / 270,
-    ult: 418 / 297,
-  },
-  cara_tranquilo: {
-    idle: 134 / 235,
-    walk1: 144 / 235,
-    walk2: 134 / 235,
-    walk3: 144 / 235,
-    dash: 324 / 235,
-    flash: 278 / 235,
-    strong: 408 / 235,
-    ult: 418 / 297,
-  },
-  troll_face: {
-    idle: 170 / 337,
-    walk1: 184 / 337,
-    walk2: 170 / 337,
-    walk3: 184 / 337,
-    dash: 312 / 337,
-    flash: 368 / 337,
-    strong: 554 / 337,
-    ult: 418 / 297,
-  },
-  sahur: {
-    idle: 92 / 186,
-    walk1: 104 / 186,
-    walk2: 122 / 186,
-    walk3: 134 / 186,
-    walk4: 172 / 186,
-    dash: 244 / 186,
-    flash: 368 / 186,
-    strong: 806 / 186,
-    ult: 418 / 297,
-  },
-  sahur_god: {
-    idle: 170 / 216,
-    walk1: 152 / 216,
-    walk2: 158 / 216,
-    walk3: 170 / 216,
-    walk4: 206 / 216,
-    dash: 260 / 216,
-    flash: 350 / 216,
-    strong: 316 / 216,
-    ult: 418 / 297,
-  },
-  sahur_evil: {
-    idle: 160 / 224,
-    walk1: 168 / 224,
-    walk2: 162 / 224,
-    walk3: 180 / 224,
-    walk4: 196 / 224,
-    dash: 280 / 224,
-    flash: 404 / 224,
-    strong: 326 / 224,
-    ult: 418 / 297,
-  },
-};
-
 /**
- * Sprites NOVOS (folhas do dono, recortadas por tools/import_sheets.py em assets/sprites-v2). Cada personagem liga/desliga em
- * assets/sprites-v2/ACTIVE.json: desligado = o desenho antigo (assets/legacy-sprites) continua valendo, sem apagar nada.
- * Ligado, o personagem usa SO os quadros novos (nao mistura escalas).
+ * Quadros dos lutadores: SO os sprites novos (assets/sprites-v2, recortados das folhas do dono por tools/import_sheets.py e
+ * registrados em spritesV2.ts). Os desenhos antigos (legacy-sprites) foram apagados.
  */
-export function usesV2(character: string): boolean {
-  const on = (ACTIVE_V2 as Record<string, unknown>)[character] === true;
-  return on && !!SOURCES_V2[character as CharacterKey]?.idle;
-}
-
-const SOURCES: Record<CharacterKey, Record<string, number>> = { ...LEGACY_SOURCES };
-export const SPRITE_ASPECTS: Record<CharacterKey, Record<string, number>> = { ...LEGACY_ASPECTS };
-for (const k of Object.keys(LEGACY_SOURCES) as CharacterKey[]) {
-  if (usesV2(k)) {
-    SOURCES[k] = SOURCES_V2[k]!;
-    SPRITE_ASPECTS[k] = ASPECTS_V2[k]!;
-  }
-}
+const SOURCES = SOURCES_V2 as Record<CharacterKey, Record<string, number>>;
+export const SPRITE_ASPECTS = ASPECTS_V2 as Record<CharacterKey, Record<string, number>>;
 
 /** Quadros alternativos quando o personagem nao tem aquele quadro (folha antiga nao traz hurt/ko/charge/cast). */
 const POSE_FALLBACK: Record<string, string> = { cast: 'dash', walk5: 'walk1', walk4: 'walk1' };
@@ -396,7 +45,7 @@ export function resolvePose(character: CharacterKey, poseKey: string): string {
   return 'idle';
 }
 
-/** Quadros do andar: 5 nos sprites novos, 4 em Sahur/Sahur God/Sahur Evil antigos, 3 nos demais. */
+/** Quadros do andar: os walkN que o personagem tem (minimo 3). */
 export function walkFrames(character: CharacterKey): string[] {
   const n = [1, 2, 3, 4, 5].filter((i) => hasPose(character, `walk${i}`)).length;
   return Array.from({ length: Math.max(3, n) }, (_, i) => `walk${i + 1}`);
@@ -412,28 +61,33 @@ export function getIdleAspect(character: CharacterKey): number {
 
 /**
  * Proporção usada SÓ para dimensionar o lutador (altura de referência = drawWidth / proporção, ver
- * Fighter.getReferenceHeight). Quando a pasta legacy-sprites foi recriada (tools/make_legacy_sprites.py) os quadros
- * ganharam recortes diferentes dos originais; estes valores são os do desenho original e mantêm cada lutador com a
- * MESMA altura em tela de antes. O sprite em si continua sendo desenhado com a proporção real do PNG (SPRITE_ASPECTS).
- * Dogge e Gadigago não entram: os quadros deles são os originais.
+ * Fighter.getReferenceHeight). São as proporções do desenho original de cada lutador: mantêm todos com a MESMA altura em tela
+ * de antes de os sprites novos entrarem. O sprite em si é desenhado com a proporção real do PNG (SPRITE_ASPECTS).
+ * Os dragões ficam de fora: usam a proporção do próprio quadro idle (voo), ver V2_LAYOUT_FROM_IDLE.
  */
 const LAYOUT_ASPECTS: Partial<Record<CharacterKey, number>> = {
+  dogge: 146 / 164,
+  gadigago: 237 / 359,
   orc: 27 / 23,
   soldier: 21 / 26,
   dogking: 110 / 118,
   tank: 124 / 122,
   ninja: 172 / 240,
   mystic: 158 / 300,
+  cara_tranquilo: 134 / 235,
+  troll_face: 170 / 337,
+  sahur: 92 / 186,
+  sahur_god: 170 / 216,
+  sahur_evil: 160 / 224,
 };
 
 /**
- * Dragões com sprites novos: o quadro novo (idle = voo) é bem mais largo que o antigo; usar a proporção dele como referência
- * mantém a PEGADA em tela (largura visível = drawWidth, o hitbox e o alcance) igual à de antes; só a altura fica menor, porque o voo
- * é mais achatado que o desenho antigo (que incluía pernas/asa pendurada).
+ * Dragões: o quadro idle (voo) é bem mais largo que o desenho antigo; usar a proporção dele como referência mantém a PEGADA em
+ * tela (largura visível = drawWidth, o hitbox e o alcance) igual à de antes; só a altura fica menor, porque o voo é mais achatado.
  */
 const V2_LAYOUT_FROM_IDLE: CharacterKey[] = ['ice_dragon', 'green_dragon', 'shadow_dragon'];
 
 export function getLayoutAspect(character: CharacterKey): number {
-  if (V2_LAYOUT_FROM_IDLE.includes(character) && usesV2(character)) return SPRITE_ASPECTS[character].idle ?? 1;
-  return LAYOUT_ASPECTS[character] ?? LEGACY_ASPECTS[character].idle ?? 1;
+  if (V2_LAYOUT_FROM_IDLE.includes(character)) return SPRITE_ASPECTS[character].idle ?? 1;
+  return LAYOUT_ASPECTS[character] ?? SPRITE_ASPECTS[character].idle ?? 1;
 }

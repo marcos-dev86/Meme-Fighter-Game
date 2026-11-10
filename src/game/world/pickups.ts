@@ -6,13 +6,14 @@ export interface PickupDef {
   y: number;
   coins?: number;
   itemId?: string;
+  /** Baú/tesouro: ao abrir toca a cutscene curta 'chest:open'. */
+  chest?: boolean;
   /** Collecting/discovering this also progresses a mission - see questState.ts. */
   questId?: string;
   /** For the 3-fragment backstory - see loreState.ts. */
   lorePiece?: 'fragA' | 'fragB' | 'fragC';
 }
 
-const caverna = BUILDING_RECTS.find((b) => b.id === 'caverna')!;
 const salao = BUILDING_RECTS.find((b) => b.id === 'salao_geral')!;
 const lojaAbandonada = BUILDING_RECTS.find((b) => b.id === 'loja_abandonada')!;
 
@@ -26,7 +27,7 @@ const lojaAbandonada = BUILDING_RECTS.find((b) => b.id === 'loja_abandonada')!;
  */
 export const WORLD_PICKUPS: PickupDef[] = [
   // Secreto: o baú ao lado da igreja da praça (missão sec_bau).
-  { id: 'bau_igreja', x: 892, y: 928, coins: 50, itemId: 'meme_token' },
+  { id: 'bau_igreja', x: 892, y: 928, coins: 50, itemId: 'meme_token', chest: true },
   { id: 'plaza_pickup_1', x: PLAZA_SQUARE.x + 10, y: PLAZA_SQUARE.y - 4, coins: 10 },
   { id: 'salao_pickup_1', x: salao.x0 - 6, y: salao.y1 + 8, coins: 15 },
   { id: 'statue_pickup_1', x: STATUE_TILE.x - 5, y: STATUE_TILE.y + 11, coins: 20 },
@@ -44,12 +45,12 @@ export const WORLD_PICKUPS: PickupDef[] = [
 
   // O cume do vulcão (escalada com o piolet, como a montanha de neve).
   { id: 'volcano_summit', x: VOLCANO_SUMMIT_TILE.x, y: VOLCANO_SUMMIT_TILE.y, questId: 'volcano_summit', itemId: 'volcano_flag' },
-  { id: 'volcano_cache', x: VOLCANO_CHEST_TILE.x, y: VOLCANO_CHEST_TILE.y, itemId: 'moon_elixir' },
+  { id: 'volcano_cache', x: VOLCANO_CHEST_TILE.x, y: VOLCANO_CHEST_TILE.y, itemId: 'moon_elixir', chest: true },
 
   // The 3-fragment backstory (see loreState.ts for the combined text).
   { id: 'frag_c_monument', x: MONUMENT_TILE.x, y: MONUMENT_TILE.y, questId: 'frag_c_lore', lorePiece: 'fragC' },
   { id: 'frag_a_ruins', x: lojaAbandonada.x0 - 12, y: lojaAbandonada.y1 + 10, questId: 'frag_a_lore', lorePiece: 'fragA' },
-  { id: 'frag_b_treasure', x: FRAG_B_TILE.x, y: FRAG_B_TILE.y, questId: 'frag_b_lore', lorePiece: 'fragB', itemId: 'old_coin' },
+  { id: 'frag_b_treasure', x: FRAG_B_TILE.x, y: FRAG_B_TILE.y, questId: 'frag_b_lore', lorePiece: 'fragB', itemId: 'old_coin', chest: true },
 ];
 
 

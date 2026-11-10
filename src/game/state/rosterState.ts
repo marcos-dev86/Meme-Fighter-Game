@@ -2,13 +2,14 @@ import { migrateLegacyIds } from './legacyIds';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { CharacterKey } from '@/game/battle/Fighter';
+import { noteFighterUnlocked } from '@/game/account/accountState';
 
 /**
  * ELENCO de lutadores jogáveis (VERSUS) e como cada um se desbloqueia. É da CONTA (vale para todos os mundos,
  * guardado fora dos saves). Dogge e Gadigago já vêm liberados; os outros são desbloqueados por conquistas na
  * história: derrotar um chefe pela primeira vez ou chegar a um andar da Torre. Todos já têm mecânica de luta
  * própria (os mesmos lutadores que aparecem como chefes e rivais), e as skins/cosméticos usam os sprites do
- * elenco (os sprites novos de orc, soldier, tank e dogking já estão em assets/legacy-sprites).
+ * elenco (os sprites de todos os lutadores estão em assets/sprites-v2).
  */
 export type UnlockRule = { kind: 'default' } | { kind: 'boss'; bossId: string } | { kind: 'tower'; floor: number };
 
@@ -77,6 +78,7 @@ export function getUnlockedFighters(): CharacterKey[] {
 export function unlockFighter(key: CharacterKey): boolean {
   if (unlocked.includes(key)) return false;
   unlocked = [...unlocked, key];
+  noteFighterUnlocked(key); // conquistas de elenco
   notify();
   AsyncStorage.setItem(KEY, JSON.stringify({ unlocked })).catch(() => {});
   return true;

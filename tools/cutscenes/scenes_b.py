@@ -80,11 +80,11 @@ def scene_13():  # moai_stone: A Pedra Moai
         Shot(0, 12, 'stage5', 'cold', zoom=(1.0, 1.1), fade=1.2, card=('A PEDRA MOAI', 'O refúgio do pico', 1.0, 5.5), actors=[
             fig('dogge', [(0, -120, G), (6.0, 330, G)], [(0, 'walk'), (6.0, 'idle')], s=1.6),
             npc('c04', [(0, 700, G)], s=2.0, flip=True),
-            Actor(IMG(['legacy-sprites', 'moai', 'idle.png']), [(0, 1000, G)], scale=2.8, flip=True)]),
+            Actor(IMG(['npc-portraits', 'moai.png']), [(0, 1000, G)], scale=2.8, flip=True)]),
         Shot(12, 40, 'stage5', 'cold', zoom=(1.0, 1.18), focus=(0.7, 0.7), fade=1.0, actors=[
             fig('dogge', [(12, 330, G)], 'idle', s=1.6, bob=2),
             npc('c04', [(12, 700, G)], s=2.0, flip=True),
-            Actor(IMG(['legacy-sprites', 'moai', 'idle.png']), [(12, 1000, G)], scale=2.8, flip=True, jitter=0)],
+            Actor(IMG(['npc-portraits', 'moai.png']), [(12, 1000, G)], scale=2.8, flip=True, jitter=0)],
             fx=[Fx.shake(25, 2.5, 5), Fx.flash(27, 1.2, (200, 230, 255), 0.7), Fx.tint(25, 33, (120, 160, 255, 70), 1.0, 2.0)],
             lines=[('Rocha', 'Dizem que a pedra do pico só desperta para quem a merece.', 13.0, 18.5),
                    ('Dogge', 'Eu vim até aqui. Que a pedra me escute.', 18.8, 23.5),

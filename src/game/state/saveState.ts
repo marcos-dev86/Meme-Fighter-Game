@@ -2,10 +2,11 @@ import { migrateLegacyIds } from './legacyIds';
 // Registra a extensão 'storyHp' (vida do modo história) ANTES de qualquer carregamento de save: a tela de slots carrega o save
 // antes de a tela do mundo ser avaliada, e uma extensão ainda não registrada seria ignorada.
 import './healthState';
+import './checkpointState';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getPlayerStateSnapshot, restorePlayerState, resetPlayerState, type EquipSlots } from './playerState';
 import type { UpgradeStat } from '@/game/items/upgrades';
-import { getQuestStateSnapshot, restoreQuestState, resetQuestState, getMissionCounts, getStoryCharacterId, type QuestSaveData } from './questState';
+import { getQuestStateSnapshot, restoreQuestState, resetQuestState, getStoryCharacterId, type QuestSaveData } from './questState';
 import { DEFAULT_CHARACTER_ID, getStoryCharacter } from '@/game/story/characters';
 import { getLoreStateSnapshot, restoreLoreState, type LorePieceId } from './loreState';
 import { isDifficulty, setStoryDifficulty, type Difficulty } from './difficulty';
@@ -14,6 +15,7 @@ import { getExploredSnapshot, resetExplored, restoreExplored } from './exploredS
 import type { Direction } from '@/types/game';
 import { resetExts, restoreExts, snapshotExts } from './saveExt';
 import './registerExts';
+import { noteWorldCreated } from '@/game/account/accountState';
 
 /**
  * Local save system: up to 3 story worlds ("slots"), on-device only
@@ -164,7 +166,9 @@ export async function createWorld(slot: number, name: string, difficulty: Diffic
     explored: getExploredSnapshot(),
     ext: snapshotExts(),
   };
-  return (await writeSlot(slot, data)) ? data : null;
+  const ok = await writeSlot(slot, data);
+  if (ok) noteWorldCreated();
+  return ok ? data : null;
 }
 
 /** Applies a world to every module's in-memory state and makes it the

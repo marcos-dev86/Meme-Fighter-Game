@@ -1,5 +1,4 @@
-// GERADO por tools/measure_anchors.py (medido na silhueta de cada pose). Ajuste fino: edite os números.
-import { usesV2 } from '@/game/battle/sprites';
+// Âncoras medidas nos sprites novos por tools/make_wear_v2.py (wearV2.ts). Ajuste fino: edite os números lá.
 import { COSMETIC_ANCHORS_V2 } from './wearV2';
 /**
  * Âncoras de cosméticos por personagem e por pose. Os sprites olham para a DIREITA (a imagem é espelhada quando o
@@ -11,34 +10,12 @@ import { COSMETIC_ANCHORS_V2 } from './wearV2';
 export type CosmeticAnchor = { x: number; y: number; s: number };
 export type PoseAnchors = { hat: CosmeticAnchor; back: CosmeticAnchor };
 export const COSMETIC_POSES = ["idle", "walk1", "walk2", "walk3", "dash", "flash", "strong"] as const;
-export const COSMETIC_ANCHORS: Record<string, Record<string, PoseAnchors>> = {
-  dogge: {
-    idle: { hat: { x: 0.551, y: 0.139, s: 0.338 }, back: { x: 0.168, y: 0.27, s: 0.52 } },
-    walk1: { hat: { x: 0.614, y: 0.128, s: 0.34 }, back: { x: 0.184, y: 0.27, s: 0.52 } },
-    walk2: { hat: { x: 0.551, y: 0.139, s: 0.338 }, back: { x: 0.135, y: 0.27, s: 0.52 } },
-    walk3: { hat: { x: 0.556, y: 0.139, s: 0.338 }, back: { x: 0.204, y: 0.27, s: 0.52 } },
-    dash: { hat: { x: 0.513, y: 0.134, s: 0.355 }, back: { x: 0.187, y: 0.27, s: 0.52 } },
-    flash: { hat: { x: 0.5, y: 0.128, s: 0.355 }, back: { x: 0.267, y: 0.27, s: 0.52 } },
-    strong: { hat: { x: 0.538, y: 0.134, s: 0.351 }, back: { x: 0.139, y: 0.27, s: 0.52 } },
-  },
-  gadigago: {
-    idle: { hat: { x: 0.498, y: 0.09, s: 0.46 }, back: { x: 0.124, y: 0.27, s: 0.55 } },
-    walk1: { hat: { x: 0.494, y: 0.111, s: 0.316 }, back: { x: 0.337, y: 0.27, s: 0.55 } },
-    walk2: { hat: { x: 0.555, y: 0.111, s: 0.332 }, back: { x: 0.211, y: 0.27, s: 0.55 } },
-    walk3: { hat: { x: 0.618, y: 0.116, s: 0.41 }, back: { x: 0.356, y: 0.27, s: 0.55 } },
-    dash: { hat: { x: 0.436, y: 0.108, s: 0.409 }, back: { x: 0.288, y: 0.27, s: 0.55 } },
-    flash: { hat: { x: 0.441, y: 0.155, s: 0.383 }, back: { x: 0.261, y: 0.27, s: 0.55 } },
-    strong: { hat: { x: 0.451, y: 0.09, s: 0.401 }, back: { x: 0.25, y: 0.27, s: 0.55 } },
-  },
-};
-
 export function canWearCosmetics(characterKey: string): boolean {
-  return !!COSMETIC_ANCHORS[characterKey];
+  return !!COSMETIC_ANCHORS_V2[characterKey];
 }
 
 function anchorTable(characterKey: string): Record<string, PoseAnchors> | undefined {
-  // sprites novos (assets/sprites-v2): âncoras medidas neles (tools/make_wear_v2.py); desligados = as de sempre
-  return usesV2(characterKey) ? COSMETIC_ANCHORS_V2[characterKey] : COSMETIC_ANCHORS[characterKey];
+  return COSMETIC_ANCHORS_V2[characterKey];
 }
 
 export function getCosmeticAnchors(characterKey: string, poseKey: string): PoseAnchors | null {

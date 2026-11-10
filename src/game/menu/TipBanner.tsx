@@ -1,5 +1,5 @@
 import React from 'react';
-import { GameIcon, IconLabel } from '@/game/ui/GameIcon';
+import { IconLabel } from '@/game/ui/GameIcon';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { clearTips, dismissTip, useCurrentTip } from '@/game/state/tipsState';

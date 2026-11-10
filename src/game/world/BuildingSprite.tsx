@@ -136,7 +136,6 @@ export function BuildingSprite({ width, height, type, buildingId, tileSize, vari
   const roofColor = type === 'shop' ? ROOF_COLOR_SHOP : type === 'hall' ? ROOF_COLOR_HALL : type === 'guild' ? ROOF_COLOR_GUILD : ROOF_COLORS_HOUSE[variant % ROOF_COLORS_HOUSE.length];
   const trim = TRIM_COLORS[variant % TRIM_COLORS.length];
   const hasChimney = type === 'house' && variant % 2 === 0;
-  const hasSign = type === 'shop' || type === 'guild';
 
   const roofHeight = height * 0.4;
   const wallTop = roofHeight * 0.58;

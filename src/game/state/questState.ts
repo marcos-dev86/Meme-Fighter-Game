@@ -3,6 +3,7 @@ import { addCoins, addItem, addXp, getCoins, getLevel, getUpgradeLevels, isColle
 import { itemName } from '@/game/items/itemDefs';
 import { getChoice, hasFlag, noteCasinoGame, setFlag, subscribeStory } from './storyFlags';
 import { grantCosmetic } from './cosmeticsState';
+import { noteIslandVisit, noteMissionDone } from '@/game/account/accountState';
 import { allLorePiecesFound } from './loreState';
 import { getStoryCharacter } from '@/game/story/characters';
 import { unlockCharacters } from './profileState';
@@ -182,7 +183,7 @@ function isObjectiveMet(def: MissionDef): boolean {
 /* Completion + notifications                                          */
 /* ------------------------------------------------------------------ */
 
-type CompletionListener = (def: MissionDef, reward: { coins: number; items: string[]; xp: number }) => void;
+type CompletionListener = (def: MissionDef, reward: { coins: number; items: string[]; xp: number; diamonds: number }) => void;
 const completionListeners = new Set<CompletionListener>();
 /** The world screen subscribes to show "Missão concluída" toasts. */
 export function onMissionCompleted(fn: CompletionListener): () => void {
@@ -235,7 +236,9 @@ function complete(def: MissionDef) {
   addXp(xp);
   if (def.reward?.cosmetic) grantCosmetic(def.reward.cosmetic);
   if (def.final) unlockCharacters(getStoryCharacter(characterId).unlocks);
-  completionListeners.forEach((fn) => fn(def, { coins, items, xp }));
+  // Diamond Meme é da CONTA (vale em qualquer save); zerar a história também registra a conquista do personagem.
+  const diamonds = noteMissionDone(!!def.final, characterId);
+  completionListeners.forEach((fn) => fn(def, { coins, items, xp, diamonds }));
 }
 
 /* ------------------------------------------------------------------ */
@@ -450,6 +453,7 @@ export function reportEnter(buildingId: string) {
   if (!runChains({ type: 'enter', buildingId }) && first) evaluateMissions();
 }
 export function reportVisit(island: string) {
+  noteIslandVisit(island); // conquistas de ilha são da conta
   if (addUnique(stats.visited, island)) evaluateMissions();
 }
 export function reportKill(enemyType: string) {
@@ -523,6 +527,17 @@ export function isStoryComplete(): boolean {
 export function getMissionCounts(): { done: number; total: number } {
   const list = getMissionList();
   return { done: list.filter((m) => isDone(m.id)).length, total: list.length };
+}
+
+/** Missões principais/de caminho (sem as secretas) e as secretas, contadas à parte (barra de progresso, Parte 3.2). */
+export function getMissionCountsSplit(): { main: { done: number; total: number }; secret: { done: number; total: number } } {
+  const list = getMissionList();
+  const main = list.filter((m) => !m.secret);
+  const secret = list.filter((m) => m.secret);
+  return {
+    main: { done: main.filter((m) => isDone(m.id)).length, total: main.length },
+    secret: { done: secret.filter((m) => isDone(m.id)).length, total: secret.length },
+  };
 }
 
 /** Read-only copy of the persistent counters (for the game-completion screen, progressState.ts). */

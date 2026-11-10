@@ -2,7 +2,7 @@
 from engine import *
 from scenes_a import fig, npc, S
 
-MOAI = ['legacy-sprites', 'moai', 'idle.png']
+MOAI = ['npc-portraits', 'moai.png']
 FRONT = ['cara_tranquilo', 'gadigago', 'dogge', 'dogking', 'soldier', 'tank', 'sahur', 'sahur_god', 'sahur_evil']
 BACK = ['c08', 'c09', 'c10', 'c11', 'c15', 'c04', 'c03', 'c01']
 

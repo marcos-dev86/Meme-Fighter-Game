@@ -7,6 +7,7 @@ import { MENU_MUSIC } from '@/game/audio/music';
 import { warmSfx } from '@/game/audio/audioManager';
 import { TipBanner } from '@/game/menu/TipBanner';
 import { AchievementToast } from '@/game/account/AchievementToast';
+import { ShortCutsceneHost } from '@/game/story/ShortCutsceneHost';
 
 /** Screens that own their music (world picks by region, battle by fight); every other screen plays the title theme. */
 const OWN_MUSIC = ['/world', '/battle', '/inventory', '/missions', '/progress', '/status', '/ending', '/cutscene'];
@@ -51,6 +52,7 @@ export default function RootLayout() {
       </Stack>
       <TipBanner />
       <AchievementToast />
+      <ShortCutsceneHost />
     </SafeAreaProvider>
   );
 }

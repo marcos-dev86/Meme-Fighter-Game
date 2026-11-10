@@ -2,6 +2,7 @@ import type { MapDef, Direction } from '@/types/game';
 import type { SharedValue } from 'react-native-reanimated';
 import { ENEMY_DEFS, type EnemyDef, type EnemyTypeId } from './enemyDefs';
 import { ENEMY_SPAWNS } from './enemySpawns';
+import { ELITES, ELITE_RESPAWN_MULT, type EliteDef } from './eliteDefs';
 import { DIFFICULTY_PARAMS, type Difficulty } from '@/game/state/difficulty';
 
 /**
@@ -50,6 +51,12 @@ export interface EnemyInst {
   wx: number;
   wy: number;
   phase: number; // animation / behaviour clock
+  /** Promovido a elite (Parte 2.3): null = inimigo comum. */
+  elite: EliteDef | null;
+  speedMult: number;
+  aggro: number;
+  baseMaxHp: number;
+  baseDamage: number;
 }
 
 /** What EnemyView binds so the sim can drive it without re-rendering React. */
@@ -65,6 +72,8 @@ export interface SlotHandle {
 export interface SlotInfo {
   type: EnemyTypeId;
   variant: number;
+  elite: boolean;
+  eliteScale: number;
 }
 
 export interface ContactHit {
@@ -75,6 +84,9 @@ export interface ContactHit {
 }
 
 export interface KillInfo {
+  /** id do elite derrotado (null = inimigo comum). */
+  eliteId: string | null;
+  firstDrop: { id: string; n: number } | null;
   type: EnemyTypeId;
   name: string;
   coins: number;
@@ -104,7 +116,7 @@ export class EnemyManager {
   private hpMult: number;
   private dmgMult: number;
 
-  constructor(private map: MapDef, difficulty: Difficulty) {
+  constructor(private map: MapDef, difficulty: Difficulty, isEliteOpen: (def: EliteDef) => boolean = () => false) {
     const dp = DIFFICULTY_PARAMS[difficulty];
     this.hpMult = dp.cpuHealth;
     this.dmgMult = dp.cpuDamage;
@@ -119,8 +131,33 @@ export class EnemyManager {
         damage: def.damage * (1 + 0.25 * (lv - 1)) * this.dmgMult,
         mode: 'idle', faceX: 1, slot: -1, cd: 0, stun: 0, kx: 0, ky: 0, flash: 0, dyingT: 0, respawnT: 0,
         wanderT: rnd(0, 1500), wx: 0, wy: 0, phase: rnd(0, 6),
+        elite: null, speedMult: 1, aggro: def.aggro, baseMaxHp: maxHp, baseDamage: def.damage * (1 + 0.25 * (lv - 1)) * this.dmgMult,
       });
     });
+    this.refreshElites(isEliteOpen);
+  }
+
+  /**
+   * Promove aos elites os spawns cujo gatilho (missão) já terminou. Só troca quem não está na tela nem morrendo; os demais
+   * viram elite quando renascerem. Devolve os ids dos elites que acabaram de aparecer (para avisar o jogador).
+   */
+  refreshElites(isOpen: (def: EliteDef) => boolean): string[] {
+    const fresh: string[] = [];
+    const ts = this.map.tileSize;
+    for (const el of ELITES) {
+      if (!isOpen(el)) continue;
+      const e = this.enemies.find((x) => x.type === el.spawn[0] && Math.floor(x.homeX / ts) === el.spawn[1] && Math.floor(x.homeY / ts) === el.spawn[2]);
+      if (!e || e.elite?.id === el.id) continue;
+      if (e.slot !== -1 || e.mode === 'dying') continue;
+      e.elite = el;
+      e.maxHp = Math.round(e.baseMaxHp * el.hp);
+      e.damage = e.baseDamage * el.dmg;
+      e.speedMult = el.speed;
+      e.aggro = e.def.aggro * el.aggro;
+      if (e.mode !== 'dead') e.hp = e.maxHp;
+      fresh.push(el.id);
+    }
+    return fresh;
   }
 
   // ---------- rendering plumbing ----------
@@ -135,8 +172,8 @@ export class EnemyManager {
   }
 
   private emitSlots() {
-    const info = this.slots.map((e) => (e ? { type: e.type, variant: e.variant } : null));
-    const key = info.map((x) => (x ? `${x.type}${x.variant}` : '-')).join(',');
+    const info = this.slots.map((e) => (e ? { type: e.type, variant: e.variant, elite: !!e.elite, eliteScale: e.elite?.scale ?? 1 } : null));
+    const key = info.map((x) => (x ? `${x.type}${x.variant}${x.elite ? 'E' : ''}` : '-')).join(',');
     if (key === this.lastInfoKey) return;
     this.lastInfoKey = key;
     this.listener?.(info);
@@ -230,7 +267,7 @@ export class EnemyManager {
         e.dyingT -= dtMs;
         if (e.dyingT <= 0) {
           e.mode = 'dead';
-          e.respawnT = RESPAWN_MS;
+          e.respawnT = RESPAWN_MS * (e.elite ? ELITE_RESPAWN_MULT : 1);
           if (e.slot !== -1) {
             this.slots[e.slot] = null;
             e.slot = -1;
@@ -249,12 +286,12 @@ export class EnemyManager {
 
       const dist = Math.sqrt(dist2);
       const homeDist = Math.hypot(e.x - e.homeX, e.y - e.homeY);
-      if (e.mode === 'idle' && dist < e.def.aggro) e.mode = 'chase';
-      else if (e.mode === 'chase' && (dist > e.def.aggro * 2.2 || homeDist > LEASH)) e.mode = 'idle';
+      if (e.mode === 'idle' && dist < e.aggro) e.mode = 'chase';
+      else if (e.mode === 'chase' && (dist > e.aggro * 2.2 || homeDist > LEASH)) e.mode = 'idle';
 
       let vx = 0;
       let vy = 0;
-      const sp = e.def.speed;
+      const sp = e.def.speed * e.speedMult;
       if (e.mode === 'chase') {
         const nx = ddx / (dist || 1);
         const ny = ddy / (dist || 1);
@@ -386,7 +423,16 @@ export class EnemyManager {
           }
         }
         const xp = Math.max(1, Math.round(e.def.xp * (1 + 0.5 * (e.lv - 1))));
-        kills.push({ type: e.type, name: e.def.name, coins, xp, itemId });
+        const el = e.elite;
+        kills.push({
+          type: e.type,
+          name: e.def.name,
+          coins: el ? Math.round(coins * el.coins) : coins,
+          xp: el ? Math.round(xp * el.xp) : xp,
+          itemId,
+          eliteId: el ? el.id : null,
+          firstDrop: el ? el.firstDrop : null,
+        });
       }
     }
     return { hits, kills };

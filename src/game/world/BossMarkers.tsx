@@ -1,6 +1,6 @@
 import React from 'react';
 import { GameIcon } from '@/game/ui/GameIcon';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import { BOSSES, isBossDefeated, useBosses } from '@/game/state/bossState';
 import { getIdleAspect, getSprite } from '@/game/battle/sprites';
 

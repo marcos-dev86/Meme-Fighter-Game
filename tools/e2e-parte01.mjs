@@ -79,9 +79,9 @@ const SAMPLER = () => {
   window.__raf = requestAnimationFrame(loop);
 };
 
-/** O HTML estático já tem os botões; a luta só roda depois de hidratar. A introdução ("ROUND 1") some sozinha quando o loop começa. */
+/** O HTML estático já tem os botões; a luta só roda depois de hidratar. A introdução ("ROUND 1" e depois "LUTE!") some sozinha quando o loop começa. */
 async function waitHydrated(page) {
-  await page.waitForFunction(() => !document.body.innerText.includes('ROUND 1'), null, { timeout: 30000 });
+  await page.waitForFunction(() => !/ROUND 1|LUTE!/.test(document.body.innerText), null, { timeout: 30000 });
 }
 
 async function openBattle(browser, base, p2, extra = '', extraInit = null, p1 = 'dogge') {

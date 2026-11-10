@@ -2,8 +2,8 @@
 
   python3 tools/make_wear_v2.py       (rode na raiz do projeto, DEPOIS de tools/import_sheets.py)
 
-Gera (nada dos arquivos antigos e alterado; so vale quando o personagem esta ligado em assets/sprites-v2/ACTIVE.json):
- - assets/skins-v2/<personagem>/<skin>/<pose>.png : skins recoloridas por tonalidade (mesma receita de make_cosmetics.py)
+Gera :
+ - assets/skins-v2/<personagem>/<skin>/<pose>.png : skins recoloridas por tonalidade 
  - src/game/cosmetics/wearV2.ts : SKIN_SPRITES_V2, COSMETIC_ANCHORS_V2 (chapeu e capa) e HAND_ANCHORS_V2 (mao da frente)
 As ancoras sao MEDIDAS na silhueta de cada quadro; para ajustar a mao, edite os numeros em HAND_FIX abaixo e rode de novo.
 """
@@ -15,10 +15,30 @@ from PIL import Image
 
 import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from make_cosmetics import SKINS, shift  # noqa: E402
 import png_opt  # noqa: E402
 
 CHARS = ['dogge', 'gadigago']
+# id da skin -> (deslocamento de tonalidade em graus, fator de saturação, fator de brilho)
+SKINS = {
+    'gelo': (165, 0.95, 1.05),
+    'floresta': (75, 1.0, 0.98),
+    'sombra': (262, 0.85, 0.72),
+    'ouro': (9, 1.8, 1.12),
+}
+
+
+def shift(im, deg, sat, val):
+    im = im.convert('RGBA')
+    a = im.getchannel('A')
+    hsv = np.array(im.convert('RGB').convert('HSV')).astype(np.float32)
+    hsv[..., 0] = (hsv[..., 0] + deg / 360.0 * 255.0) % 255.0
+    hsv[..., 1] = np.clip(hsv[..., 1] * sat, 0, 255)
+    hsv[..., 2] = np.clip(hsv[..., 2] * val, 0, 255)
+    rgb = Image.fromarray(hsv.astype(np.uint8), 'HSV').convert('RGB')
+    out = rgb.convert('RGBA')
+    out.putalpha(a)
+    return out
+
 ROOT = os.getcwd()
 V2 = f'{ROOT}/assets/sprites-v2'
 # quadros do corpo que recebem skin (os que o jogo desenha com getBodySprite)
