@@ -115,6 +115,8 @@ export class Fighter {
   maxEnergy = 100;
   roundsWon = 0;
   isKO = false;
+  /** O que feriu por último: um golpe ('hit') ou o status que queima/envenena. Alimenta o aviso de morte. */
+  lastHurtBy: 'hit' | 'burn' | 'poison' = 'hit';
 
   speed = 4;
   dashSpeed = 16;
@@ -287,6 +289,7 @@ export class Fighter {
 
   takeHit(damage: number) {
     if (this.isKO || this.invulnTimer > 0) return;
+    this.lastHurtBy = 'hit';
 
     const blocked = this.isShielding && this.energy >= this.shieldCost;
     let finalDamage = damage;
@@ -402,6 +405,7 @@ export class Fighter {
   /** Renascimento (Diamond Meme): vida cheia, no MESMO lugar e estado da luta (energia, rounds e posição continuam). */
   revive() {
     this.isKO = false;
+    this.lastHurtBy = 'hit';
     this.health = this.maxHealth;
     this.isShielding = false;
     this.isCharging = false;
@@ -544,10 +548,16 @@ export class Fighter {
   private tickStatus(dt: number) {
     if (this.isKO) return;
     let dps = 0;
+    let dotLeft = 0;
     for (const k of STATUS_KINDS) {
       const left = this.status[k] ?? 0;
       if (left <= 0) continue;
       dps += DOT_PER_SEC[k] ?? 0;
+      // O dano ao longo do tempo mais duradouro é o "responsável" se ele der o golpe final (aviso de morte).
+      if ((DOT_PER_SEC[k] ?? 0) > 0 && left > dotLeft && this.invulnTimer <= 0) {
+        dotLeft = left;
+        this.lastHurtBy = k as 'burn' | 'poison';
+      }
       const rest = left - dt;
       if (rest <= 0) delete this.status[k];
       else this.status[k] = rest;

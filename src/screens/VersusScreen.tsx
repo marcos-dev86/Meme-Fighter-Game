@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { useRoster } from '@/game/state/rosterState';
+import { buyFighter, useRoster, useRosterEarned } from '@/game/state/rosterState';
+import { fighterPrice } from '@/game/state/rosterPricing';
+import { offerRosterTip } from '@/game/state/rosterTips';
+import { useAccount } from '@/game/account/accountState';
 import { ITEMS } from '@/game/items/itemDefs';
 import { PICK_COUNT, drawOffer, drawRandomPair, encodeItems } from '@/game/battle/versusLoadout';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -35,6 +38,12 @@ export function VersusScreen() {
   };
 
   const unlocked = useRoster();
+  const earned = useRosterEarned();
+  const account = useAccount();
+  // As dicas do jogo dizem como conseguir os lutadores ainda bloqueados (a seleção não mostra isso).
+  React.useEffect(() => {
+    if (step === 'characters') offerRosterTip();
+  }, [step]);
   const [offer, setOffer] = useState<string[]>(() => drawOffer());
   const [picked, setPicked] = useState<string[]>([]);
   const [rerolls, setRerolls] = useState(1);
@@ -91,6 +100,10 @@ export function VersusScreen() {
         <FighterSelect
           mode={mode}
           unlocked={unlocked}
+          earned={earned}
+          diamonds={account.diamonds}
+          priceOf={fighterPrice}
+          onBuy={(k) => buyFighter(k).ok}
           initialP1={p1}
           initialP2={p2}
           onDone={(a, b) => {

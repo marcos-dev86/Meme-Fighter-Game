@@ -81,6 +81,8 @@ export interface ContactHit {
   fromX: number;
   fromY: number;
   flying: boolean;
+  /** Nome de quem encostou (aviso de morte). */
+  name: string;
 }
 
 export interface KillInfo {
@@ -351,7 +353,7 @@ export class EnemyManager {
       // Contact with the player.
       if (e.cd <= 0 && Math.abs(ddx) < e.def.w / 2 + 15 && Math.abs(ddy) < e.def.h / 2 + 21) {
         if (!(playerAirborne && !e.def.fly)) {
-          hits.push({ damage: e.damage, fromX: e.x, fromY: e.y, flying: e.def.fly });
+          hits.push({ damage: e.damage, fromX: e.x, fromY: e.y, flying: e.def.fly, name: e.def.name });
           e.cd = CONTACT_COOLDOWN_MS;
           // Recoil a little so it doesn't glue itself to the player.
           const nx = -ddx / (dist || 1);

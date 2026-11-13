@@ -104,9 +104,10 @@ describe('critico', () => {
 });
 
 describe('armas afiadas (habilidade especial de critico)', () => {
-  it('tabela por raridade: 4% comum ... 12% lendaria, sempre crescendo', () => {
+  it('tabela por raridade: 4% comum ... 12% lendaria, 14% secret, sempre crescendo', () => {
     const c = RARITY_ORDER.map((r) => RARITY_BONUS[r].critChance);
-    assert.deepEqual(c, [0.04, 0.06, 0.08, 0.1, 0.12]);
+    assert.deepEqual(c, [0.04, 0.06, 0.08, 0.1, 0.12, 0.14]);
+    for (let i = 1; i < c.length; i++) assert.ok(c[i] > c[i - 1]);
   });
   it('so Adaga e Sabre sao afiados', () => {
     assert.deepEqual(Object.keys(GEAR).filter((k) => GEAR[k].crit).sort(), ['w_cutlass', 'w_dagger']);

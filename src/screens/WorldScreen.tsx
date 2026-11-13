@@ -9,6 +9,7 @@ import { computeCameraPosition } from '@/game/camera/Camera';
 import { isAreaSolid, resolveMove } from '@/game/collision/collision';
 import { useGameLoop } from '@/game/core/useGameLoop';
 import { DefeatOverlay } from '@/game/account/DefeatOverlay';
+import { clearDamageCause, describeDeath, lastDamageCause, noteDamage } from '@/game/account/deathCause';
 import { REVIVE_COST, currentDeathFee, payDeathFee, payRevive } from '@/game/account/deathRules';
 import { useAccount } from '@/game/account/accountState';
 import { consumeRespawn, getCheckpoint, setCheckpoint } from '@/game/state/checkpointState';
@@ -838,6 +839,7 @@ export function WorldScreen() {
       invulnRef.current = 750;
       sinceHurtRef.current = 0;
       fighter.takeHit(c.damage * getGear().guardMult);
+      noteDamage({ kind: 'entity', role: 'enemy', name: c.name }); // quem feriu por último é quem aparece no aviso de morte
       playSfx('player_hurt');
       haptic('heavy');
       // Small shove away from whatever hit us.
@@ -967,6 +969,7 @@ export function WorldScreen() {
     invulnRef.current = 1500;
     sinceHurtRef.current = 0;
     enemies.calmDown();
+    clearDamageCause();
   };
 
   /** Onde a derrota leva: o último cais em que desembarcou (checkpoint) ou, sem nenhum ainda, a vila. */
@@ -985,6 +988,7 @@ export function WorldScreen() {
     invulnRef.current = 1500;
     sinceHurtRef.current = 0;
     enemies.calmDown();
+    clearDamageCause();
     downedRef.current = false;
     setDowned(false);
   };
@@ -1456,6 +1460,7 @@ export function WorldScreen() {
           diamonds={account.diamonds}
           reviveCost={REVIVE_COST}
           declineLabel={t('death_checkpoint')}
+          cause={describeDeath(lastDamageCause(), t)}
           onRevive={handleRevive}
           onRevived={handleRevived}
           onDecline={handleDeclineDeath}

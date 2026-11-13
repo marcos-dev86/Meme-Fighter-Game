@@ -6,7 +6,7 @@ import { buyCosmetic, equipCosmetic, useCosmetics, type Equipped } from '@/game/
 import { usePlayerState } from '@/game/state/playerState';
 import { getStoryCharacterId } from '@/game/state/questState';
 import { getStoryCharacter } from '@/game/story/characters';
-import { RARITY_COLOR, rarityKey } from '@/game/items/rarity';
+import { RARITY_COLOR, rarityBg, rarityKey } from '@/game/items/rarity';
 import { CURRENCY_ABBR } from '@/game/items/itemDefs';
 import { playSfx } from '@/game/audio/audioManager';
 import { haptic } from '@/game/audio/haptics';
@@ -115,7 +115,7 @@ export function CosmeticBrowser({ mode, onClose }: { mode: 'wardrobe' | 'shop'; 
               const worn = equipped[d.slot] === d.id;
               const dim = mode === 'wardrobe' && !have;
               return (
-                <Pressable key={d.id} style={[styles.card, { borderColor: RARITY_COLOR[d.rarity] }, sel === d.id && styles.cardSel, worn && styles.cardWorn, dim && { opacity: 0.45 }]} onPress={() => pick(d)}>
+                <Pressable key={d.id} style={[styles.card, { borderColor: RARITY_COLOR[d.rarity] }, d.rarity === 'secret' && { backgroundColor: rarityBg('secret', 'transparent') }, sel === d.id && styles.cardSel, worn && styles.cardWorn, dim && { opacity: 0.45 }]} onPress={() => pick(d)}>
                   <View style={styles.cardIcon}>
                     {d.icon ? <GameIcon name={d.icon} size={30} /> : <View style={[styles.swatch, { backgroundColor: d.swatch }]} />}
                     {worn && <GameIcon name="check" size={12} style={styles.cardCheck} />}
@@ -124,9 +124,12 @@ export function CosmeticBrowser({ mode, onClose }: { mode: 'wardrobe' | 'shop'; 
                   <Text style={styles.cardName} numberOfLines={1}>
                     {t(`cos_${d.id}`)}
                   </Text>
-                  <Text style={[styles.cardSub, { color: RARITY_COLOR[d.rarity] }]} numberOfLines={1}>
-                    {d.exclusive && !have ? t('cos_exclusive') : mode === 'shop' && !have ? `${d.price} ${CURRENCY_ABBR}` : have ? t('cos_owned') : t(rarityKey(d.rarity))}
-                  </Text>
+                  {/* Item que o jogador já tem: sem legenda nenhuma (nada de "TEM"). */}
+                  {!have && (
+                    <Text style={[styles.cardSub, { color: RARITY_COLOR[d.rarity] }]} numberOfLines={1}>
+                      {d.exclusive ? t('cos_exclusive') : mode === 'shop' ? `${d.price} ${CURRENCY_ABBR}` : t(rarityKey(d.rarity))}
+                    </Text>
+                  )}
                 </Pressable>
               );
             })}

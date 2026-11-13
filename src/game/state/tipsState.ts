@@ -25,6 +25,11 @@ function next() {
   notify();
 }
 
+/** O jogador já viu esta dica (neste save)? */
+export function hasSeenTip(id: string): boolean {
+  return seen.has(id);
+}
+
 /** Offers a tip; ignored if tips are off or this one was already shown. */
 export function tip(id: string) {
   if (!getSettings().tips || seen.has(id)) return;

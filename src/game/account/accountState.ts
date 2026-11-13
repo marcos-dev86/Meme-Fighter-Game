@@ -232,8 +232,13 @@ export function noteMissionDone(final: boolean, characterId: string): number {
 export function noteLevel(level: number) {
   update((a) => setMax(a, 'level_max', level));
 }
-export function noteDeath(inDebt: boolean) {
-  update((a) => (inDebt ? bump(bump(a, 'deaths'), 'debt_events') : bump(a, 'deaths')));
+/** `causeKey` (ver deathStatKey) soma em `deaths_<causa>`: o histórico de como o jogador morreu. */
+export function noteDeath(inDebt: boolean, causeKey?: string) {
+  update((a) => {
+    let n = bump(a, 'deaths');
+    if (inDebt) n = bump(n, 'debt_events');
+    return causeKey ? bump(n, `deaths_${causeKey}`) : n;
+  });
 }
 export function noteRevive() {
   update((a) => bump(a, 'revives'));

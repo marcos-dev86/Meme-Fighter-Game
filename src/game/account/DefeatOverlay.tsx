@@ -24,13 +24,15 @@ interface Props {
   /** chamado no pico do clarão: é aqui que o personagem volta de verdade */
   onRevived: () => void;
   onDecline: () => void;
+  /** Texto pronto de como/por quem o jogador morreu (deathCause.ts). Sem ele vale o aviso genérico. */
+  cause?: string | null;
 }
 
 const native = Platform.OS !== 'web';
 const DEFEAT_MS = 1100;
 const REBIRTH_MS = 1500;
 
-export function DefeatOverlay({ fee, coins, diamonds, reviveCost, declineLabel, onRevive, onRevived, onDecline }: Props) {
+export function DefeatOverlay({ fee, coins, diamonds, reviveCost, declineLabel, onRevive, onRevived, onDecline, cause }: Props) {
   const { t } = useI18n();
   const [stage, setStage] = useState<'defeat' | 'choice' | 'rebirth'>('defeat');
   const dim = useRef(new Animated.Value(0)).current;
@@ -94,8 +96,8 @@ export function DefeatOverlay({ fee, coins, diamonds, reviveCost, declineLabel, 
     <View style={styles.root} testID="defeat-overlay">
       <Animated.View style={[styles.dim, { opacity: dim }]} />
       {stage !== 'rebirth' && (
-        <Animated.Text style={[styles.title, { transform: [{ scale: titleScale }, { rotate: tilt }] }]} testID="defeat-title">
-          {t('death_title')}
+        <Animated.Text style={[styles.title, cause ? styles.titleCause : null, { transform: [{ scale: titleScale }, { rotate: tilt }] }]} testID="defeat-title" numberOfLines={4}>
+          {cause ?? t('death_title')}
         </Animated.Text>
       )}
       {stage !== 'defeat' && (
@@ -138,6 +140,8 @@ const styles = StyleSheet.create({
   root: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center', zIndex: 200 },
   dim: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(60,0,0,0.82)' },
   title: { color: '#FF5A4A', fontWeight: '900', fontSize: 44, letterSpacing: 3, marginBottom: 18, textShadowColor: '#000', textShadowRadius: 8, textShadowOffset: { width: 0, height: 3 } },
+  // Aviso de causa é uma frase (não uma palavra só): fonte menor, centralizada e sem inclinar demais.
+  titleCause: { fontSize: 26, letterSpacing: 0.5, lineHeight: 32, textAlign: 'center', paddingHorizontal: 24, maxWidth: 560 },
   panel: { alignItems: 'center', paddingHorizontal: 20 },
   line: { color: '#fff', fontSize: 17, fontWeight: '700' },
   small: { color: '#ddd', fontSize: 14, fontWeight: '600', marginTop: 4 },

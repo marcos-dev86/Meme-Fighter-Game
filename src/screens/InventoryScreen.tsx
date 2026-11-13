@@ -7,7 +7,7 @@ import { CURRENCY_ABBR, ITEMS, isUsable } from '@/game/items/itemDefs';
 import { usePlayerState, equipItem, equipBag, equipArmor, getBagUsage, getOwnedBags, getOwnedArmors, getEquippedArmorId } from '@/game/state/playerState';
 import { ARMORS } from '@/game/items/armorDefs';
 import { BAGS } from '@/game/items/bags';
-import { RARITY_COLOR, rarityKey } from '@/game/items/rarity';
+import { RARITY_COLOR, rarityBg, rarityKey } from '@/game/items/rarity';
 import { itemBonusLines } from '@/game/items/itemBonusText';
 import { playSfx } from '@/game/audio/audioManager';
 import { useI18n } from '@/game/i18n/i18n';
@@ -174,7 +174,7 @@ export function InventoryScreen() {
         {owned.length === 0 && <Text style={styles.hint}>{t('inventory_empty')}</Text>}
 
         {selectedDef && (
-          <View style={styles.detailCard}>
+          <View style={[styles.detailCard, selectedDef.rarity === 'secret' && { backgroundColor: rarityBg('secret', 'transparent'), borderColor: RARITY_COLOR.secret }]}>
             <View style={styles.detailHeader}>
               <ItemIcon item={selectedDef} size={36} />
               <View style={{ flex: 1 }}>
@@ -235,7 +235,7 @@ function ItemIcon({ item, size }: { item: (typeof ITEMS)[string]; size: number }
 function Slot({ entry, selected, locked, onPress }: { entry: { id: string; qty: number } | null; selected: boolean; locked?: boolean; onPress: () => void }) {
   const item = entry ? ITEMS[entry.id] : null;
   return (
-    <Pressable style={[styles.slot, locked && styles.slotLocked, item && { borderColor: RARITY_COLOR[item.rarity], borderTopColor: RARITY_COLOR[item.rarity], borderLeftColor: RARITY_COLOR[item.rarity], borderRightColor: RARITY_COLOR[item.rarity], borderBottomColor: RARITY_COLOR[item.rarity] }, selected && styles.slotSelected]} onPress={onPress} disabled={!item}>
+    <Pressable style={[styles.slot, locked && styles.slotLocked, item && { backgroundColor: rarityBg(item.rarity, 'transparent'), borderColor: RARITY_COLOR[item.rarity], borderTopColor: RARITY_COLOR[item.rarity], borderLeftColor: RARITY_COLOR[item.rarity], borderRightColor: RARITY_COLOR[item.rarity], borderBottomColor: RARITY_COLOR[item.rarity] }, selected && styles.slotSelected]} onPress={onPress} disabled={!item}>
       <View style={styles.slotInner}>
         {item && (
           <>

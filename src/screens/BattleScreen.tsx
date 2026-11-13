@@ -24,6 +24,9 @@ import { getSession } from '@/game/state/session';
 import { refreshIslandUnlocks } from '@/game/state/islandState';
 import { addCoins, consumeEquippedItem, getCoins, getEquippedItems, getLevel, getUpgradeLevels } from '@/game/state/playerState';
 import { DefeatOverlay } from '@/game/account/DefeatOverlay';
+import { battleDeathCause } from '@/game/account/battleDeath';
+import { FIGHTER_NAME } from '@/game/state/rosterState';
+import { clearDamageCause, describeDeath, lastDamageCause, noteDamage } from '@/game/account/deathCause';
 import { REVIVE_COST, currentDeathFee, payDeathFee, payRevive } from '@/game/account/deathRules';
 import { noteFightLost, noteFightWon, noteVersusCpuWin, useAccount } from '@/game/account/accountState';
 import { requestRespawn } from '@/game/state/checkpointState';
@@ -267,6 +270,7 @@ export function BattleScreen() {
   const phaseTimerRef = useRef(INTRO_MS);
   /** Já tocou o som do "FIGHT!" nesta abertura de round. */
   const fightCallRef = useRef(false);
+  const koNotedRef = useRef(false);
   const roundTimerRef = useRef(ROUND_TIME_MS);
   const roundNumberRef = useRef(1);
 
@@ -460,6 +464,12 @@ export function BattleScreen() {
       // Se ele caiu (KO), volta com o piso de derrota em vez de 0 (ver DEFEAT_FLOOR).
       if (carryStoryHp) setStoryHp(storyHpAfterFight(p1.health / p1.maxHealth));
 
+      // Aviso de morte: guarda quem derrubou o jogador (uma vez por nocaute) para a tela de derrota citar o responsável.
+      if (p1.isKO && !koNotedRef.current) {
+        koNotedRef.current = true;
+        noteDamage(battleDeathCause({ kind: setup.kind, opponentName: FIGHTER_NAME[p2Key] ?? String(p2Key), bossName: setup.boss?.name, lastHurtBy: p1.lastHurtBy }));
+      } else if (!p1.isKO) koNotedRef.current = false;
+
       if (reviveEligible && p1.isKO && !p2.isKO && p2.roundsWon + 1 >= ROUNDS_TO_WIN) {
         // Este nocaute perderia a luta: congela tudo e deixa o jogador escolher (reviver com diamantes ou aceitar a derrota).
         phaseRef.current = 'downed';
@@ -619,6 +629,8 @@ export function BattleScreen() {
   };
   const handleRevived = () => {
     p1.revive();
+    clearDamageCause();
+    koNotedRef.current = false;
     if (carryStoryHp) setStoryHp(1);
     phaseRef.current = 'fight';
     setPhase('fight');
@@ -626,6 +638,8 @@ export function BattleScreen() {
   const handleDeclineDeath = () => {
     endRound();
   };
+  /** Como/por quem o jogador morreu (aviso contextual); null = sem informação. */
+  const deathText = describeDeath(lastDamageCause(), t);
   /** Derrota aceita: volta ao mundo e o mundo leva o jogador ao checkpoint. */
   const goCheckpoint = () => {
     if (carryStoryHp) requestRespawn();
@@ -770,6 +784,7 @@ export function BattleScreen() {
           diamonds={account.diamonds}
           reviveCost={REVIVE_COST}
           declineLabel={t('death_accept')}
+          cause={describeDeath(lastDamageCause(), t)}
           onRevive={handleRevive}
           onRevived={handleRevived}
           onDecline={handleDeclineDeath}
@@ -806,6 +821,7 @@ export function BattleScreen() {
             ) : setup.kind === 'tower' ? (
               <>
                 <Text style={styles.overlayTitle}>{t('tower_fell')}</Text>
+                {deathText && <Text style={styles.questRewardText} testID="death-cause">{deathText}</Text>}
                 <Text style={styles.questRewardText}>
                   {t('tower_floor')} {setup.floor}
                 </Text>
@@ -813,7 +829,7 @@ export function BattleScreen() {
               </>
             ) : (
               <>
-                <Text style={styles.overlayTitle}>{t('quest_defeat')}</Text>
+                <Text style={styles.overlayTitle}>{deathText ?? t('quest_defeat')}</Text>
                 {feePaid && (
                   <Text style={styles.questRewardText} testID="death-fee">
                     {t('death_fee')}: -{feePaid.fee} {CURRENCY_ABBR}  ·  {t('death_balance')}: {feePaid.balance} {CURRENCY_ABBR}
@@ -827,7 +843,7 @@ export function BattleScreen() {
             // STORY quest fight: nunca oferece "revanche"/"menu"/"tentar de novo" - o único caminho é voltar ao mundo
             // (e, se perdeu, renascer no checkpoint e caminhar de volta até a luta).
             <>
-              <Text style={styles.overlayTitle}>{questReward !== null ? (params.questId === 'final_meme_fighter' ? t('quest_final_victory') : t('quest_victory')) : t('quest_defeat')}</Text>
+              <Text style={styles.overlayTitle}>{questReward !== null ? (params.questId === 'final_meme_fighter' ? t('quest_final_victory') : t('quest_victory')) : (deathText ?? t('quest_defeat'))}</Text>
               {questReward !== null && (
                 <Text style={styles.questRewardText}>
                   {t('quest_reward')}: +{questReward} {CURRENCY_ABBR}

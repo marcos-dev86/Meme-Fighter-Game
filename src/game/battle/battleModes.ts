@@ -158,7 +158,7 @@ export function grantVictory(s: BattleSetup, hpPct: number, flawless = false): G
     const dm = noteBossDefeated(s.boss.id, first, flawless);
     if (dm > 0) g.lines.push(`+${dm} 💎 Diamond Meme`);
     // Elenco do VERSUS: o lutador desse chefe é liberado na conta.
-    for (const k of unlockByEvent({ boss: s.boss.id })) g.lines.push(`Novo lutador no VERSUS: ${FIGHTER_NAME[k] ?? k}`);
+    for (const k of unlockByEvent({ boss: s.boss.id })) g.lines.push(`Lutador liberado no VERSUS (compre com diamantes): ${FIGHTER_NAME[k] ?? k}`);
     // Segredo: derrotar um chefe sem tomar nenhum golpe (missão "Sem um Arranhão").
     setFlag('found:sec_sem_arranhao');
     if (flawless) setFlag('flawless_boss');

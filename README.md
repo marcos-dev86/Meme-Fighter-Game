@@ -35,6 +35,8 @@ CUTSCENES_STRICT=1 node tools/test-cutscenes.mjs   # confere também os vídeos 
 | `test-platina` / `test-platina100` | pesos da barra (soma 100), regras de nível 99/147 pontos/árvore e o teste de 100% que prova que a platina libera |
 | `test-ambient` | sons por região (floresta dia/noite, caverna, vulcão, gelo, cassino, interiores): no máximo 2 loops |
 | `test-rival-elite` | 5 aparições do rival e inimigos de elite |
+| `test-roster-compra` | elenco do Versus: liberar pela história, comprar com diamantes (30 a 150 ou mais pelos atributos), dicas de como liberar, sem o rótulo TEM |
+| `test-morte-secret` | raridade Secret (dados, bônus, cores, preços, 5 idiomas) e avisos de morte contextuais (inimigo, chefe, rival, criatura, afogamento, veneno, região, estatísticas) |
 | `test-pause-timers` | pausa, timers sem limpeza e animações infinitas sem cancelamento; opções gráficas |
 
 Auditoria de traduções (5 idiomas): `node tools/check-i18n.mjs` (ou `npm run check:i18n`): chaves faltando, duplicadas, não traduzidas e problemas de estrutura.

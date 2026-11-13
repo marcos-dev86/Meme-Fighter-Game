@@ -7,9 +7,9 @@
  * bônus pode ser testada fora do app (tools/test-parte01.mjs) e usada por
  * gear.ts, itemDefs.ts e pelos textos de descrição sem ciclos de importação.
  */
-export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'secret';
 
-export const RARITY_ORDER: Rarity[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+export const RARITY_ORDER: Rarity[] = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'secret'];
 
 export const RARITY_COLOR: Record<Rarity, string> = {
   common: '#C8C8C8',
@@ -17,7 +17,22 @@ export const RARITY_COLOR: Record<Rarity, string> = {
   rare: '#4DA6FF',
   epic: '#C07BFF',
   legendary: '#FFB020',
+  // SECRET é preto e branco: texto e borda brancos sobre fundo preto (RARITY_BG), contraste máximo em qualquer tela.
+  secret: '#FFFFFF',
 };
+
+/** Fundo próprio da raridade (só a Secret tem: preto puro, para o branco do texto e da borda sempre ler bem). */
+export const RARITY_BG: Partial<Record<Rarity, string>> = { secret: '#000000' };
+
+/** Fundo da caixa de um item dessa raridade, ou `fallback` quando a raridade não tem fundo próprio. */
+export function rarityBg(r: Rarity | undefined, fallback?: string): string | undefined {
+  return (r && RARITY_BG[r]) || fallback;
+}
+
+/** Existe de verdade como raridade (dado/save desconhecido não vira raridade nova). */
+export function isRarity(v: unknown): v is Rarity {
+  return typeof v === 'string' && (RARITY_ORDER as string[]).includes(v);
+}
 
 /** Translation key of a rarity's display name. */
 export function rarityKey(r: Rarity): string {
@@ -52,6 +67,8 @@ export const RARITY_BONUS: Record<Rarity, RarityBonus> = {
   rare: { weaponDamage: 1.06, guard: 0.94, heal: 1.1, energy: 1.1, procChance: 0.08, critChance: 0.08 },
   epic: { weaponDamage: 1.1, guard: 0.9, heal: 1.15, energy: 1.15, procChance: 0.12, critChance: 0.10 },
   legendary: { weaponDamage: 1.15, guard: 0.85, heal: 1.2, energy: 1.2, procChance: 0.18, critChance: 0.12 },
+  // Secret fica acima da lendária, mas só um degrau: é rara por ser difícil de achar, não por quebrar o jogo.
+  secret: { weaponDamage: 1.2, guard: 0.8, heal: 1.25, energy: 1.25, procChance: 0.22, critChance: 0.14 },
 };
 
 /** Bônus de uma raridade (cai em `common` se vier algo desconhecido, ex.: save/dado antigo). */

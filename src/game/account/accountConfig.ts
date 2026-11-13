@@ -22,7 +22,7 @@ export const DIAMOND_RATES = {
   /** teto diário de diamantes vindos do VERSUS (impede farmar lutas rápidas) */
   versusDailyCap: 30,
   /** desbloquear uma conquista, por raridade */
-  achievement: { common: 1, uncommon: 2, rare: 5, epic: 10, legendary: 25 } as Record<Rarity, number>,
+  achievement: { common: 1, uncommon: 2, rare: 5, epic: 10, legendary: 25, secret: 50 } as Record<Rarity, number>,
 };
 
 /** Morte no mundo/luta de história. */
@@ -58,8 +58,8 @@ export const PROFILE_PRICES = {
    *  ícone sem regerar nada, ponha o id aqui: avatarOverride: { npc_azulao: 30 }. */
   avatarOverride: {} as Record<string, number>,
   /** fundos com efeito/animação */
-  background: { common: 10, uncommon: 20, rare: 35, epic: 60, legendary: 100 } as Record<Rarity, number>,
-  frame: { common: 10, uncommon: 20, rare: 35, epic: 60, legendary: 100 } as Record<Rarity, number>,
+  background: { common: 10, uncommon: 20, rare: 35, epic: 60, legendary: 100, secret: 200 } as Record<Rarity, number>,
+  frame: { common: 10, uncommon: 20, rare: 35, epic: 60, legendary: 100, secret: 200 } as Record<Rarity, number>,
 };
 
 export const NICK_MAX = 14;

@@ -21,7 +21,7 @@ export interface CosmeticDef {
 }
 
 /** Preço por raridade (em Memecoins). */
-export const COSMETIC_PRICE: Record<Rarity, number> = { common: 150, uncommon: 350, rare: 800, epic: 1800, legendary: 4000 };
+export const COSMETIC_PRICE: Record<Rarity, number> = { common: 150, uncommon: 350, rare: 800, epic: 1800, legendary: 4000, secret: 9000 };
 
 const c = (id: string, slot: CosmeticSlot, icon: IconName | null, rarity: Rarity, swatch?: string): CosmeticDef => ({ id, slot, icon, swatch, rarity, price: COSMETIC_PRICE[rarity] });
 

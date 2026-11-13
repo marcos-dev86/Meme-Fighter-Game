@@ -2,6 +2,7 @@ import { DEATH, deathFee } from './accountConfig';
 import { chargeCoins, getCoins, getLevel } from '@/game/state/playerState';
 import { getStoryDifficulty } from '@/game/state/difficulty';
 import { noteDeath, noteRevive, spendDiamonds } from './accountState';
+import { clearDamageCause, deathStatKey, lastDamageCause } from './deathCause';
 
 /**
  * Regras de morte da história (as contas estão em accountConfig.ts):
@@ -17,7 +18,8 @@ export function payDeathFee(): { fee: number; balance: number } {
   const fee = currentDeathFee();
   chargeCoins(fee);
   const balance = getCoins();
-  noteDeath(balance < 0);
+  noteDeath(balance < 0, deathStatKey(lastDamageCause())); // histórico: deaths_<causa>
+  clearDamageCause();
   return { fee, balance };
 }
 
@@ -25,6 +27,7 @@ export function payDeathFee(): { fee: number; balance: number } {
 export function payRevive(): boolean {
   if (!spendDiamonds(DEATH.reviveDiamonds)) return false;
   noteRevive();
+  clearDamageCause();
   return true;
 }
 

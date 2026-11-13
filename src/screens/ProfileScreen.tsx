@@ -279,7 +279,7 @@ function LookTab() {
                 const unlocked = !avatarNeedsUnlock(a.id) || roster.includes(a.id as never);
                 return (
                   <Tile key={a.id} on={equipped(p)} sel={pick?.kind === 'avatar' && pick.id === a.id} onPress={() => { setPick(p); setMsg(null); }} testID={`tile-avatar-${a.id}`}
-                    caption={have ? (equipped(p) ? '✔' : t('look_free_owned')) : unlocked ? `${avatarPrice(a.id)} 💎` : '🔒'} dim={!have && !unlocked}>
+                    caption={have ? (equipped(p) ? '✔' : '') : unlocked ? `${avatarPrice(a.id)} 💎` : '🔒'} dim={!have && !unlocked}>
                     <ProfileBadge avatar={a.id} bg={pv.bg} frame={pv.frame} size={52} animate={false} />
                   </Tile>
                 );
@@ -322,7 +322,7 @@ function Tile({ children, caption, on, sel, dim, onPress, testID }: { children: 
   return (
     <Pressable onPress={onPress} testID={testID} style={[styles.tile, sel && styles.tileSel, on && styles.tileOn, dim && { opacity: 0.55 }]}>
       {children}
-      <Text style={styles.tileCap}>{caption}</Text>
+      {caption ? <Text style={styles.tileCap}>{caption}</Text> : <View style={styles.tileCapSpace} />}
     </Pressable>
   );
 }
@@ -376,5 +376,6 @@ const styles = StyleSheet.create({
   tileSel: { borderColor: '#fff' },
   tileOn: { backgroundColor: 'rgba(255,205,60,0.18)' },
   pickName: { color: '#fff', fontSize: 14, fontWeight: '900' },
+  tileCapSpace: { height: 15 },
   tileCap: { color: '#e8d9b0', fontSize: 10, fontWeight: '800', marginTop: 3, minHeight: 12 },
 });

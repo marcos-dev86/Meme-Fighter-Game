@@ -4,7 +4,7 @@ import { CURRENCY_ABBR, ITEMS, SHOP_STOCK } from '@/game/items/itemDefs';
 import { addItem, bagRoomFor, getOwnedArmors, getOwnedBags, giveArmor, giveBag, spendCoins, usePlayerState } from '@/game/state/playerState';
 import { BAGS, PLAZA_BAGS } from '@/game/items/bags';
 import { ARMORS, PLAZA_ARMORS } from '@/game/items/armorDefs';
-import { RARITY_COLOR, rarityKey } from '@/game/items/rarity';
+import { RARITY_COLOR, rarityBg, rarityKey } from '@/game/items/rarity';
 import { itemBonusLines } from '@/game/items/itemBonusText';
 import { playSfx } from '@/game/audio/audioManager';
 import { reportPurchase } from '@/game/state/questState';
@@ -158,7 +158,7 @@ export function ShopOverlay({ onClose, stock: baseStock = SHOP_STOCK, title, bag
           if (!bag) return null;
           const has = getOwnedBags().includes(bagId);
           return (
-            <View key={bagId} style={[styles.row, { borderColor: RARITY_COLOR[bag.rarity] }]}>
+            <View key={bagId} style={[styles.row, { borderColor: RARITY_COLOR[bag.rarity], backgroundColor: rarityBg(bag.rarity) }]}>
               <GameIcon name={bag.icon} size={30} />
               <View style={styles.rowText}>
                 <Text style={[styles.itemName, { color: RARITY_COLOR[bag.rarity] }]}>
@@ -181,7 +181,7 @@ export function ShopOverlay({ onClose, stock: baseStock = SHOP_STOCK, title, bag
           if (!a) return null;
           const has = getOwnedArmors().includes(armorId);
           return (
-            <View key={armorId} style={[styles.row, { borderColor: RARITY_COLOR[a.rarity] }]}>
+            <View key={armorId} style={[styles.row, { borderColor: RARITY_COLOR[a.rarity], backgroundColor: rarityBg(a.rarity) }]}>
               <GameIcon name={a.icon} size={30} />
               <View style={styles.rowText}>
                 <Text style={[styles.itemName, { color: RARITY_COLOR[a.rarity] }]}>
@@ -203,7 +203,7 @@ export function ShopOverlay({ onClose, stock: baseStock = SHOP_STOCK, title, bag
           const item = ITEMS[id];
           const owned = inventory[id] ?? 0;
           return (
-            <View key={id} style={styles.row}>
+            <View key={id} style={[styles.row, item.rarity === 'secret' && { backgroundColor: rarityBg('secret', 'transparent'), borderColor: RARITY_COLOR.secret }]}>
               <Image source={item.image} style={styles.iconImg} resizeMode="contain" />
               <View style={styles.rowText}>
                 <Text style={[styles.itemName, { color: RARITY_COLOR[item.rarity] }]}>

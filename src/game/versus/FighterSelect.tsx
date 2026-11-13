@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { playSfx } from '@/game/audio/audioManager';
 import type { CharacterKey } from '@/game/battle/Fighter';
-import { BOSS_BY_ID } from '@/game/state/bossState';
 import { useI18n } from '@/game/i18n/i18n';
 import { GameIcon } from '@/game/ui/GameIcon';
 import { MenuButton } from '@/game/menu/MenuButton';
@@ -18,6 +17,14 @@ interface Props {
   mode: Mode;
   /** Lutadores liberados na conta (vale para o Jogador 1 e, no 2 jogadores, para o Jogador 2). */
   unlocked: CharacterKey[];
+  /** Lutadores já liberados pela história mas ainda não comprados (mostram o preço em diamantes e podem ser comprados aqui). */
+  earned?: CharacterKey[];
+  /** Diamantes que o jogador tem agora (só para avisar se falta saldo). */
+  diamonds?: number;
+  /** Preço em diamantes de um lutador à venda. */
+  priceOf?: (key: CharacterKey) => number;
+  /** Tenta comprar. true = comprou (o `unlocked` do pai passa a incluir o lutador). */
+  onBuy?: (key: CharacterKey) => boolean;
   initialP1: CharacterKey;
   initialP2: CharacterKey;
   onDone: (p1: CharacterKey, p2: CharacterKey) => void;
@@ -38,7 +45,7 @@ const KEY_DIR: Record<string, Dir> = {
  *  - teclado (web): setas/WASD movem a prévia, Enter/Espaço confirmam, Backspace volta ao Jogador 1.
  * Primeiro o Jogador 1 escolhe; depois o Jogador 2 (ou a CPU).
  */
-export function FighterSelect({ mode, unlocked, initialP1, initialP2, onDone, entries }: Props) {
+export function FighterSelect({ mode, unlocked, earned, diamonds = 0, priceOf, onBuy, initialP1, initialP2, onDone, entries }: Props) {
   const { t } = useI18n();
   const { width, height } = useWindowDimensions();
   const list = useMemo(() => entries ?? getFighterRegistry(), [entries]);
@@ -59,6 +66,11 @@ export function FighterSelect({ mode, unlocked, initialP1, initialP2, onDone, en
   const hovered = list[Math.min(cursor, list.length - 1)];
   const setCursor = side === 1 ? setC1 : setC2;
   const pickable = canPick(hovered.key, pool);
+  /** À venda: a história já liberou, falta pagar (só quem tem preço e função de compra). */
+  const forSale = (k: CharacterKey) => !!priceOf && !!onBuy && !!earned?.includes(k) && !unlocked.includes(k);
+  const [buyMsg, setBuyMsg] = useState<string | null>(null);
+  const sale = forSale(hovered.key);
+  const salePrice = sale && priceOf ? priceOf(hovered.key) : 0;
 
   // ---- medidas (responsivo)
   const compact = width < 640;
@@ -75,6 +87,7 @@ export function FighterSelect({ mode, unlocked, initialP1, initialP2, onDone, en
 
   const preview = useCallback((i: number) => {
     setCursor(i);
+    setBuyMsg(null);
     setArmed(true);
     playSfx('ui_hover', { minGapMs: 60 });
   }, [setCursor]);
@@ -84,6 +97,17 @@ export function FighterSelect({ mode, unlocked, initialP1, initialP2, onDone, en
     setArmed(true);
     playSfx('ui_hover', { minGapMs: 60 });
   }, [setCursor, list.length, cols]);
+
+  const buy = useCallback(() => {
+    if (!onBuy || !priceOf) return;
+    if (onBuy(hovered.key)) {
+      playSfx('ui_confirm');
+      setBuyMsg(t('vs_bought'));
+    } else {
+      playSfx('ui_denied');
+      setBuyMsg(t('vs_no_diamonds'));
+    }
+  }, [onBuy, priceOf, hovered, t]);
 
   const confirm = useCallback(() => {
     if (!canPick(hovered.key, pool)) {
@@ -101,8 +125,11 @@ export function FighterSelect({ mode, unlocked, initialP1, initialP2, onDone, en
 
   const onTile = (i: number) => {
     if (armed && i === cursor) {
-      playSfx('ui_confirm');
-      confirm();
+      if (forSale(list[i].key)) buy();
+      else {
+        playSfx('ui_confirm');
+        confirm();
+      }
     } else preview(i);
   };
 
@@ -113,14 +140,14 @@ export function FighterSelect({ mode, unlocked, initialP1, initialP2, onDone, en
     setArmed(false);
   }, []);
 
-  const act = useRef({ move, confirm, backToP1, side });
-  act.current = { move, confirm, backToP1, side };
+  const act = useRef({ move, confirm, backToP1, side, sale, buy });
+  act.current = { move, confirm, backToP1, side, sale, buy };
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof document === 'undefined') return;
     const onKey = (e: KeyboardEvent) => {
       const d = KEY_DIR[e.key];
       if (d) { e.preventDefault(); act.current.move(d); return; }
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); playSfx('ui_confirm'); act.current.confirm(); return; }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (act.current.sale) act.current.buy(); else { playSfx('ui_confirm'); act.current.confirm(); } return; }
       if (e.key === 'Backspace' && act.current.side === 2) { e.preventDefault(); act.current.backToP1(); }
     };
     document.addEventListener('keydown', onKey);
@@ -130,12 +157,6 @@ export function FighterSelect({ mode, unlocked, initialP1, initialP2, onDone, en
   const accent = side === 1 ? P1_COLOR : P2_COLOR;
   const tag = side === 1 ? 'P1' : mode === 'cpu' ? 'CPU' : 'P2';
   const lockedEntry = locked1 ? list.find((e) => e.key === locked1) ?? null : null;
-  const hint =
-    pickable ? '' : hovered.unlock.kind === 'boss'
-      ? t('roster_hint_boss').replace('{name}', BOSS_BY_ID[hovered.unlock.bossId]?.name ?? '?')
-      : hovered.unlock.kind === 'tower'
-        ? t('roster_hint_tower').replace('{n}', String(hovered.unlock.floor))
-        : '';
 
   const gridBody = (
     <View style={{ alignItems: 'center' }}>
@@ -146,6 +167,7 @@ export function FighterSelect({ mode, unlocked, initialP1, initialP2, onDone, en
             {row.map((i) => {
               const e = list[i];
               const ok = canPick(e.key, pool);
+              const onSale = forSale(e.key);
               const isCur = i === cursor;
               const mine = side === 2 && e.key === locked1;
               return (
@@ -163,7 +185,8 @@ export function FighterSelect({ mode, unlocked, initialP1, initialP2, onDone, en
                   ]}
                 >
                   <Image source={e.avatar} style={[{ width: tile - 8, height: tile - 8, borderRadius: 4 }, !ok && { opacity: 0.3 }]} resizeMode="contain" fadeDuration={0} />
-                  {!ok && <GameIcon name="lock" size={Math.round(tile / 3)} style={styles.tileLock} />}
+                  {!ok && !onSale && <GameIcon name="lock" size={Math.round(tile / 3)} style={styles.tileLock} />}
+                  {onSale && priceOf && <Text style={styles.tilePrice}>{`💎${priceOf(e.key)}`}</Text>}
                   {mine && <Text style={[styles.tileTag, { backgroundColor: P1_COLOR }]}>P1</Text>}
                   {isCur && armed && <Text style={[styles.tileTag, { backgroundColor: accent }]}>{tag}</Text>}
                 </Pressable>
@@ -198,8 +221,8 @@ export function FighterSelect({ mode, unlocked, initialP1, initialP2, onDone, en
               </View>
               <Text style={styles.name} numberOfLines={2} testID="vs-preview-name">{hovered.name}</Text>
               {!compact || height > 330 ? <Stats entry={hovered} /> : null}
-              <Text style={[styles.tapHint, !pickable && { color: '#ff8c7a' }]} numberOfLines={3} testID="vs-preview-hint">
-                {pickable ? t('vs_tap_again') : `${t('vs_locked')}${hint ? ': ' + hint : ''}`}
+              <Text style={[styles.tapHint, !pickable && { color: sale ? '#7ee0a0' : '#ff8c7a' }]} numberOfLines={3} testID="vs-preview-hint">
+                {pickable ? t('vs_tap_again') : sale ? (buyMsg ?? `${t('vs_for_sale')} · 💎 ${salePrice}`) : t('vs_locked')}
               </Text>
             </>
           ) : (
@@ -218,7 +241,11 @@ export function FighterSelect({ mode, unlocked, initialP1, initialP2, onDone, en
           )}
           <View style={styles.actions}>
             {side === 2 && <MenuButton fit variant="ghost" label={t('vs_back_p1')} onPress={backToP1} />}
-            <MenuButton fit label={t('vs_confirm')} onPress={confirm} disabled={!armed || !pickable} />
+            {sale ? (
+              <MenuButton fit label={`${t('vs_buy')} · ${salePrice} 💎`} onPress={buy} disabled={!armed || diamonds < salePrice} />
+            ) : (
+              <MenuButton fit label={t('vs_confirm')} onPress={confirm} disabled={!armed || !pickable} />
+            )}
           </View>
         </View>
 
@@ -270,6 +297,7 @@ const styles = StyleSheet.create({
   center: { alignItems: 'center', gap: 4 },
   gridRow: { flexDirection: 'row', justifyContent: 'center' },
   tile: { borderRadius: 8, borderWidth: 2, borderColor: 'rgba(255,215,0,0.35)', backgroundColor: 'rgba(10,10,18,0.6)', alignItems: 'center', justifyContent: 'center' },
+  tilePrice: { position: 'absolute', right: 1, bottom: 1, color: '#fff', backgroundColor: 'rgba(0,0,0,0.72)', fontSize: 9, fontWeight: '900', paddingHorizontal: 3, borderRadius: 4, overflow: 'hidden' },
   tileLock: { position: 'absolute', right: 1, bottom: 1 },
   tileTag: { position: 'absolute', top: -2, left: -2, color: '#fff', fontSize: 9, fontWeight: '900', paddingHorizontal: 4, borderRadius: 4, overflow: 'hidden' },
   actions: { flexDirection: 'row', gap: 10, alignItems: 'center' },

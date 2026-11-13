@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { clearTips, dismissTip, useCurrentTip } from '@/game/state/tipsState';
 import { setTips } from '@/game/state/settingsState';
 import { useI18n } from '@/game/i18n/i18n';
+import { rosterTipText } from '@/game/state/rosterTips';
 
 /** The tip card: appears at the top, can be skipped or all tips turned off. */
 export function TipBanner() {
@@ -16,7 +17,7 @@ export function TipBanner() {
     <View pointerEvents="box-none" style={[styles.wrap, { top: insets.top + 34 }]}>
       <View style={styles.card}>
         <IconLabel icon="bulb" size={14} textStyle={styles.head}>{t('tip_title')}</IconLabel>
-        <Text style={styles.body}>{t(`tip_${id}` as never)}</Text>
+        <Text style={styles.body}>{rosterTipText(id, t) ?? t(`tip_${id}` as never)}</Text>
         <View style={styles.row}>
           <Pressable onPress={dismissTip} style={styles.btn}>
             <Text style={styles.btnText}>OK</Text>
