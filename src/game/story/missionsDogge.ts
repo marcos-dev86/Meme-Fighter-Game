@@ -1,4 +1,5 @@
 import { CASSINO_MISSIONS, TRONCOS_MISSIONS } from './missionsCassino';
+import { MAR_MISSIONS } from './missionsMar';
 import type { MissionDef } from './missionTypes';
 
 const FINAL_TITLE = 'Meme Fighter'; // same constant as characters.ts FINAL_MISSION_TITLE (kept here to avoid an import cycle)
@@ -94,7 +95,7 @@ const DOGGE_BASE: MissionDef[] = [
       ],
     },
   },
-  { id: 'camp_showdown', title: 'Confronto no Acampamento', hint: 'O Capitão Ferro lidera a Legião Cinzenta.', type: 'battle', chapter: CH3, objective: { kind: 'battle', giver: 'soldier_captain', opponent: 'soldier', stageKey: 'stage_2', reward: 55, offerTitleKey: 'quest_camp_offer' }, requires: ['talk_tico'] },
+  { id: 'camp_showdown', title: 'O Ataque dos Orcs', hint: 'Orcs atacam o acampamento! Fale com o Capitão Ferro e defenda o portão: de 3 a 6 batalhas seguidas, conforme a dificuldade.', type: 'battle', chapter: CH3, objective: { kind: 'battle', giver: 'soldier_captain', opponent: 'orc', stageKey: 'stage_2', reward: 55, offerTitleKey: 'quest_camp_offer', siege: true }, requires: ['talk_tico'] },
   { id: 'visit_dogisland', title: 'A Ilha dos Cães', hint: 'Uma ilha ao sul tem guardas que não gostam de visita.', type: 'discover', chapter: CH3, objective: { kind: 'visit', island: 'dogisland' }, requires: ['talk_zeca'], reward: { coins: 30 } },
   {
     id: 'dog_trial', title: 'Provas da Ilha dos Cães', hint: 'Fale com os guardas da ilha dos cães.', type: 'quest', chapter: CH3, requires: ['visit_dogisland'], reward: { coins: 60, items: { drumstick: 2 }, xp: 120 },
@@ -209,4 +210,4 @@ const DOGGE_BASE: MissionDef[] = [
 ];
 
 /** Missões principais + de caminho + secretas (ver missionsStory.ts). */
-export const DOGGE_MISSIONS: MissionDef[] = [...DOGGE_BASE, ...STORY_MISSIONS, ...CASSINO_MISSIONS, ...TRONCOS_MISSIONS];
+export const DOGGE_MISSIONS: MissionDef[] = [...DOGGE_BASE, ...STORY_MISSIONS, ...CASSINO_MISSIONS, ...TRONCOS_MISSIONS, ...MAR_MISSIONS];

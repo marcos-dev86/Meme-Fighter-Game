@@ -14,7 +14,7 @@ import { BASE_CRIT_CHANCE, BASE_CRIT_MULT } from './damageRoll';
 import { walkFrames } from './sprites';
 export type AttackType = 'flash' | 'strong' | 'ultimate';
 export type AttackPhase = 'startup' | 'active' | 'recovery';
-export type CharacterKey = 'dogge' | 'gadigago' | 'orc' | 'soldier' | 'dogking' | 'tank' | 'ninja' | 'mystic' | 'ice_dragon' | 'green_dragon' | 'shadow_dragon' | 'cara_tranquilo' | 'troll_face' | 'sahur' | 'sahur_god' | 'sahur_evil';
+export type CharacterKey = 'dogge' | 'gadigago' | 'orc' | 'soldier' | 'dogking' | 'tank' | 'ninja' | 'mystic' | 'ice_dragon' | 'green_dragon' | 'shadow_dragon' | 'cara_tranquilo' | 'troll_face' | 'sahur' | 'sahur_god' | 'sahur_evil' | 'sea_beast' | 'poseidon';
 
 /** Battle status effects (see Fighter.applyStatus). */
 export type StatusKind = 'burn' | 'freeze' | 'poison' | 'stun';
@@ -112,11 +112,16 @@ export class Fighter {
   health = 100;
   maxHealth = 100;
   energy = 0;
+  /**
+   * Chefe SEM sistema de energia/aura (Sea Beast): a energia fica sempre cheia e fixa, o SUPER não gasta nada, não há barra de
+   * energia na tela, nem "farmar aura". O chefe é controlado só pelo cérebro dele (seaBeastBrain.ts).
+   */
+  noEnergy = false;
   maxEnergy = 100;
   roundsWon = 0;
   isKO = false;
   /** O que feriu por último: um golpe ('hit') ou o status que queima/envenena. Alimenta o aviso de morte. */
-  lastHurtBy: 'hit' | 'burn' | 'poison' = 'hit';
+  lastHurtBy: 'hit' | 'burn' | 'poison' | 'drowning' | 'pressure' = 'hit';
 
   speed = 4;
   dashSpeed = 16;
@@ -244,7 +249,7 @@ export class Fighter {
     const def = ATTACK_DEFS[type];
     if (!def) return false;
 
-    if (type === 'ultimate') {
+    if (type === 'ultimate' && !this.noEnergy) {
       if (this.energy < this.maxEnergy) return false;
       this.energy = 0;
     }
@@ -258,6 +263,7 @@ export class Fighter {
   }
 
   gainEnergy(amount: number) {
+    if (this.noEnergy) return;
     this.energy = Math.min(this.maxEnergy, this.energy + amount);
   }
 
@@ -311,6 +317,22 @@ export class Fighter {
     }
 
     this.health = Math.max(0, this.health - finalDamage * this.damageTakenMult);
+    if (this.health <= 0) {
+      this.isKO = true;
+      this.setState('ko');
+    }
+  }
+
+  /**
+   * Dano do AMBIENTE (afogamento, pressão): ignora escudo e proteção de fase, não empurra nem atordoa.
+   * É o mesmo caminho de nocaute do takeHit, para a derrota seguir a regra de sempre.
+   */
+  takeEnvironmentalDamage(amount: number, kind: 'drowning' | 'pressure' = 'drowning') {
+    if (this.isKO || amount <= 0) return;
+    this.lastHurtBy = kind;
+    this.health = Math.max(0, this.health - amount);
+    this.hitFlashTimer = HIT_FLASH_MS * 0.6;
+    this.hitFlashPower = 0.6;
     if (this.health <= 0) {
       this.isKO = true;
       this.setState('ko');
@@ -697,6 +719,26 @@ export function createFighter(characterKey: CharacterKey, idleAspect: number): F
     f.maxHealth = 160; f.health = 160; f.idleAspect = idleAspect; f.ultEffectWidth = f.drawWidth * 0.9;
     f.hasPhases = true; f.statusDurationMult = 0.5; f.immune = ['freeze'];
     f.onHitStatus = [{ kind: 'freeze', chance: 0.35, ms: 2800, on: ['strong'] }, { kind: 'freeze', chance: 1, ms: 3200, on: ['ultimate'] }];
+    return f;
+  }
+  if (characterKey === 'poseidon') {
+    // REI POSEIDON: o personagem subaquático do pacote do mar, jogável no Versus (libera ao vencer o Sea Beast, compra com diamantes).
+    const f = new Fighter('Rei Poseidon', 'poseidon');
+    f.drawWidth = 160; f.speed = 4.6; f.dashSpeed = 18; f.strongDamage = 21; f.flashDamage = 12; f.ultimateDamage = 38;
+    f.maxHealth = 150; f.health = 150; f.idleAspect = idleAspect; f.ultEffectWidth = f.drawWidth * 1.5;
+    f.hasPhases = true; f.statusDurationMult = 0.5; f.immune = ['freeze'];
+    f.onHitStatus = [{ kind: 'stun', chance: 0.2, ms: 900, on: ['strong'] }, { kind: 'stun', chance: 0.5, ms: 1200, on: ['ultimate'] }];
+    return f;
+  }
+  if (characterKey === 'sea_beast') {
+    // SEA BEAST (Leviatã): chefe da expansão marítima. Enorme (a largura de desenho dá ~280 px de altura), lento e pesado.
+    // O comportamento especial (fases, memória do jogador, adaptação) vive em battle/seaBeastBrain.ts.
+    const f = new Fighter('Sea Beast', 'sea_beast');
+    f.drawWidth = 420; f.speed = 3.6; f.dashSpeed = 13; f.strongDamage = 26; f.flashDamage = 14; f.ultimateDamage = 44;
+    f.maxHealth = 210; f.health = 210; f.idleAspect = idleAspect; f.ultEffectWidth = f.drawWidth * 0.6;
+    f.noEnergy = true; f.energy = f.maxEnergy; f.shieldCost = 0; // chefe sem aura nem energia
+    f.hasPhases = true; f.statusDurationMult = 0.35; f.immune = ['freeze'];
+    f.onHitStatus = [{ kind: 'stun', chance: 0.22, ms: 900, on: ['strong'] }, { kind: 'stun', chance: 0.6, ms: 1300, on: ['ultimate'] }];
     return f;
   }
   if (characterKey === 'green_dragon') {

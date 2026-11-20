@@ -25,6 +25,7 @@ export const STAGE_DEFS: StageDef[] = [
   { key: 'stage_10', variants: true, nameKey: 'stage_name_10', feetY: 600 }, // acampamento
   { key: 'stage_11', variants: true, nameKey: 'stage_name_11', feetY: 600 }, // praia
   { key: 'stage_12', nameKey: 'stage_name_12', feetY: 600 }, // caverna
+  { key: 'stage_13', variants: true, nameKey: 'stage_name_13', feetY: 600 }, // mar aberto (Sea Beast)
 ];
 
 export const STAGE_KEYS: string[] = STAGE_DEFS.map((s) => s.key);

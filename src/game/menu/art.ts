@@ -23,6 +23,7 @@ export const STAGE_ART: Record<string, number> = {
   stage_10: require('../../../assets/legacy-art/stages/stage10.webp'),
   stage_11: require('../../../assets/legacy-art/stages/stage11.webp'),
   stage_12: require('../../../assets/legacy-art/stages/stage12.webp'),
+  stage_13: require('../../../assets/legacy-art/stages/stage13.webp'),
 };
 
 export const SHIELD_GIF = require('../../../assets/legacy-art/effects/escudo.gif');
@@ -39,6 +40,7 @@ export const STAGE_ART_VARIANT: Record<string, { dusk: number; night: number }> 
   stage_9: { dusk: require('../../../assets/legacy-art/stages/stage9_dusk.webp'), night: require('../../../assets/legacy-art/stages/stage9_night.webp') },
   stage_10: { dusk: require('../../../assets/legacy-art/stages/stage10_dusk.webp'), night: require('../../../assets/legacy-art/stages/stage10_night.webp') },
   stage_11: { dusk: require('../../../assets/legacy-art/stages/stage11_dusk.webp'), night: require('../../../assets/legacy-art/stages/stage11_night.webp') },
+  stage_13: { dusk: require('../../../assets/legacy-art/stages/stage13_dusk.webp'), night: require('../../../assets/legacy-art/stages/stage13_night.webp') },
 };
 
 export function stageArt(key: string, variant: 'day' | 'dusk' | 'night' = 'day'): number {

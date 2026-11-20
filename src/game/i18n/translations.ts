@@ -21,7 +21,7 @@ export const LANGUAGE_NAMES: Record<Lang, string> = {
 export const STRINGS: Record<Lang, Record<string, string>> = {
   pt: {
     quest_rival_offer: 'Gadigago quer lutar com você agora. Aceitar o desafio?',
-    quest_camp_offer: 'O Capitão Ferro quer lutar com você agora. Aceitar o desafio?',
+    quest_camp_offer: 'Orcs estão atacando o acampamento! O Capitão Ferro precisa de você no portão: {n} batalhas seguidas, sem curar entre elas. Defender o acampamento?',
     quest_island_offer: 'O Rei dos Cães quer lutar com você agora. Aceitar o desafio?',
     quest_vulcao_offer: 'Tank quer lutar com você agora. Aceitar o desafio?',
     quest_accept: 'ACEITAR',
@@ -334,7 +334,7 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
   },
   en: {
     quest_rival_offer: 'Gadigago wants to fight you right now. Accept the challenge?',
-    quest_camp_offer: 'Captain Ferro wants to fight you right now. Accept the challenge?',
+    quest_camp_offer: 'Orcs are attacking the camp! Captain Ferro needs you at the gate: {n} fights in a row, with no healing between them. Defend the camp?',
     quest_island_offer: 'The Dog King wants to fight you right now. Accept the challenge?',
     quest_vulcao_offer: 'Tank wants to fight you right now. Accept the challenge?',
     quest_accept: 'ACCEPT',
@@ -647,7 +647,7 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
   },
   es: {
     quest_rival_offer: 'Gadigago quiere pelear contigo ahora. Aceptas el desafio?',
-    quest_camp_offer: 'El Capitan Ferro quiere pelear contigo ahora. Aceptas el desafio?',
+    quest_camp_offer: '¡Los orcos atacan el campamento! El Capitán Ferro te necesita en la puerta: {n} peleas seguidas, sin curarte entre ellas. ¿Defender el campamento?',
     quest_island_offer: 'El Rey de los Perros quiere pelear contigo ahora. Aceptas el desafio?',
     quest_vulcao_offer: 'Tank quiere pelear contigo ahora. Aceptas el desafio?',
     quest_accept: 'ACEPTAR',
@@ -960,7 +960,7 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
   },
   fr: {
     quest_rival_offer: 'Gadigago veut se battre avec vous maintenant. Accepter le defi ?',
-    quest_camp_offer: 'Le Capitaine Ferro veut se battre avec vous maintenant. Accepter le defi ?',
+    quest_camp_offer: 'Des orcs attaquent le camp ! Le Capitaine Ferro a besoin de vous à la porte : {n} combats d’affilée, sans soins entre eux. Défendre le camp ?',
     quest_island_offer: 'Le Roi des Chiens veut se battre avec vous maintenant. Accepter le defi ?',
     quest_vulcao_offer: 'Tank veut se battre avec vous maintenant. Accepter le defi ?',
     quest_accept: 'ACCEPTER',
@@ -1273,7 +1273,7 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
   },
   ja: {
     quest_rival_offer: 'ガディガゴが今すぐ戦いたいそうです。挑戦を受けますか？',
-    quest_camp_offer: 'フェロ隊長が今すぐ戦いたいそうです。挑戦を受けますか？',
+    quest_camp_offer: 'オークが野営地を襲っている！フェロ隊長は門でのあなたの助けが必要だ。回復なしで{n}連戦。野営地を守る？',
     quest_island_offer: '犬の王が今すぐ戦いたいそうです。挑戦を受けますか？',
     quest_vulcao_offer: 'タンクが今すぐ戦いたいそうです。挑戦を受けますか？',
     quest_accept: '受ける',

@@ -131,11 +131,13 @@ describe('vida persistente (mundo <-> luta de historia)', () => {
 describe('armaduras (regeneram vida no mundo e na luta)', () => {
   const ids = Object.keys(A.ARMORS);
   it('4 armaduras; regeneracao cresce com a raridade; precos so onde ha loja', () => {
-    assert.deepEqual(ids.sort(), ['armor_arcane', 'armor_iron', 'armor_leather', 'armor_phoenix']);
+    for (const c of ['armor_arcane', 'armor_iron', 'armor_leather', 'armor_phoenix']) assert.ok(ids.includes(c), c); // as 4 clássicas continuam
+    // armaduras de mergulho (expansão marítima): regeneram MENOS que a clássica da mesma raridade (trocam vida por fôlego)
+    for (const [dive, classic] of [['armor_snorkel', 'armor_leather'], ['armor_wetsuit', 'armor_iron'], ['armor_coral', 'armor_arcane']]) assert.ok(A.ARMORS[dive].regenPerSec <= A.ARMORS[classic].regenPerSec && A.ARMORS[dive].rarity === A.ARMORS[classic].rarity, dive);
     const order = ['armor_leather', 'armor_iron', 'armor_arcane', 'armor_phoenix'];
     for (let i = 1; i < order.length; i++) assert.ok(A.ARMORS[order[i]].regenPerSec > A.ARMORS[order[i - 1]].regenPerSec);
     for (const id of [...A.PLAZA_ARMORS, ...A.GELO_ARMORS]) assert.ok(A.ARMORS[id] && A.ARMORS[id].price > 0, id);
-    for (const id of ['armor_arcane', 'armor_phoenix']) assert.equal(A.ARMORS[id].price, null);
+    for (const id of ['armor_arcane', 'armor_phoenix', 'armor_coral', 'armor_leviathan', 'armor_gills']) assert.equal(A.ARMORS[id].price, null);
     assert.equal(A.armorRegenOf(null), 0);
     assert.equal(A.armorRegenOf('x'), 0);
     assert.equal(A.armorRegenOf('armor_iron'), 1);

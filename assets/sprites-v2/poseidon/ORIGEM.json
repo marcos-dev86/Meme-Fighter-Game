@@ -1,0 +1,88 @@
+{
+ "folha": "king-poisendon/personagem.png",
+ "layout": "humanoide",
+ "altura_corpo_px": 229,
+ "quadros_encontrados": 19,
+ "poses": {
+  "idle": {
+   "w": 228,
+   "h": 229,
+   "tipo": "corpo"
+  },
+  "walk1": {
+   "w": 211,
+   "h": 229,
+   "tipo": "corpo"
+  },
+  "walk2": {
+   "w": 192,
+   "h": 229,
+   "tipo": "corpo"
+  },
+  "walk3": {
+   "w": 204,
+   "h": 229,
+   "tipo": "corpo"
+  },
+  "walk4": {
+   "w": 196,
+   "h": 229,
+   "tipo": "corpo"
+  },
+  "dash": {
+   "w": 242,
+   "h": 229,
+   "tipo": "corpo"
+  },
+  "charge": {
+   "w": 229,
+   "h": 229,
+   "tipo": "corpo"
+  },
+  "cast": {
+   "w": 229,
+   "h": 229,
+   "tipo": "corpo"
+  },
+  "ult": {
+   "w": 280,
+   "h": 229,
+   "tipo": "corpo"
+  },
+  "strong": {
+   "w": 256,
+   "h": 229,
+   "tipo": "corpo"
+  },
+  "flash": {
+   "w": 278,
+   "h": 229,
+   "tipo": "corpo"
+  },
+  "blast": {
+   "w": 374,
+   "h": 186,
+   "tipo": "solto"
+  },
+  "hurt": {
+   "w": 188,
+   "h": 229,
+   "tipo": "corpo"
+  },
+  "guard": {
+   "w": 180,
+   "h": 229,
+   "tipo": "corpo"
+  },
+  "ko": {
+   "w": 249,
+   "h": 229,
+   "tipo": "corpo"
+  },
+  "portrait": {
+   "w": 228,
+   "h": 199,
+   "tipo": "solto"
+  }
+ }
+}

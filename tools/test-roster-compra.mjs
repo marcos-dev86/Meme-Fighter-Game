@@ -150,3 +150,38 @@ describe('sem o rótulo "TEM"', () => {
     assert.ok(!read('src/screens/ProfileScreen.tsx').includes('look_free_owned'));
   });
 });
+
+describe('Rei Poseidon (personagem subaquático): liberado pelo Sea Beast, comprado com diamantes', () => {
+  it('é do elenco, com sprites reais, busto de perfil e preço pelos atributos', () => {
+    assert.ok(R.ROSTER.some((r) => r.key === 'poseidon' && r.unlock.kind === 'boss' && r.unlock.bossId === 'boss_sea_beast'));
+    const Sprites = require('../src/game/battle/sprites.ts');
+    for (const pose of ['idle', 'walk1', 'walk2', 'walk3', 'walk4', 'dash', 'charge', 'ult', 'strong', 'flash', 'blast', 'hurt', 'guard', 'ko', 'portrait']) {
+      assert.ok(Sprites.hasPose('poseidon', pose), pose);
+      assert.ok(fs.existsSync(new URL(`../assets/sprites-v2/poseidon/${pose}.png`, import.meta.url)), pose);
+    }
+    assert.ok(fs.existsSync(new URL('../assets/avatars/poseidon.png', import.meta.url)));
+    const price = P.fighterPrice('poseidon');
+    assert.ok(price >= 30 && price % 5 === 0, String(price));
+  });
+  it('vencer o Sea Beast libera para compra (não entrega); sem diamantes não compra; com diamantes é jogável', () => {
+    assert.equal(R.isFighterUnlocked('poseidon'), false);
+    assert.deepEqual(R.unlockByEvent({ boss: 'boss_sea_beast' }), ['poseidon']);
+    assert.equal(R.isFighterEarned('poseidon'), true);
+    assert.equal(R.isFighterUnlocked('poseidon'), false);
+    A.spendDiamonds(A.getDiamonds());
+    assert.deepEqual(R.buyFighter('poseidon'), { ok: false, reason: 'poor' });
+    A.grantDiamonds(1000);
+    const before = A.getDiamonds();
+    const r = R.buyFighter('poseidon');
+    assert.equal(r.ok, true);
+    assert.equal(A.getDiamonds(), before - P.fighterPrice('poseidon'));
+    assert.equal(R.isFighterUnlocked('poseidon'), true);
+  });
+  it('a dica de como liberá-lo cita o Sea Beast', () => {
+    const t = (k) => ({ roster_hint_boss: 'Derrote {name} na história.', roster_hint_tower: 'x', roster_hint_pay: 'Compre.' }[k]);
+    assert.match(T.rosterTipText(T.rosterTipId('poseidon'), t), /Rei Poseidon: Derrote Sea Beast/);
+  });
+  it('o Sea Beast em si NÃO é jogável (só chefe)', () => {
+    assert.ok(!R.ROSTER.some((r) => r.key === 'sea_beast'));
+  });
+});

@@ -251,9 +251,9 @@ describe('cenarios de batalha (um por lugar)', () => {
   const { STAGE_DEFS, STAGE_KEYS, STAGE_FEET } = require('../src/game/battle/stages.ts');
   const { stageForTile } = require('../src/game/battle/battleContext.ts');
   const artSrc = fs.readFileSync(new URL('../src/game/menu/art.ts', import.meta.url), 'utf8');
-  it('12 cenarios, chaves unicas, arte existe (webp) e esta registrada, pes no chao 560..690', () => {
-    assert.equal(STAGE_DEFS.length, 12);
-    assert.equal(new Set(STAGE_KEYS).size, 12);
+  it('13 cenarios, chaves unicas, arte existe (webp) e esta registrada, pes no chao 560..690', () => {
+    assert.equal(STAGE_DEFS.length, 13);
+    assert.equal(new Set(STAGE_KEYS).size, 13);
     STAGE_DEFS.forEach((d, i) => {
       assert.equal(d.key, `stage_${i + 1}`);
       assert.ok(fs.statSync(new URL(`../assets/legacy-art/stages/stage${i + 1}.webp`, import.meta.url)).size > 2000, d.key);

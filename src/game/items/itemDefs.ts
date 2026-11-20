@@ -21,6 +21,8 @@ export type ItemEffect =
   | { kind: 'speed'; mult: number }
   | { kind: 'guard'; mult: number } // multiplies damage TAKEN (0.75 = takes 25% less)
   | { kind: 'bomb'; amount: number } // thrown at the opponent: battle only
+  | { kind: 'breath'; seconds: number } // mergulho: devolve segundos de fôlego na hora (ver dive/breath.ts)
+  | { kind: 'breathBuff'; drainMult: number; ms: number } // mergulho: gasta menos ar por um tempo
   | { kind: 'none' };
 
 export interface ItemDef {
@@ -134,6 +136,33 @@ const list: ItemDef[] = [
   def('meme_token', 'Ficha Meme', 'Um colecionável bobo. Não faz nada, é só engraçado ter.', 'card', undefined, 5, { kind: 'none' }),
   def('old_coin', 'Moeda Antiga', 'Achada, não vendida. Parece ter uma história.', 'coin', undefined, null, { kind: 'none' }),
   def('map_fragment', 'Fragmento de Mapa', 'Achado, não vendido. Talvez aponte pra algo, um dia.', 'scroll', undefined, null, { kind: 'none' }),
+  // ---- Expansão marítima: consumíveis de mergulho (usados DENTRO do mergulho, ver dive/diveState.ts)
+  def('kelp_snack', 'Alga Crocante', 'Petisco do fundo do mar. Devolve 6 segundos de fôlego no mergulho.', 'bubble', undefined, 8, { kind: 'breath', seconds: 6 }),
+  def('bubble_potion', 'Poção de Bolhas', 'Borbulha na garganta. Devolve 12 segundos de fôlego no mergulho.', 'bubble', undefined, 14, { kind: 'breath', seconds: 12 }),
+  def('air_flask', 'Frasco de Ar Comprimido', 'Um pulmão de bolso. Devolve 30 segundos de fôlego no mergulho.', 'orb', undefined, 40, { kind: 'breath', seconds: 30 }),
+  def('diver_elixir', 'Elixir do Mergulhador', 'Por 2 minutos de mergulho você gasta a metade do ar. Não é vendido: só se acha.', 'potion_night', undefined, null, { kind: 'breathBuff', drainMult: 0.5, ms: 120000 }),
+  // ---- Expansão marítima: tesouros, relíquias e itens de missão (sem efeito, valem pela história e pelas coleções)
+  def('sea_shell', 'Concha Cantante', 'Se você encostar no ouvido, ouve um meme antigo.', 'sparkle', undefined, null, { kind: 'none' }),
+  def('coral_shard', 'Fragmento de Coral', 'Um pedacinho de recife que brilha no escuro.', 'gem', undefined, null, { kind: 'none' }),
+  def('sunken_coin', 'Dobrão Naufragado', 'Moeda de pirata com uma carinha sorrindo. Está úmida.', 'coin', undefined, null, { kind: 'none' }),
+  def('pearl', 'Pérola Brilhante', 'Redonda, perfeita e escorregadia. Um comerciante marinho pagaria bem.', 'orb', undefined, null, { kind: 'none' }),
+  def('diver_badge', 'Distintivo de Mergulhador', 'Prova de que você sabe prender a respiração. Mais ou menos.', 'star', undefined, null, { kind: 'none' }),
+  def('wreck_logbook', 'Diário do Capitão', 'As páginas grudaram, mas a última linha diz: NÃO CONFIE NO POLVO.', 'scroll', undefined, null, { kind: 'none' }),
+  def('tide_compass', 'Bússola das Marés', 'Aponta sempre para onde a água está com pressa de ir.', 'compass', undefined, null, { kind: 'none' }),
+  def('whale_song', 'Canção da Baleia', 'Uma nota gravada em cristal. Dá para sentir no peito.', 'sparkle', undefined, null, { kind: 'none' }),
+  def('relic_tablet', 'Tábua de Atlântida', 'Gravada numa língua que ninguém fala há mil anos. Parece uma lista de compras.', 'scroll', undefined, null, { kind: 'none' }),
+  def('atlantis_key', 'Chave de Atlântida', 'Pesada, verde de limo e com formato de peixe. Abre portas que ainda nem existem.', 'ingot', undefined, null, { kind: 'none' }),
+  def('beast_tooth', 'Dente do Sea Beast', 'Do tamanho de uma espada. Ainda dá arrepio segurar.', 'skull', undefined, null, { kind: 'none' }),
+  // SECRET: só vêm de missão secreta, esconderijo ou chefe, e nenhuma loja vende.
+  def('abyss_pearl', 'Pérola do Abismo', 'Preta por fora e branca por dentro, como tudo que o abismo esconde. Ela sussurra o seu nome.', 'orb', undefined, null, { kind: 'none' }),
+  def('leviathan_scale', 'Escama do Leviatã', 'Uma única escama do Sea Beast. Reluz em preto e branco e nunca seca.', 'gem', undefined, null, { kind: 'none' }),
+  // Recompensas exclusivas das missões secretas da ilha principal (antes pagavam itens de loja comuns).
+  def('midnight_brew', 'Poção da Meia-Noite', 'O cliente da madrugada guardou a boa. +45% de dano em todos os golpes. Não se vende.', 'potion_night', undefined, null, { kind: 'damage', mult: 1.45 }),
+  def('rain_elixir', 'Elixir da Chuva Eterna', 'Uma canção engarrafada. Recupera 100 de vida e 50 de energia. Não se vende.', 'potion_moon', undefined, null, { kind: 'heal', amount: 100 }, { kind: 'energy', amount: 50 }),
+  def('cousin_stew', 'Ensopado das Primas', 'Feito por cinco primas ao mesmo tempo, o que explica tudo. Recupera 140 de vida. Não se vende.', 'heart', undefined, null, { kind: 'heal', amount: 140 }),
+  def('breno_light', 'Poção da Luz do Breno', 'Brilha sozinha. +30% de velocidade de movimento e dash. Não se vende.', 'dot', undefined, null, { kind: 'speed', mult: 1.3 }),
+  def('sigma_coin', 'Moeda do Respeito Sigma', 'Só quem conquistou o respeito da estátua recebe uma. Não compra nada, vale tudo.', 'coin', undefined, null, { kind: 'none' }),
+  def('atlantis_heart', 'Coração de Atlântida', 'Bate devagar, uma vez por maré. Guardado por quem nunca precisou subir para respirar.', 'heart', undefined, null, { kind: 'none' }),
 ];
 
 /** rarity + weight (kg) per item id; anything missing stays common / 0.3 kg. */
@@ -149,6 +178,12 @@ const META: Record<string, [Rarity, number]> = {
   piolet: ['uncommon', 2], summit_flag: ['legendary', 0.5], volcano_flag: ['legendary', 0.5], guild_parcel: ['common', 0.5],
   moonshroom: ['uncommon', 0.1], moon_elixir: ['rare', 0.5], night_brew: ['epic', 0.5],
   meme_token: ['common', 0.1], old_coin: ['uncommon', 0.1], map_fragment: ['rare', 0.1],
+  kelp_snack: ['common', 0.1], bubble_potion: ['common', 0.3], air_flask: ['uncommon', 0.6], diver_elixir: ['rare', 0.4],
+  sea_shell: ['common', 0.1], coral_shard: ['uncommon', 0.2], sunken_coin: ['uncommon', 0.1], pearl: ['rare', 0.1], diver_badge: ['common', 0.1],
+  wreck_logbook: ['rare', 0.2], tide_compass: ['rare', 0.3], whale_song: ['rare', 0.2], relic_tablet: ['epic', 1], atlantis_key: ['epic', 0.5], beast_tooth: ['epic', 2],
+  abyss_pearl: ['secret', 0.1], leviathan_scale: ['secret', 0.3], atlantis_heart: ['secret', 0.5],
+  // Itens exclusivos de MISSÃO SECRETA: todos Secret, nenhuma loja vende (regra testada em tools/test-mar.mjs).
+  midnight_brew: ['secret', 0.5], rain_elixir: ['secret', 0.5], cousin_stew: ['secret', 0.6], breno_light: ['secret', 0.3], sigma_coin: ['secret', 0.1],
 };
 for (const d of list) {
   const m = META[d.id];
@@ -183,9 +218,14 @@ export function itemName(id: string): string {
   return ITEMS[id]?.name ?? id;
 }
 
+/** Consumível de mergulho: só funciona na água (usado dentro do mergulho, não nos slots de item). */
+export function isDiveItem(id: string): boolean {
+  return !!ITEMS[id]?.effects.some((e) => e.kind === 'breath' || e.kind === 'breathBuff');
+}
+
 export function isUsable(id: string): boolean {
   const d = ITEMS[id];
-  return !!d && d.effects.some((e) => e.kind !== 'none');
+  return !!d && !isDiveItem(id) && d.effects.some((e) => e.kind !== 'none');
 }
 
 const appliedBuffs = new WeakMap<Fighter, Set<string>>();
@@ -205,7 +245,7 @@ export function applyItemEffect(fighter: Fighter, itemId: string, target?: Fight
     seen = new Set();
     appliedBuffs.set(fighter, seen);
   }
-  const isBuff = (k: string) => k !== 'heal' && k !== 'energy' && k !== 'none' && k !== 'bomb';
+  const isBuff = (k: string) => k !== 'heal' && k !== 'energy' && k !== 'none' && k !== 'bomb' && k !== 'breath' && k !== 'breathBuff';
   const alreadyBuffed = seen.has(itemId);
   for (const e of d.effects) {
     if (isBuff(e.kind) && alreadyBuffed) continue;
@@ -235,6 +275,9 @@ export function applyItemEffect(fighter: Fighter, itemId: string, target?: Fight
       case 'guard':
         fighter.damageTakenMult *= e.mult;
         break;
+      case 'breath':
+      case 'breathBuff':
+        break; // efeito de mergulho: aplicado por dive/diveState.ts
     }
   }
   if (d.effects.some((e) => isBuff(e.kind))) seen.add(itemId);

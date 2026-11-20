@@ -18,6 +18,7 @@ export const AVATARS: AvatarInfo[] = [
   { id: "sahur", name: "Sahur", kind: 'fighter', price: 25 },
   { id: "sahur_god", name: "Sahur God", kind: 'fighter', price: 40 },
   { id: "sahur_evil", name: "Sahur Evil", kind: 'fighter', price: 40 },
+  { id: "poseidon", name: "Rei Poseidon", kind: 'fighter', price: 40 },
   { id: "npc_bento", name: "Vovô Bento", kind: 'npc', price: 8 },
   { id: "npc_marina", name: "Marina", kind: 'npc', price: 8 },
   { id: "npc_croupier", name: "Crupiê Misterioso", kind: 'npc', price: 12 },

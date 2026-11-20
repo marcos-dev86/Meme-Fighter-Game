@@ -12,7 +12,7 @@ export type MissionType = 'battle' | 'discover' | 'collect' | 'talk' | 'quest' |
  */
 export type Objective =
   | { kind: 'talk'; npcId: string }
-  | { kind: 'battle'; giver: string; opponent: CharacterKey; stageKey: string; reward: number; offerTitleKey: string }
+  | { kind: 'battle'; giver: string; opponent: CharacterKey; stageKey: string; reward: number; offerTitleKey: string; /** várias batalhas seguidas (cerco), ver story/siege.ts */ siege?: boolean }
   | { kind: 'pickups'; ids: string[] }
   | { kind: 'visit'; island: RealIslandId }
   | { kind: 'enter'; buildingId: string }
@@ -60,6 +60,10 @@ export interface MissionReward {
   xp?: number;
   /** Cosmético exclusivo dado ao concluir (ver cosmeticDefs.ts). */
   cosmetic?: string;
+  /** Armadura dada ao concluir (ver armorDefs.ts). */
+  armor?: string;
+  /** Bandeira da história acionada ao concluir (abre áreas e libera encontros). */
+  flag?: string;
 }
 
 export interface MissionDef {

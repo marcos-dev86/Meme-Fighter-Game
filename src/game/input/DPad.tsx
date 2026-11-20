@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { HUD_ART } from '@/game/hud/hudArt';
 import type { DirectionKey } from './useDirectionalInput';
 import { useButtonRects, withAlpha } from './controlsLayout';
 
@@ -26,7 +27,7 @@ export const DYNAMIC_MOVE_SIZE = 60;
  * docs/AUDIT.md, real-device screenshots). Round buttons pack more
  * tightly than the old square ones did, so this reads as a proper
  * compact D-pad rather than 4 separate floating tiles. */
-export const WORLD_MOVE_SIZE = 58;
+export const WORLD_MOVE_SIZE = 62;
 
 /**
  * One movement-control button: the single shared visual (bevel colour,
@@ -84,15 +85,19 @@ function DPadButton({ dKey, onPress }: { dKey: DirectionKey; onPress: Props['onP
   const rect = useButtonRects()[dKey];
   if (rect.layout.hidden) return null;
   const color = rect.layout.color;
+  const size = rect.size * 1.1;
+  // Arte do layout novo (triângulos pretos arredondados). Se o jogador recolorir o botão, vira um anel dessa cor por trás.
   return (
-    <MoveButton
-      label={ARROWS[dKey]}
-      size={rect.size}
-      style={[{ left: rect.cx - rect.size / 2, top: rect.cy - rect.size / 2 }, color ? { backgroundColor: withAlpha(color, 0.35), borderColor: color } : null]}
-      textColor={color ?? undefined}
+    <Pressable
       onPressIn={() => onPress(dKey, true)}
       onPressOut={() => onPress(dKey, false)}
-    />
+      hitSlop={10}
+      testID={`dpad-${dKey}`}
+      style={({ pressed }) => [{ position: 'absolute', left: rect.cx - size / 2, top: rect.cy - size / 2, width: size, height: size, opacity: pressed ? 0.7 : 0.94, transform: [{ scale: pressed ? 0.93 : 1 }] }]}
+    >
+      {color ? <View style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, borderRadius: size / 3, backgroundColor: withAlpha(color, 0.35), borderWidth: 2, borderColor: color }} /> : null}
+      <Image source={HUD_ART[`dpad_${dKey}`]} resizeMode="contain" style={{ width: size, height: size }} />
+    </Pressable>
   );
 }
 

@@ -1,4 +1,5 @@
 import type { CharacterKey, StatusProc } from './Fighter';
+import { siegeWaveScale } from '@/game/story/siege';
 import { STAGE_KEYS } from './stages';
 import { BOSS_BY_ID, markBossDefeated, type BossDef } from '@/game/state/bossState';
 import { setFlag } from '@/game/state/storyFlags';
@@ -45,6 +46,9 @@ export interface BattleParams {
   bossId?: string;
   tower?: string;
   rival?: string;
+  /** cerco dos orcs: onda atual e total (story/siege.ts) */
+  siegeWave?: string;
+  siegeTotal?: string;
 }
 
 const STAGES = STAGE_KEYS;
@@ -123,6 +127,12 @@ export function resolveSetup(p: BattleParams, opts: { questOpponent?: CharacterK
   if (p.rival) {
     const sc = rivalScale();
     return { ...base, kind: 'rival', opponent: 'gadigago', stageKey: STAGES[getRivalWins() % STAGES.length], hpMult: sc.hp, dmgMult: sc.dmg, roundsToWin: 2, bossFight: true, title: 'RIVAL', extraProcs: rivalProcs() };
+  }
+  if (p.questId && p.siegeWave && p.siegeTotal) {
+    const w = Math.max(1, Number(p.siegeWave) || 1);
+    const total = Math.max(w, Number(p.siegeTotal) || w);
+    const sc = siegeWaveScale(w, total);
+    return { ...base, kind: 'quest', opponent: 'orc', stageKey: p.stageKey || 'stage_2', hpMult: sc.hp, dmgMult: sc.dmg, bossFight: sc.boss, questId: p.questId, title: `ONDA ${w}/${total}` };
   }
   if (p.questId) {
     return { ...base, kind: 'quest', opponent: opts.questOpponent ?? ((p.p2 as CharacterKey) || 'gadigago'), stageKey: p.stageKey || 'stage_1', bossFight: p.questId === 'final_meme_fighter', questId: p.questId };

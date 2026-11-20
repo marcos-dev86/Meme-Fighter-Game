@@ -85,7 +85,7 @@ const LAYOUT_ASPECTS: Partial<Record<CharacterKey, number>> = {
  * Dragões: o quadro idle (voo) é bem mais largo que o desenho antigo; usar a proporção dele como referência mantém a PEGADA em
  * tela (largura visível = drawWidth, o hitbox e o alcance) igual à de antes; só a altura fica menor, porque o voo é mais achatado.
  */
-const V2_LAYOUT_FROM_IDLE: CharacterKey[] = ['ice_dragon', 'green_dragon', 'shadow_dragon'];
+const V2_LAYOUT_FROM_IDLE: CharacterKey[] = ['ice_dragon', 'green_dragon', 'shadow_dragon', 'sea_beast'];
 
 export function getLayoutAspect(character: CharacterKey): number {
   if (V2_LAYOUT_FROM_IDLE.includes(character)) return SPRITE_ASPECTS[character].idle ?? 1;

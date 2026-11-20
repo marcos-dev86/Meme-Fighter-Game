@@ -233,6 +233,14 @@ export function noteLevel(level: number) {
   update((a) => setMax(a, 'level_max', level));
 }
 /** `causeKey` (ver deathStatKey) soma em `deaths_<causa>`: o histórico de como o jogador morreu. */
+/**
+ * Contador genérico da conta (conquistas leem `stats`). 'add' soma; 'max' guarda o maior valor visto.
+ * Os eventos do mergulho usam isto (dive/diveState.ts), sem sistema paralelo de contagem.
+ */
+export function noteStat(key: string, value = 1, mode: 'add' | 'max' = 'add') {
+  update((a) => (mode === 'max' ? setMax(a, key, value) : bump(a, key, value)));
+}
+
 export function noteDeath(inDebt: boolean, causeKey?: string) {
   update((a) => {
     let n = bump(a, 'deaths');

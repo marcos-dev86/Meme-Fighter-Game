@@ -18,6 +18,7 @@ export const AVATAR_ART: Record<string, number> = {
   sahur: require('../../../assets/avatars/sahur.png'),
   sahur_god: require('../../../assets/avatars/sahur_god.png'),
   sahur_evil: require('../../../assets/avatars/sahur_evil.png'),
+  poseidon: require('../../../assets/avatars/poseidon.png'),
   npc_bento: require('../../../assets/avatars/npc_bento.png'),
   npc_marina: require('../../../assets/avatars/npc_marina.png'),
   npc_croupier: require('../../../assets/avatars/npc_croupier.png'),

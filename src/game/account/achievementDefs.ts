@@ -124,6 +124,27 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   A('story_sahur_god', 'epic', 'ASCENSÃO', 'ZERE O MODO HISTÓRIA USANDO O PERSONAGEM SAHUR GOD', 'ASCENSION', 'BEAT STORY MODE USING SAHUR GOD', { has: 'sahur_god', in: 'clears' }, 'sahur_god'),
   A('story_sahur_evil', 'epic', 'QUEIMANDO TUDO', 'ZERE O MODO HISTÓRIA USANDO O PERSONAGEM SAHUR EVIL', 'BURN IT ALL', 'BEAT STORY MODE USING SAHUR EVIL', { has: 'sahur_evil', in: 'clears' }, 'sahur_evil'),
   A('story_all', 'legendary', 'LENDA DOS MEMES', 'ZERE O MODO HISTÓRIA COM TODOS OS PERSONAGENS', 'LEGEND OF MEMES', 'BEAT STORY MODE WITH EVERY CHARACTER', { all: STORY_CLEAR_ROSTER, in: 'clears' }),
+  // ── expansão marítima (mergulho): os contadores vêm de dive/diveState.ts ──
+  A('sea_first_dive', 'common', 'PRIMEIRO MERGULHO', 'Mergulhe pela primeira vez.', 'FIRST DIVE', 'Dive for the first time.', { stat: 'dive_dives', gte: 1 }),
+  A('sea_dives_25', 'uncommon', 'RATO DE RECIFE', 'Faça 25 mergulhos.', 'REEF RAT', 'Make 25 dives.', { stat: 'dive_dives', gte: 25 }),
+  A('sea_chests_5', 'uncommon', 'CAÇADOR DE TESOUROS', 'Abra 5 baús submarinos.', 'TREASURE HUNTER', 'Open 5 undersea chests.', { stat: 'dive_chests', gte: 5 }),
+  A('sea_chests_all', 'rare', 'TESOURO NA MÃO', 'Abra todos os 15 baús do fundo do mar.', 'TREASURE IN HAND', 'Open all 15 chests of the deep.', { stat: 'dive_chests', gte: 15 }),
+  A('sea_cross_first', 'common', 'POR BAIXO DAS ONDAS', 'Conclua uma travessia submarina entre ilhas.', 'UNDER THE WAVES', 'Finish an underwater crossing between islands.', { stat: 'dive_crossings', gte: 1 }),
+  A('sea_cross_all', 'epic', 'ATRAVESSA-MARES', 'Conclua as 8 travessias diferentes.', 'SEA CROSSER', 'Finish all 8 different crossings.', { stat: 'dive_cross_unique', gte: 8 }),
+  A('sea_all_sites', 'rare', 'CARTÓGRAFO DO MAR', 'Visite os 9 locais de mergulho.', 'SEA CARTOGRAPHER', 'Visit all 9 dive sites.', { stat: 'dive_sites', gte: 9 }),
+  A('sea_hunter', 'uncommon', 'PREDADOR DE RECIFE', 'Derrote 25 criaturas marinhas.', 'REEF PREDATOR', 'Defeat 25 sea creatures.', { stat: 'dive_kills', gte: 25 }),
+  A('sea_friend', 'uncommon', 'AMIGO DOS BICHOS', 'Ajude 5 criaturas amigáveis.', 'FRIEND OF THE CRITTERS', 'Help 5 friendly creatures.', { stat: 'dive_helps', gte: 5 }),
+  A('sea_bestiary', 'epic', 'ENCICLOPÉDIA DO MAR', 'Encontre as 16 criaturas marinhas.', 'SEA ENCYCLOPEDIA', 'Meet all 16 sea creatures.', { stat: 'dive_known', gte: 16 }),
+  A('sea_events', 'uncommon', 'SORTE DE MERGULHADOR', 'Conclua 5 eventos aleatórios do mar.', 'DIVER\'S LUCK', 'Finish 5 random sea events.', { stat: 'dive_events', gte: 5 }),
+  A('sea_secret_wall', 'rare', 'A PAREDE QUE NÃO ERA', 'Descubra uma parede secreta no fundo do mar.', 'THE WALL THAT WASN\'T', 'Discover a secret wall underwater.', { stat: 'dive_secrets', gte: 1 }),
+  A('sea_secret_walls_4', 'legendary', 'QUEM SABE TUDO DO MAR', 'Descubra as 4 paredes secretas.', 'WHO KNOWS THE SEA', 'Discover all 4 secret walls.', { stat: 'dive_secrets', gte: 4 }),
+  A('sea_beast_slayer', 'epic', 'DOMADOR DO LEVIATÃ', 'Derrote o Sea Beast no fundo do abismo.', 'LEVIATHAN TAMER', 'Defeat the Sea Beast in the abyss.', { has: 'boss_sea_beast', in: 'bosses' }),
+  A('sea_near_drown', 'uncommon', 'RESPIRA, MEU FILHO', 'Fique sem fôlego e consiga respirar de novo.', 'BREATHE, KID', 'Run out of breath and breathe again.', { stat: 'dive_survived_empty', gte: 1 }),
+  A('sea_glub', 'common', 'GLUB GLUB', 'Morra afogado.', 'GLUB GLUB', 'Die by drowning.', { stat: 'deaths_drowning', gte: 1 }),
+  A('sea_gills', 'legendary', 'NUNCA PRECISEI SUBIR', 'Nade 60 segundos com fôlego infinito.', 'NEVER NEEDED TO SURFACE', 'Swim 60 seconds with infinite breath.', { stat: 'dive_infinite_sec', gte: 60 }),
+  A('sea_deep', 'rare', 'PRESSÃO NÃO É COM EU', 'Passe 120 segundos na zona profunda.', 'PRESSURE? NOT ME', 'Spend 120 seconds in the deep zone.', { stat: 'dive_deep_sec', gte: 120 }),
+  A('sea_whale', 'epic', 'PERGUNTA EXISTENCIAL', 'Converse com a Baleia Filósofa.', 'EXISTENTIAL QUESTION', 'Talk to the Philosopher Whale.', { stat: 'dive_help_whale', gte: 1 }),
+  A('sea_secret_items', 'epic', 'COLECIONADOR SECRETO', 'Ache 3 itens Secret no fundo do mar.', 'SECRET COLLECTOR', 'Find 3 Secret items underwater.', { stat: 'dive_secret_items', gte: 3 }),
 ];
 
 export const ACH_BY_ID: Record<string, AchievementDef> = Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, a]));

@@ -1,0 +1,87 @@
+{
+ "folha": "new sea assets/sea monster/folha (1).png + folha (2).png",
+ "layout": "dragon",
+ "altura_corpo_px": 198,
+ "poses": {
+  "idle": {
+   "w": 200,
+   "h": 198,
+   "tipo": "corpo"
+  },
+  "walk1": {
+   "w": 208,
+   "h": 198,
+   "tipo": "corpo"
+  },
+  "walk2": {
+   "w": 196,
+   "h": 198,
+   "tipo": "corpo"
+  },
+  "walk3": {
+   "w": 201,
+   "h": 198,
+   "tipo": "corpo"
+  },
+  "walk4": {
+   "w": 224,
+   "h": 198,
+   "tipo": "corpo"
+  },
+  "flash": {
+   "w": 206,
+   "h": 198,
+   "tipo": "corpo"
+  },
+  "strong": {
+   "w": 273,
+   "h": 198,
+   "tipo": "corpo"
+  },
+  "ult": {
+   "w": 251,
+   "h": 198,
+   "tipo": "corpo"
+  },
+  "hurt": {
+   "w": 236,
+   "h": 198,
+   "tipo": "corpo"
+  },
+  "ko": {
+   "w": 273,
+   "h": 198,
+   "tipo": "corpo"
+  },
+  "guard": {
+   "w": 240,
+   "h": 198,
+   "tipo": "corpo"
+  },
+  "dash": {
+   "w": 291,
+   "h": 198,
+   "tipo": "corpo"
+  },
+  "charge": {
+   "w": 228,
+   "h": 198,
+   "tipo": "corpo"
+  },
+  "cast": {
+   "w": 244,
+   "h": 198,
+   "tipo": "corpo"
+  },
+  "blast": {
+   "w": 459,
+   "h": 198,
+   "tipo": "corpo"
+  },
+  "portrait": {
+   "w": 307,
+   "h": 243,
+   "tipo": "solto"
+  }
+ }
+}

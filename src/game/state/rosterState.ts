@@ -29,6 +29,8 @@ export const ROSTER: RosterEntry[] = [
   { key: 'dogking', unlock: { kind: 'boss', bossId: 'boss_dogisland' } },
   { key: 'tank', unlock: { kind: 'boss', bossId: 'boss_vulcao' } },
   { key: 'ninja', unlock: { kind: 'boss', bossId: 'boss_main' } },
+  // Expansão marítima: o rei das águas, liberado ao derrotar o Sea Beast (e comprado com diamantes, como os outros).
+  { key: 'poseidon', unlock: { kind: 'boss', bossId: 'boss_sea_beast' } },
   { key: 'mystic', unlock: { kind: 'boss', bossId: 'boss_misteriosa' } },
   { key: 'green_dragon', unlock: { kind: 'boss', bossId: 'boss_fragments' } },
   { key: 'ice_dragon', unlock: { kind: 'boss', bossId: 'boss_gelo' } },
@@ -43,7 +45,7 @@ export const ROSTER: RosterEntry[] = [
 /** Nomes (em português, como no resto dos nomes de personagens) para avisos de desbloqueio. */
 export const FIGHTER_NAME: Record<string, string> = {
   dogge: 'Dogge', gadigago: 'Gadigago', orc: 'Orc', soldier: 'Soldado', dogking: 'Rei dos Cães', tank: 'Tanque',
-  ninja: 'Ninja', mystic: 'Místico', green_dragon: 'Dragão da Floresta', ice_dragon: 'Dragão do Gelo', shadow_dragon: 'Dragão Sombrio',
+  poseidon: 'Rei Poseidon', ninja: 'Ninja', mystic: 'Místico', green_dragon: 'Dragão da Floresta', ice_dragon: 'Dragão do Gelo', shadow_dragon: 'Dragão Sombrio',
   troll_face: 'Troll Face', cara_tranquilo: 'Cara Tranquilo', sahur: 'Sahur', sahur_god: 'Sahur God', sahur_evil: 'Sahur Evil',
 };
 

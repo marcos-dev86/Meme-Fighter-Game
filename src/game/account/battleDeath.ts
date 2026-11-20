@@ -12,12 +12,16 @@ export interface BattleDeathInput {
   bossName?: string;
   /** papel explícito do adversário (criaturas e guardiões); sem ele vale o papel do tipo de luta */
   role?: EntityRole;
-  lastHurtBy?: 'hit' | 'burn' | 'poison';
+  lastHurtBy?: 'hit' | 'burn' | 'poison' | 'drowning' | 'pressure';
+  /** Nome da região (afogamento e pressão numa luta submarina). */
+  region?: string;
 }
 
 export function battleDeathCause(i: BattleDeathInput): DeathCause {
+  // Morreu afogado ou esmagado no meio da luta: a causa é o ambiente, não o adversário.
+  if (i.lastHurtBy === 'drowning' || i.lastHurtBy === 'pressure') return { kind: 'hazard', hazard: i.lastHurtBy, region: i.region };
   const role: EntityRole = i.role ?? (i.kind === 'boss' ? 'boss' : i.kind === 'rival' ? 'rival' : 'enemy');
   const name = (role === 'boss' && i.bossName) || i.opponentName;
-  const via = i.lastHurtBy && i.lastHurtBy !== 'hit' ? i.lastHurtBy : undefined;
+  const via = i.lastHurtBy === 'burn' || i.lastHurtBy === 'poison' ? i.lastHurtBy : undefined;
   return { kind: 'entity', role, name, via };
 }

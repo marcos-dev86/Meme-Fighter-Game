@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { addCoins, addItem, addXp, getCoins, getLevel, getUpgradeLevels, isCollected, itemCount, removeItem } from './playerState';
+import { addCoins, addItem, addXp, giveArmor, getCoins, getLevel, getUpgradeLevels, isCollected, itemCount, removeItem } from './playerState';
 import { itemName } from '@/game/items/itemDefs';
 import { getChoice, hasFlag, noteCasinoGame, setFlag, subscribeStory } from './storyFlags';
 import { grantCosmetic } from './cosmeticsState';
@@ -81,10 +81,10 @@ export function getMissionDef(id: string): MissionDef | undefined {
 /** What accepting each battle mission launches - read by the world (who to
  * fight, which offer text) and by the battle screen (the coin prize on a
  * win), so they can't drift apart. Built from the missions themselves. */
-export const QUEST_BATTLE_DEFS: Record<string, { opponent: import('@/game/battle/Fighter').CharacterKey; stageKey: string; reward: number; offerTitleKey: string; giver: string }> = Object.fromEntries(
+export const QUEST_BATTLE_DEFS: Record<string, { opponent: import('@/game/battle/Fighter').CharacterKey; stageKey: string; reward: number; offerTitleKey: string; giver: string; siege?: boolean }> = Object.fromEntries(
   MISSIONS_ALL.filter((m) => m.objective.kind === 'battle').map((m) => {
     const o = m.objective as Extract<MissionDef['objective'], { kind: 'battle' }>;
-    return [m.id, { opponent: o.opponent, stageKey: o.stageKey, reward: o.reward, offerTitleKey: o.offerTitleKey, giver: o.giver }];
+    return [m.id, { opponent: o.opponent, stageKey: o.stageKey, reward: o.reward, offerTitleKey: o.offerTitleKey, giver: o.giver, siege: o.siege }];
   })
 );
 
@@ -235,6 +235,8 @@ function complete(def: MissionDef) {
   const xp = missionXp(def);
   addXp(xp);
   if (def.reward?.cosmetic) grantCosmetic(def.reward.cosmetic);
+  if (def.reward?.armor) giveArmor(def.reward.armor);
+  if (def.reward?.flag) setFlag(def.reward.flag);
   if (def.final) unlockCharacters(getStoryCharacter(characterId).unlocks);
   // Diamond Meme é da CONTA (vale em qualquer save); zerar a história também registra a conquista do personagem.
   const diamonds = noteMissionDone(!!def.final, characterId);

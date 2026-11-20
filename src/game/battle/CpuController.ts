@@ -10,15 +10,26 @@ import { DIFFICULTY_PARAMS, type Difficulty } from '@/game/state/difficulty';
  * pacing. That persistent state has to live outside the Fighter (it's
  * per-controller, not per-character), hence this small class.
  */
+export type CpuParams = ReturnType<typeof paramsOf>;
+function paramsOf(difficulty: Difficulty) {
+  return { ...DIFFICULTY_PARAMS[difficulty] };
+}
+
 export class CpuController {
   private decisionTimer = 0;
+  /** Quem pode mexer nos parâmetros a cada instante (ex.: o cérebro do Sea Beast). Sem isso vale o comportamento de sempre. */
+  private director: ((f: Fighter, o: Fighter) => Partial<CpuParams> | null) | null = null;
   private moveDir: -1 | 0 | 1 = 0;
   private d;
 
   /** `difficulty` scales reaction time, shielding and aggression (see
    * state/difficulty.ts); 'medium' is the original behaviour. */
   constructor(difficulty: Difficulty = 'medium') {
-    this.d = { ...DIFFICULTY_PARAMS[difficulty] };
+    this.d = paramsOf(difficulty);
+  }
+
+  setDirector(fn: ((f: Fighter, o: Fighter) => Partial<CpuParams> | null) | null) {
+    this.director = fn;
   }
 
   /** Boss phase 2: decides faster, attacks more, shields and uses the ultimate more often. */
@@ -30,11 +41,12 @@ export class CpuController {
   tick(fighter: Fighter, opponent: Fighter, dt: number, frameScale: number) {
     const f = fighter;
     if (f.isKO) return;
+    const d = this.director ? { ...this.d, ...(this.director(f, opponent) ?? {}) } : this.d;
 
     const dist = Math.abs(f.x - opponent.x);
 
     const opponentAttacking = !!opponent.currentAttack && opponent.currentAttack.phase !== 'recovery' && dist < 200;
-    if (opponentAttacking && f.canAct() && Math.random() < this.d.shieldChance) {
+    if (opponentAttacking && f.canAct() && Math.random() < d.shieldChance) {
       f.startShield();
     } else if (f.isShielding && !opponentAttacking) {
       f.stopShield();
@@ -44,7 +56,7 @@ export class CpuController {
 
     // Harder CPUs farm aura while the player is far away, and stop the
     // moment they get close (charging leaves them open).
-    if (this.d.farmsAura) {
+    if (d.farmsAura && !f.noEnergy) {
       if (f.isCharging && (dist < 260 || f.energy >= f.maxEnergy)) f.stopCharge();
       else if (!f.isCharging && dist > 420 && f.energy < f.maxEnergy * 0.6 && f.canAct() && Math.random() < 0.02) f.startCharge();
       if (f.isCharging) return;
@@ -53,14 +65,14 @@ export class CpuController {
     this.decisionTimer -= dt;
 
     if (this.decisionTimer <= 0) {
-      this.decisionTimer = this.d.reactMin + Math.random() * (this.d.reactMax - this.d.reactMin);
+      this.decisionTimer = d.reactMin + Math.random() * (d.reactMax - d.reactMin);
       this.moveDir = 0;
 
-      if (f.energy >= f.maxEnergy && dist < 200 && f.canAct() && Math.random() < this.d.ultChance) {
+      if (f.energy >= f.maxEnergy && dist < 200 && f.canAct() && Math.random() < d.ultChance) {
         f.startAttack('ultimate');
       } else if (dist < 150 && f.canAct()) {
         const roll = Math.random();
-        const atk = this.d.attackChance;
+        const atk = d.attackChance;
         if (roll < atk * 0.64) f.startAttack('flash');
         else if (roll < atk) f.startAttack('strong');
         else if (roll < atk + (1 - atk) * 0.5) this.moveDir = f.facing === 1 ? -1 : 1;

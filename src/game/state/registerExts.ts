@@ -8,3 +8,4 @@ import './towerState';
 import './rivalState';
 import './eliteState';
 import './cosmeticsState';
+import '../dive/diveState';

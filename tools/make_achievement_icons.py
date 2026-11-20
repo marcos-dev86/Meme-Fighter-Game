@@ -21,7 +21,7 @@ OUT = os.path.join(ROOT, 'assets', 'achievements')
 S = 16
 
 from ach.kit import ICONS, OUTLINE, render  # noqa: E402
-from ach import icons_a, icons_b, icons_c, icons_d  # noqa: E402,F401  (registram os desenhos)
+from ach import icons_a, icons_b, icons_c, icons_d, icons_e  # noqa: E402,F401  (registram os desenhos)
 
 
 def ids_from_defs():

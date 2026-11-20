@@ -193,7 +193,7 @@ describe('perfil: ícone, fundo, moldura', () => {
     assert.equal(C.setFavorite(C.setFavorite(a, 'gadigago', ['gadigago']), null, []).favorite, null);
   });
   it('todo lutador do elenco tem ícone (busto 160x160) e preço definido', () => {
-    assert.equal(ROSTER.length, 16);
+    assert.equal(ROSTER.length, 17);
     for (const k of ROSTER) {
       const info = AV.AVATAR_BY_ID[k];
       assert.ok(info && info.kind === 'fighter', `ícone do lutador ${k}`);

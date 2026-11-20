@@ -22,9 +22,14 @@ import { useI18n } from '@/game/i18n/i18n';
 import { setQuestStatus, QUEST_BATTLE_DEFS, getStoryCharacterId } from '@/game/state/questState';
 import { getSession } from '@/game/state/session';
 import { refreshIslandUnlocks } from '@/game/state/islandState';
-import { addCoins, consumeEquippedItem, getCoins, getEquippedItems, getLevel, getUpgradeLevels } from '@/game/state/playerState';
+import { addCoins, addItem, consumeEquippedItem, getCoins, getEquippedArmorId, getEquippedItems, getLevel, getUpgradeLevels } from '@/game/state/playerState';
 import { DefeatOverlay } from '@/game/account/DefeatOverlay';
 import { battleDeathCause } from '@/game/account/battleDeath';
+import { allyGifts, allyIntervalMs, allySpearDamage, siegeLose, siegeWin } from '@/game/story/siege';
+import { SeaBeastBrain } from '@/game/battle/seaBeastBrain';
+import { currentBreathMods } from '@/game/dive/diveState';
+import { SITES as DIVE_SITES } from '@/game/dive/diveSites';
+import { armorBreathOf } from '@/game/items/armorDefs';
 import { FIGHTER_NAME } from '@/game/state/rosterState';
 import { clearDamageCause, describeDeath, lastDamageCause, noteDamage } from '@/game/account/deathCause';
 import { REVIVE_COST, currentDeathFee, payDeathFee, payRevive } from '@/game/account/deathRules';
@@ -111,6 +116,9 @@ interface HitCtx {
 
 /** Dano que o último checkHit realmente causou (0 se nenhum). */
 let lastHitDealt = 0;
+
+/** Ganchos do Sea Beast (battle/seaBeastBrain.ts): ajustam o dano que ele recebe e anotam o que o jogador fez. Null nas outras lutas. */
+let seaHook: { incoming: (type: 'flash' | 'strong' | 'ultimate') => number; after: (h: { attacker: 'player' | 'beast'; type: 'flash' | 'strong' | 'ultimate'; blocked: boolean; dealt: number }) => void; beast: Fighter } | null = null;
 function checkHit(attacker: Fighter, defender: Fighter, ctx: HitCtx, onEffect: (name: EffectName, x: number, y: number, size: number) => void, dmgMult = 1, gearCrit = 0) {
   if (!attacker.currentAttack || attacker.currentAttack.hasHit) return;
   const box = attacker.getActiveHitbox();
@@ -119,6 +127,8 @@ function checkHit(attacker: Fighter, defender: Fighter, ctx: HitCtx, onEffect: (
   if (boxesOverlap(box, d) && !defender.isKO) {
     const def = attacker.attackDefFor(attacker.currentAttack.type);
     let dmg = attacker[def.damageKey] * dmgMult;
+    // Sea Beast: a adaptação reduz (de forma limitada) o que ele recebe do jogador; golpes dele não passam por aqui.
+    if (seaHook && defender === seaHook.beast) dmg *= seaHook.incoming(attacker.currentAttack.type);
     // Habilidades: bônus contra alvo com status e golpe crítico.
     if (attacker.statusTargetDmgMult !== 1 && defender.hasAnyStatus()) dmg *= attacker.statusTargetDmgMult;
     // Dano aleatorio dentro da faixa do golpe (FLASH ±15%, FORTE/SUPER ±10%) e critico (base 5% + habilidades + arma afiada).
@@ -134,6 +144,7 @@ function checkHit(attacker: Fighter, defender: Fighter, ctx: HitCtx, onEffect: (
     defender.takeHit(dmg);
     const dealt = Math.max(0, hpBefore - defender.health);
     lastHitDealt = dealt; // quem chamou usa isto (ex.: segredo "Sem um Arranhão")
+    if (seaHook) seaHook.after({ attacker: defender === seaHook.beast ? 'player' : 'beast', type: attacker.currentAttack.type, blocked, dealt });
     // Roubo de vida: parte do dano que realmente entrou volta para quem bateu.
     if (attacker.lifesteal > 0 && !attacker.isKO) {
       if (dealt > 0) attacker.health = Math.min(attacker.maxHealth, attacker.health + dealt * attacker.lifesteal);
@@ -181,7 +192,7 @@ export function BattleScreen() {
   const { width, height } = useWindowDimensions();
   const itemAnchor = useItemMenuAnchor();
   const { t } = useI18n();
-  const params = useLocalSearchParams<{ p1?: string; p2?: string; p2Control?: string; training?: string; stageKey?: string; questId?: string; difficulty?: string; bossId?: string; tower?: string; rival?: string; items1?: string; items2?: string }>();
+  const params = useLocalSearchParams<{ siegeWave?: string; siegeTotal?: string; p1?: string; p2?: string; p2Control?: string; training?: string; stageKey?: string; questId?: string; difficulty?: string; bossId?: string; tower?: string; rival?: string; items1?: string; items2?: string }>();
   // What this fight is (plain / quest / boss / tower floor / rival) and how strong the opponent is.
   const setup = useRef(resolveSetup(params, { questOpponent: params.questId ? ((params.p2 as CharacterKey) || undefined) : undefined })).current;
   const ROUNDS_TO_WIN = setup.roundsToWin;
@@ -254,6 +265,16 @@ export function BattleScreen() {
   // taken from the loaded story world for quest fights.
   const difficulty: Difficulty = isDifficulty(params.difficulty) ? params.difficulty : params.questId ? getStoryDifficulty() : 'medium';
   const cpu = useRef(new CpuController(difficulty)).current;
+  /** Cérebro do Sea Beast (só nessa luta): fases, memória do jogador, adaptação, correntes e fôlego. */
+  const brainRef = useRef<SeaBeastBrain | null>(null);
+  const bannerTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(
+    () => () => {
+      seaHook = null; // a luta acabou: os ganchos do chefe não vazam para a próxima
+      if (bannerTimer.current) clearTimeout(bannerTimer.current);
+    },
+    [],
+  );
   // VERSUS: itens sorteados antes da luta (substituem a mochila). items1 = jogador 1, items2 = CPU.
   const loadoutMode = params.items1 !== undefined;
   const [loadout1, setLoadout1] = useState<(string | null)[]>(() => decodeItems(params.items1));
@@ -271,6 +292,10 @@ export function BattleScreen() {
   /** Já tocou o som do "FIGHT!" nesta abertura de round. */
   const fightCallRef = useRef(false);
   const koNotedRef = useRef(false);
+  /** Cerco dos orcs: onda vencida, falta(m) outra(s). */
+  const [siegeNext, setSiegeNext] = useState<{ wave: number; total: number; gifts: string[] } | null>(null);
+  /** Tempo até a próxima lança do Soldado (cerco, a partir da onda 2). */
+  const allyClock = useRef(0);
   const roundTimerRef = useRef(ROUND_TIME_MS);
   const roundNumberRef = useRef(1);
 
@@ -396,6 +421,52 @@ export function BattleScreen() {
         else if (p1.state === 'walk') p1.setState('idle');
       }
 
+      // SEA BEAST: cria o cérebro na 1ª rodada (a vida já está ajustada), e a cada quadro roda fases, memória, correntes e fôlego.
+      // CERCO DOS ORCS: o Soldado ajuda com uma lança de tempos em tempos (nunca dá o golpe final).
+      if (params.siegeWave && params.siegeTotal && !p1.isKO && !p2.isKO) {
+        const every = allyIntervalMs(Number(params.siegeWave), Number(params.siegeTotal));
+        if (every > 0) {
+          allyClock.current += dt;
+          if (allyClock.current >= every) {
+            allyClock.current = 0;
+            const dmg = allySpearDamage(p2.maxHealth, p2.health);
+            if (dmg > 0) {
+              p2.takeEnvironmentalDamage(dmg);
+              p2.hitFlashTimer = 160;
+              spawnBurst(fxRef.current, { x: p2.x + p2.drawWidth / 2, y: p2.y + p2.getReferenceHeight() / 2, count: 10, speed: 5, color: '#cfd8dc' } as never);
+              playSfx('hit_heavy', { gain: 0.6 });
+              setBanner(t('siege_ally_hit'));
+              if (bannerTimer.current) clearTimeout(bannerTimer.current);
+              bannerTimer.current = setTimeout(() => setBanner(null), 1600);
+            }
+          }
+        }
+      }
+
+      if (p2Key === 'sea_beast' && p2IsCpu) {
+        if (!brainRef.current) {
+          const g0 = getGear();
+          const br0 = new SeaBeastBrain(p2, p1, cpu, currentBreathMods());
+          br0.observeGear({ critChance: p1.critChance + g0.critChance, weaponMult: g0.damageMult, lifesteal: p1.lifesteal, divingGear: !!armorBreathOf(getEquippedArmorId()) });
+          brainRef.current = br0;
+          seaHook = {
+            beast: p2,
+            incoming: (ty) => brainRef.current?.incoming(ty) ?? 1,
+            after: (h) => brainRef.current?.onHit(h),
+          };
+        }
+        const br = brainRef.current;
+        br.update(dt);
+        const bt = br.tickBreath(dt);
+        if (bt.damageFrac > 0 && bt.hazard) p1.takeEnvironmentalDamage(p1.maxHealth * bt.damageFrac, bt.hazard);
+        for (const ev of br.drainEvents()) {
+          setBanner(t(ev.key));
+          if (bannerTimer.current) clearTimeout(bannerTimer.current);
+          bannerTimer.current = setTimeout(() => setBanner(null), 2200);
+          if (ev.sfx) playSfx(ev.sfx, { gain: 0.8 });
+        }
+      }
+
       if (p2IsCpu) {
         cpu.tick(p2, p1, dt, frameScale);
         // A CPU usa os itens sorteados dela: cura quando está baixa; bomba e buffs de vez em quando.
@@ -440,7 +511,7 @@ export function BattleScreen() {
       resolveSeparation(p1, p2);
 
       // Boss phase 2 at 50% health: faster, harder, full energy, a short invulnerable roar.
-      if (p2.hasPhases && p2.phase === 1 && !p2.isKO && p2.health <= p2.maxHealth * 0.5) {
+      if (p2.hasPhases && p2Key !== 'sea_beast' && p2.phase === 1 && !p2.isKO && p2.health <= p2.maxHealth * 0.5) {
         p2.enterPhase2();
         cpu.enrage();
         setBanner(`${p2.name}: ${t('boss_phase2')}`);
@@ -467,7 +538,7 @@ export function BattleScreen() {
       // Aviso de morte: guarda quem derrubou o jogador (uma vez por nocaute) para a tela de derrota citar o responsável.
       if (p1.isKO && !koNotedRef.current) {
         koNotedRef.current = true;
-        noteDamage(battleDeathCause({ kind: setup.kind, opponentName: FIGHTER_NAME[p2Key] ?? String(p2Key), bossName: setup.boss?.name, lastHurtBy: p1.lastHurtBy }));
+        noteDamage(battleDeathCause({ kind: setup.kind, opponentName: FIGHTER_NAME[p2Key] ?? String(p2Key), bossName: setup.boss?.name, lastHurtBy: p1.lastHurtBy, region: p2Key === 'sea_beast' ? DIVE_SITES.abismo.name : undefined }));
       } else if (!p1.isKO) koNotedRef.current = false;
 
       if (reviveEligible && p1.isKO && !p2.isKO && p2.roundsWon + 1 >= ROUNDS_TO_WIN) {
@@ -517,7 +588,20 @@ export function BattleScreen() {
             towerEndedRef.current = true;
             endRun(getSession()?.name ?? 'Dogge', getLevel());
           }
-          if (params.questId && p1.roundsWon > p2.roundsWon && !questRewardGrantedRef.current) {
+          const siegeStep = params.questId && params.siegeWave && p1.roundsWon > p2.roundsWon && !questRewardGrantedRef.current ? siegeWin() : null;
+          if (siegeStep && !siegeStep.done) {
+            // Onda vencida, o cerco continua: ganha um troco, a missão ainda não termina e a vida segue (vida persistente).
+            questRewardGrantedRef.current = true;
+            playSfx('levelup');
+            haptic('success');
+            noteFightWon();
+            addCoins(Math.round((QUEST_BATTLE_DEFS[params.questId!]?.reward ?? 0) / siegeStep.total));
+            // O Soldado passa itens para a próxima onda (entram à força na bolsa, como recompensa de missão).
+            const gifts = allyGifts(siegeStep.wave - 1, siegeStep.total);
+            const names: string[] = [];
+            for (const [id, q] of Object.entries(gifts)) if (ITEMS[id]) { addItem(id, q, true); names.push(`${ITEMS[id].name} x${q}`); }
+            setSiegeNext({ wave: siegeStep.wave, total: siegeStep.total, gifts: names });
+          } else if (params.questId && p1.roundsWon > p2.roundsWon && !questRewardGrantedRef.current) {
             questRewardGrantedRef.current = true;
             setQuestStatus(params.questId, 'completed');
             refreshIslandUnlocks();
@@ -576,13 +660,24 @@ export function BattleScreen() {
 
   const [itemMenuOpen, setItemMenuOpen] = useState(false);
   const [itemToast, setItemToast] = useState<string | null>(null);
+  /** Aplica o item e, contra o Sea Beast, deixa o chefe reagir de forma limitada (cura e bomba reduzidas, buffs anotados). */
+  const useItemFx = (id: string) => {
+    const hp1 = p1.health;
+    const hp2 = p2.health;
+    applyItemEffect(p1, id, p2);
+    const br = brainRef.current;
+    if (!br) return;
+    const out = br.onItem(id, { playerHealed: Math.max(0, p1.health - hp1), beastDamaged: Math.max(0, hp2 - p2.health) });
+    if (out.playerRefund > 0) p1.health = Math.max(1, p1.health - out.playerRefund);
+    if (out.beastRefund > 0) p2.health = Math.min(p2.maxHealth, p2.health + out.beastRefund);
+  };
   const handleUseItem = (slot: 0 | 1) => {
     if (phaseRef.current !== 'fight') return;
     if (loadoutMode) {
       const lid = loadout1[slot];
       if (!lid) return;
       setLoadout1((cur) => cur.map((x, i) => (i === slot ? null : x)));
-      applyItemEffect(p1, lid, p2);
+      useItemFx(lid);
       playSfx(ITEMS[lid]?.effects.some((e) => e.kind === 'bomb') ? 'fire' : ITEMS[lid]?.effects.some((e) => e.kind === 'heal') ? 'heal' : 'buff_atk');
       const lfx = itemEffectName(lid);
       if (lfx === 'bomb') addEffect('bomb', p2.x + p2.drawWidth / 2, p2.getHurtbox().y1 + 50, 150);
@@ -601,7 +696,7 @@ export function BattleScreen() {
     }
     const id = consumeEquippedItem(slot);
     if (!id) return;
-    applyItemEffect(p1, id, p2);
+    useItemFx(id);
     playSfx(ITEMS[id]?.effects.some((e) => e.kind === 'bomb') ? 'fire' : ITEMS[id]?.effects.some((e) => e.kind === 'heal') ? 'heal' : 'buff_atk');
     const fx = itemEffectName(id);
     if (fx === 'bomb') addEffect('bomb', p2.x + p2.drawWidth / 2, p2.getHurtbox().y1 + 50, 150);
@@ -642,6 +737,7 @@ export function BattleScreen() {
   const deathText = describeDeath(lastDamageCause(), t);
   /** Derrota aceita: volta ao mundo e o mundo leva o jogador ao checkpoint. */
   const goCheckpoint = () => {
+    siegeLose(); // perdeu no meio do cerco: recomeça da onda 1
     if (carryStoryHp) requestRespawn();
     router.back();
   };
@@ -740,7 +836,24 @@ export function BattleScreen() {
 
         {banner && (
           <View pointerEvents="none" style={[styles.centerWrap, { top: 150 }]}>
-            <Text style={[styles.centerText, styles.centerTextRed, { fontSize: 38 }]}>{banner}</Text>
+            <Text style={[styles.centerText, styles.centerTextRed, { fontSize: banner.length > 34 ? 24 : 38 }]}>{banner}</Text>
+          </View>
+        )}
+
+        {/* Sea Beast, fase 2 em diante: fôlego do jogador (volta quando o chefe sobe) e correnteza em curso */}
+        {brainRef.current?.submerged && (
+          <View pointerEvents="none" style={styles.seaHud} testID="sea-breath">
+            <Text style={styles.seaHudLabel}>{t('sea_breath_label')}</Text>
+            <View style={styles.seaBarBg}>
+              <View
+                style={{
+                  height: '100%',
+                  width: `${currentBreathMods().infinite ? 100 : Math.max(0, Math.min(1, brainRef.current.breath.sec / (24 + currentBreathMods().capacitySec))) * 100}%`,
+                  backgroundColor: currentBreathMods().infinite ? '#ffffff' : brainRef.current.breath.empty ? '#ff3b30' : '#3ec6ff',
+                }}
+              />
+            </View>
+            <Text style={styles.seaHudLabel}>{currentBreathMods().infinite ? '∞' : brainRef.current.current ? (brainRef.current.current.dir < 0 ? '⟵' : '⟶') : ''}</Text>
           </View>
         )}
 
@@ -751,7 +864,7 @@ export function BattleScreen() {
                 {t('tower_floor')} {setup.floor}
               </Text>
             )}
-            {setup.bossFight && <Text style={[styles.centerTextGold, styles.centerTextRed]}>{(setup.title ?? p2.name).toUpperCase()}</Text>}
+            {(setup.bossFight || (setup.kind === 'quest' && !!setup.title)) && <Text style={[styles.centerTextGold, styles.centerTextRed]}>{(setup.title ?? p2.name).toUpperCase()}</Text>}
             <Text style={styles.centerText} testID="battle-intro-label">
               {setup.kind === 'tower' ? '' : introLabel(phaseTimerRef.current) === 'fight' ? t('battle_fight') : `${t('battle_round')} ${roundNumber}`}
             </Text>
@@ -843,13 +956,15 @@ export function BattleScreen() {
             // STORY quest fight: nunca oferece "revanche"/"menu"/"tentar de novo" - o único caminho é voltar ao mundo
             // (e, se perdeu, renascer no checkpoint e caminhar de volta até a luta).
             <>
-              <Text style={styles.overlayTitle}>{questReward !== null ? (params.questId === 'final_meme_fighter' ? t('quest_final_victory') : t('quest_victory')) : (deathText ?? t('quest_defeat'))}</Text>
-              {questReward !== null && (
+              <Text style={styles.overlayTitle}>{siegeNext ? t('siege_wave_cleared').replace('{n}', String(siegeNext.wave - 1)).replace('{total}', String(siegeNext.total)) : questReward !== null ? (params.questId === 'final_meme_fighter' ? t('quest_final_victory') : t('quest_victory')) : (deathText ?? t('quest_defeat'))}</Text>
+              {siegeNext && siegeNext.gifts.length > 0 && <Text style={styles.questRewardText}>{`${t('siege_ally_gift')} ${siegeNext.gifts.join(', ')}`}</Text>}
+              {siegeNext && <MenuButton label={t('siege_next')} onPress={() => router.replace({ pathname: '/battle', params: { ...params, siegeWave: String(siegeNext.wave), siegeTotal: String(siegeNext.total) } } as never)} />}
+              {!siegeNext && questReward !== null && (
                 <Text style={styles.questRewardText}>
                   {t('quest_reward')}: +{questReward} {CURRENCY_ABBR}
                 </Text>
               )}
-              {questReward !== null ? (
+              {siegeNext ? null : questReward !== null ? (
                 <MenuButton label={t('battle_continue')} onPress={() => router.back()} />
               ) : (
                 <>
@@ -1066,9 +1181,11 @@ function HealthBlock({ fighter, align }: { fighter: Fighter; align: 'left' | 'ri
           ))}
         </View>
       )}
-      <View style={[styles.barTrack, styles.energyTrack]}>
-        <View style={[styles.barFill, { width: `${energyPct * 100}%`, backgroundColor: energyColor, alignSelf: align === 'left' ? 'flex-start' : 'flex-end' }]} />
-      </View>
+      {!fighter.noEnergy && (
+        <View style={[styles.barTrack, styles.energyTrack]}>
+          <View style={[styles.barFill, { width: `${energyPct * 100}%`, backgroundColor: energyColor, alignSelf: align === 'left' ? 'flex-start' : 'flex-end' }]} />
+        </View>
+      )}
     </View>
   );
 }
@@ -1139,6 +1256,9 @@ const styles = StyleSheet.create({
   centerTextGold: { color: '#FFD700', fontSize: 32, fontWeight: '800', marginTop: 12, textShadowColor: '#000', textShadowRadius: 10 },
   hint: { color: '#fff', fontSize: 14, marginTop: 16, textAlign: 'center', textShadowColor: '#000', textShadowRadius: 4, paddingHorizontal: 20 },
   overlay: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.72)', alignItems: 'center', justifyContent: 'center' },
+  seaHud: { position: 'absolute', left: 16, bottom: 18, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(0,10,30,0.55)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  seaHudLabel: { color: '#bfe9ff', fontWeight: '800', fontSize: 11 },
+  seaBarBg: { width: 110, height: 9, borderRadius: 5, borderWidth: 1, borderColor: '#bfe9ff', backgroundColor: 'rgba(0,0,0,0.6)', overflow: 'hidden' },
   overlayTitle: { color: '#FFD700', fontWeight: '800', fontSize: 26, marginBottom: 24, textAlign: 'center', paddingHorizontal: 20 },
   questRewardText: { color: '#fff', fontSize: 15, fontWeight: '600', marginBottom: 20, marginTop: -12 },
 });

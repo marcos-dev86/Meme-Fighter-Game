@@ -1,6 +1,7 @@
 import { playSfx } from '@/game/audio/audioManager';
+import { HUD_ART } from '@/game/hud/hudArt';
 import React, { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { ButtonColumn, MenuButton } from './MenuButton';
 import { useI18n } from '@/game/i18n/i18n';
@@ -124,6 +125,23 @@ export function PauseButton({ onPress, inert }: { onPress: () => void; inert?: b
   if (rect.layout.hidden && !inert) return null;
   const color = rect.layout.color ?? '#FFD700';
   const k = rect.size / 56;
+  if (!rect.layout.color) {
+    // Arte do layout novo: círculo cinza com as duas barras brancas (só quando o jogador não recolorou o botão).
+    const s = rect.size * 1.12;
+    return (
+      <Pressable
+        style={{ position: 'absolute', left: rect.cx - s / 2, top: rect.cy - s / 2, width: s, height: s }}
+        onPress={() => {
+          playSfx('pause');
+          onPress();
+        }}
+        hitSlop={12}
+        testID="pause-button"
+      >
+        <Image source={HUD_ART.pause} resizeMode="contain" style={{ width: s, height: s }} />
+      </Pressable>
+    );
+  }
   return (
     <Pressable
       style={[

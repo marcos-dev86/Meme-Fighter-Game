@@ -29,11 +29,23 @@ const KEY_MAP: Record<string, DirectionKey> = {
  * the whole screen up to 60x/sec for no benefit (section 25 of the design
  * doc warns specifically about this).
  */
+/**
+ * ANDAR EM UMA DIREÇÃO POR VEZ (sem diagonal): se mais de um botão estiver apertado, vale o ÚLTIMO que foi apertado; ao soltar
+ * esse, volta a valer o anterior que ainda estiver segurado. Lógica pura em `resolveSingleAxis`, testada em tools/test-ui-historia.mjs.
+ */
+export function resolveSingleAxis(held: DirectionKey[]): DirectionalInput {
+  const last = held[held.length - 1];
+  return { up: last === 'up', down: last === 'down', left: last === 'left', right: last === 'right' };
+}
+
 export function useDirectionalInput() {
   const stateRef = useRef<DirectionalInput>({ up: false, down: false, left: false, right: false });
+  /** Botões segurados, na ordem em que foram apertados. */
+  const heldRef = useRef<DirectionKey[]>([]);
 
   const setPressed = useCallback((key: DirectionKey, pressed: boolean) => {
-    stateRef.current[key] = pressed;
+    heldRef.current = pressed ? [...heldRef.current.filter((k) => k !== key), key] : heldRef.current.filter((k) => k !== key);
+    Object.assign(stateRef.current, resolveSingleAxis(heldRef.current));
   }, []);
 
   useEffect(() => {
@@ -41,11 +53,11 @@ export function useDirectionalInput() {
 
     const handleKeyDown = (e: KeyboardEvent) => {
       const dir = KEY_MAP[e.code];
-      if (dir) stateRef.current[dir] = true;
+      if (dir) setPressed(dir, true);
     };
     const handleKeyUp = (e: KeyboardEvent) => {
       const dir = KEY_MAP[e.code];
-      if (dir) stateRef.current[dir] = false;
+      if (dir) setPressed(dir, false);
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -54,7 +66,7 @@ export function useDirectionalInput() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, []);
+  }, [setPressed]);
 
   return { stateRef, setPressed };
 }

@@ -44,6 +44,7 @@ SPECS = [
     F('sahur', 'Sahur', (0.0, 0.0, 1.0, 0.40), 25),
     F('sahur_god', 'Sahur God', (0.16, 0.0, 0.92, 0.40), 40),
     F('sahur_evil', 'Sahur Evil', (0.22, 0.0, 0.98, 0.40), 40),
+    F('poseidon', 'Rei Poseidon', (0.50, 0.0, 1.0, 0.42), 40),
 ]
 def N(i, name, src, crop, price): return ('npc_' + i, name, 'npc', src, crop, price)
 CH = lambda c: f'assets/npcs/{c}.png'

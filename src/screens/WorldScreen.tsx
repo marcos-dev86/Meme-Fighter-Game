@@ -40,6 +40,10 @@ import { FerryBoats, BoatImage, boatSize, BOAT_FRAMES, type BoatDir } from '@/ga
 import { findSeaRoute, routeLength } from '@/game/world/seaRoute';
 import { canClimbCliff } from '@/game/world/cliff';
 import { FerryOverlay } from '@/game/world/FerryOverlay';
+import { DiveOverlay } from '@/game/dive/DiveOverlay';
+import { CurrencyPill, HudBar } from '@/game/hud/StoryHudParts';
+import { siegeWavesFor, startSiege } from '@/game/story/siege';
+import { islandNear, nearestSeaStart } from '@/game/dive/seaWorld';
 import { type IslandId } from '@/game/state/islandState';
 import { BuildingSprite } from '@/game/world/BuildingSprite';
 import { TowerSprite } from '@/game/world/TowerSprite';
@@ -201,6 +205,11 @@ export function WorldScreen() {
   const [paused, setPaused] = useState(false);
   const [interior, setInterior] = useState<null | { buildingId: string; returnPos: { x: number; y: number } }>(null);
   const [ferryOpen, setFerryOpen] = useState(false);
+  /** Mergulho aberto (id do local) ou null. Enquanto aberto o mundo fica parado, como num interior. */
+  const [diveSite, setDiveSite] = useState<{ start: { x: number; y: number }; dock: string; from: { x: number; y: number } } | null>(null);
+  /** Água ao alcance (de qualquer ponto da costa): dá para mergulhar. */
+  const [diveStart, setDiveStart] = useState<{ x: number; y: number } | null>(null);
+  const diveStartRef = useRef<{ x: number; y: number } | null>(null);
   const [progressPct, setProgressPct] = useState(0);
   // Boat trip in progress (see stepSail below): the player rides a boat along a sea route to the chosen island.
   const [sail, setSail] = useState<null | { origin: string; dest: IslandId; dir: BoatDir; frame: number }>(null);
@@ -521,7 +530,7 @@ export function WorldScreen() {
   showToastRef.current = showToast;
 
   useGameLoop((dtMs) => {
-    if (booting || !worldFocused || pausedRef.current || downedRef.current || interior || dialogueNpc || choiceNpc || questOffer || bossOffer || isShortCutscenePlaying()) return;
+    if (booting || !worldFocused || pausedRef.current || downedRef.current || interior || diveSite || dialogueNpc || choiceNpc || questOffer || bossOffer || isShortCutscenePlaying()) return;
     applyArmorRegen(fighter, baseRegenRef.current); // armadura equipada: regenera vida aos poucos (fighter.update aplica)
     if (sailRef.current) {
       stepSail(dtMs);
@@ -675,6 +684,13 @@ export function WorldScreen() {
       if (here !== dockHereRef.current) {
         dockHereRef.current = here;
         setDockHere(here);
+      }
+      // Mergulho: de QUALQUER ponto da costa. Basta estar a até 2 tiles da água.
+      const sea = nearestSeaStart(Math.floor(cxp / map.tileSize), Math.floor(cyp / map.tileSize), 2);
+      const prev = diveStartRef.current;
+      if ((sea?.x !== prev?.x) || (sea?.y !== prev?.y)) {
+        diveStartRef.current = sea;
+        setDiveStart(sea);
       }
     }
 
@@ -873,7 +889,7 @@ export function WorldScreen() {
   });
 
   const handleAttack = (type: 'flash' | 'strong' | 'ultimate') => {
-    if (paused || interior || sailRef.current || attacking || jumpingRef.current) return;
+    if (paused || interior || diveSite || sailRef.current || attacking || jumpingRef.current) return;
     const started = fighter.startAttack(type);
     if (!started) {
       // Only the ultimate can be refused here (needs a full energy bar) -
@@ -1006,7 +1022,7 @@ export function WorldScreen() {
    * overworld yet, so for now this is movement flavour - it can't be
    * mashed (short cooldown) and can't overlap an attack. */
   const handleJump = () => {
-    if (paused || interior || sailRef.current || attacking || jumpingRef.current) return;
+    if (paused || interior || diveSite || sailRef.current || attacking || jumpingRef.current) return;
     jumpingRef.current = true;
     setJumpReady(false);
     jumpY.value = withSequence(withTiming(-JUMP_HEIGHT, { duration: JUMP_MS * 0.42 }), withTiming(0, { duration: JUMP_MS * 0.58 }));
@@ -1016,7 +1032,7 @@ export function WorldScreen() {
     setTimeout(() => setJumpReady(true), JUMP_MS + JUMP_COOLDOWN_MS);
   };
   const handleShield = (on: boolean) => {
-    if (paused || interior || sailRef.current) return;
+    if (paused || interior || diveSite || sailRef.current) return;
     if (on) fighter.startShield();
     else fighter.stopShield();
     setShielding(fighter.isShielding);
@@ -1025,9 +1041,9 @@ export function WorldScreen() {
   const [worldFx, setWorldFx] = useState<{ id: number; name: EffectName } | null>(null);
   const [itemMenuOpen, setItemMenuOpen] = useState(false);
   bootingRef.current = booting;
-  cutsceneGateRef.current = !booting && worldFocused && !paused && !downed && !interior && !ferryOpen && !sail && !itemMenuOpen && !dialogueNpc && !choiceNpc && !questOffer && !bossOffer;
+  cutsceneGateRef.current = !booting && worldFocused && !paused && !downed && !interior && !diveSite && !ferryOpen && !sail && !itemMenuOpen && !dialogueNpc && !choiceNpc && !questOffer && !bossOffer;
   const handleUseItem = (slot: 0 | 1) => {
-    if (paused || interior || sailRef.current) return;
+    if (paused || interior || diveSite || sailRef.current) return;
     const equippedId = getEquippedItems()[slot];
     if (isGear(equippedId)) {
       // Weapons/shield are worn, not spent: the bonus is already active.
@@ -1052,7 +1068,7 @@ export function WorldScreen() {
   };
 
   const handleAura = (on: boolean) => {
-    if (paused || interior || sailRef.current) return;
+    if (paused || interior || diveSite || sailRef.current) return;
     if (on) fighter.startCharge();
     else fighter.stopCharge();
     setCharging(fighter.isCharging);
@@ -1156,6 +1172,24 @@ export function WorldScreen() {
     }
   };
 
+  /** Põe o jogador num tile do mundo (câmera e terreno ao redor incluídos). Usado ao emergir do mergulho. */
+  const teleportToTile = (tx: number, ty: number) => {
+    const px = tx * map.tileSize;
+    const py = ty * map.tileSize;
+    positionRef.current = { x: px, y: py };
+    const idealCamera = computeCameraPosition(map, { x: px + PLAYER_SIZE.x / 2, y: py + PLAYER_SIZE.y / 2 }, { width, height });
+    cameraX.value = idealCamera.x;
+    cameraY.value = idealCamera.y;
+    playerX.value = px;
+    playerY.value = py;
+    const ccx = Math.floor(tx / CHUNK_SIZE);
+    const ccy = Math.floor(ty / CHUNK_SIZE);
+    currentChunkRef.current = { cx: ccx, cy: ccy };
+    setActiveChunks(chunkListAround(ccx, ccy));
+    setChunkPos({ cx: ccx, cy: ccy });
+    invulnRef.current = 1200;
+  };
+
   const handleFerryArrive = (island: IslandId) => {
     const anchor = FERRY_DOCKS[island].anchor;
     const px = anchor.x * map.tileSize;
@@ -1235,6 +1269,29 @@ export function WorldScreen() {
       <View style={[styles.root, styles.bootWrap]}>
         <Text style={styles.bootText}>...</Text>
       </View>
+    );
+  }
+
+  if (diveSite) {
+    return (
+      <DiveOverlay
+        startTile={diveSite.start}
+        startDock={diveSite.dock}
+        fighter={fighter}
+        onSurface={(landing) => {
+          const dest = landing ?? diveSite.from; // sem chão por perto: volta ao ponto de onde mergulhou
+          setDiveSite(null);
+          teleportToTile(dest.x, dest.y);
+        }}
+        onDowned={() => {
+          setDiveSite(null);
+          beginDowned(); // mesma tela de derrota de sempre; a causa (afogamento etc.) já foi registrada
+        }}
+        onBossFight={(bossId) => {
+          setDiveSite(null);
+          router.push({ pathname: '/battle', params: { p1: getStoryCharacter(getStoryCharacterId()).fighter, p2Control: 'cpu', bossId } } as never);
+        }}
+      />
     );
   }
 
@@ -1320,19 +1377,11 @@ export function WorldScreen() {
 
       {!sail && <ClockPill top={insets.top + 8} weather={weather} />}
 
-      <View pointerEvents="none" style={[styles.hud, { top: insets.top + 12, left: insets.left + 16 }]}>
-        <Text style={styles.hudText}>{map.name}</Text>
-        <View style={styles.barTrack}>
-          <Animated.View style={[styles.barFill, healthBarStyle, { backgroundColor: '#e74c3c' }]} />
-        </View>
-        <View style={[styles.barTrack, styles.energyTrack]}>
-          <Animated.View style={[styles.barFill, energyBarStyle, { backgroundColor: '#FFD700' }]} />
-        </View>
-        <View style={styles.coinPill}>
-          <Text style={styles.coinText}>
-            {coins} {CURRENCY_ABBR}
-          </Text>
-        </View>
+      {/* INTERFACE DO MODO HISTÓRIA (layout novo): vida e energia com a arte do jogo, MISSÃO logo abaixo, pausa no centro, mapa com moedas e diamantes à direita */}
+      <View pointerEvents="none" style={[styles.hud, { top: insets.top + 10, left: insets.left + 14 }]} testID="story-hud">
+        <HudBar art="bar_red" width={190} height={14} fillStyle={healthBarStyle} testID="hud-health" />
+        <View style={{ height: 5 }} />
+        <HudBar art="bar_blue" width={166} height={9} fillStyle={energyBarStyle} testID="hud-energy" />
         <View style={styles.xpRow}>
           <Text style={styles.xpLevel}>Nv.{level}</Text>
           <View style={styles.xpTrack}>
@@ -1348,7 +1397,7 @@ export function WorldScreen() {
         )}
       </View>
 
-      <MissionHud top={insets.top + 124} left={insets.left + 12} />
+      <MissionHud top={insets.top + 74} left={insets.left + 12} />
       {!arrowOff && !interior && <MissionArrow arrow={arrow} cx={width / 2} cy={height / 2 - 10} />}
 
       {sail && (
@@ -1380,6 +1429,11 @@ export function WorldScreen() {
 
       <View style={[styles.minimapWrap, { top: insets.top + 12, right: insets.right + 16 }]}>
         {!arrowOff && <Minimap playerChunkX={chunkPos.cx} playerChunkY={chunkPos.cy} />}
+        {/* moedas e diamantes logo abaixo do mapa */}
+        <View pointerEvents="none" style={styles.currencyCol}>
+          <CurrencyPill kind="coin" value={coins} testID="hud-coins" />
+          <CurrencyPill kind="gem" value={account.diamonds} testID="hud-gems" />
+        </View>
       </View>
 
       {nearTower && !nearbyBoss && !paused && !dialogueNpc && !bossOffer && !interior && (
@@ -1425,6 +1479,24 @@ export function WorldScreen() {
       )}
 
       <DPad onPress={handleDirPress} />
+
+      {diveStart && !interior && (
+        <Pressable
+          style={[styles.ferryBtn, { top: insets.top + 100 }]}
+          testID="dive-enter"
+          onPress={() => {
+            const px = positionRef.current.x + PLAYER_SIZE.x / 2;
+            const py = positionRef.current.y + PLAYER_SIZE.y / 2;
+            const from = { x: Math.floor(px / map.tileSize), y: Math.floor(py / map.tileSize) };
+            fighter.stopCharge();
+            setCharging(false);
+            // A cutscene de mergulho roda dentro da cena (descida) e o jogador começa na água mais próxima de onde estava.
+            setDiveSite({ start: diveStart, dock: islandNear(from.x, from.y), from });
+          }}
+        >
+          <IconLabel icon="bubble" size={16} textStyle={styles.ferryBtnText}>{t('dive_enter')}</IconLabel>
+        </Pressable>
+      )}
 
       {dockHere && !interior && (
         <Pressable style={[styles.ferryBtn, { top: insets.top + 60 }]} onPress={() => setFerryOpen(true)}>
@@ -1543,15 +1615,17 @@ export function WorldScreen() {
 
       {questOffer && (
         <QuestOfferPrompt
-          title={t(QUEST_BATTLE_DEFS[questOffer.questId]?.offerTitleKey ?? 'quest_rival_offer')}
+          title={t(QUEST_BATTLE_DEFS[questOffer.questId]?.offerTitleKey ?? 'quest_rival_offer').replace('{n}', String(siegeWavesFor(getStoryDifficulty())))}
           onAccept={() => {
             const { questId } = questOffer;
             const def = QUEST_BATTLE_DEFS[questId];
             setQuestOffer(null);
             setQuestStatus(questId, 'active');
+            // Cerco dos orcs: várias batalhas seguidas (3 a 6 pela dificuldade); a onda 1 começa já.
+            const siege = def?.siege ? startSiege(questId, getStoryDifficulty()) : null;
             router.push({
               pathname: '/battle',
-              params: { p1: getStoryCharacter(getStoryCharacterId()).fighter, p2: def?.opponent ?? 'gadigago', p2Control: 'cpu', stageKey: def?.stageKey ?? 'stage_1', questId },
+              params: { p1: getStoryCharacter(getStoryCharacterId()).fighter, p2: def?.opponent ?? 'gadigago', p2Control: 'cpu', stageKey: def?.stageKey ?? 'stage_1', questId, ...(siege ? { siegeWave: String(siege.wave), siegeTotal: String(siege.total) } : {}) },
             });
           }}
           onDecline={() => setQuestOffer(null)}
@@ -1609,7 +1683,8 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   coinText: { color: '#FFD700', fontWeight: '700', fontSize: 13 },
-  minimapWrap: { position: 'absolute' },
+  minimapWrap: { position: 'absolute', alignItems: 'flex-end' },
+  currencyCol: { flexDirection: 'row', gap: 6, marginTop: 8, alignItems: 'center' },
   npcSlot: { position: 'absolute', alignItems: 'center' },
   pickupMarker: { position: 'absolute', width: 24, height: 24, alignItems: 'center', justifyContent: 'center' },
   pickupIcon: { fontSize: 20 },

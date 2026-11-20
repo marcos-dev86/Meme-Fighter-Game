@@ -61,7 +61,7 @@ export const STORY_MISSIONS: MissionDef[] = [
   // ------------------------------------------------------------ SECRETAS
   {
     id: 'sec_madrugada', title: 'O Cliente da Madrugada', hint: 'Dizem que um mercador estranho só aparece de noite, na praça.', type: 'quest', chapter: CH_SEC, optional: true, secret: true,
-    reward: { coins: 150, xp: 300, items: { night_brew: 1 } }, storyPts: { p: 1 },
+    reward: { coins: 150, xp: 300, items: { midnight_brew: 1 } }, storyPts: { p: 1 },
     objective: { kind: 'chain', steps: [
       { kind: 'talk', npcId: 'mercador_noturno', hint: 'Procure o mercador na praça, de noite.', lines: ['Psiu... Eu só trabalho quando a lua está alta. Traga-me um Cogumelo Lunar e eu faço valer a sua noite.'] },
       { kind: 'talk', npcId: 'mercador_noturno', hint: 'Entregue o Cogumelo Lunar (da loja da Marina, à noite).', take: { moonshroom: 1 }, lines: ['Ora, ora: um cliente de verdade! Tome sua parte. E esqueça que me viu.'] },
@@ -69,7 +69,7 @@ export const STORY_MISSIONS: MissionDef[] = [
   },
   {
     id: 'sec_chuva', title: 'Cantiga da Chuva', hint: 'Uma voz canta na praça, mas só quando chove.', type: 'quest', chapter: CH_SEC, optional: true, secret: true,
-    reward: { coins: 100, xp: 250, items: { moon_elixir: 2 } }, storyPts: { u: 1 },
+    reward: { coins: 100, xp: 250, items: { rain_elixir: 2 } }, storyPts: { u: 1 },
     objective: { kind: 'chain', steps: [
       { kind: 'talk', npcId: 'cantora_chuva', hint: 'Ache a cantora na praça, num dia de chuva.', lines: ['A chuva é a minha plateia. Ela sempre vem, e eu sempre canto. Você fica um pouco para ouvir?'] },
       { kind: 'talk', npcId: 'cantora_chuva', hint: 'Volte a ouvi-la, ainda na chuva.', lines: ['Você ficou! Pouca gente fica. Leve isto: um agradecimento de quem canta para as nuvens.'] },
@@ -89,7 +89,7 @@ export const STORY_MISSIONS: MissionDef[] = [
   },
   {
     id: 'sec_primas', title: 'Reunião de Família', hint: 'As primas do Doggo estão espalhadas pelos cantos do mundo.', type: 'talk', chapter: CH_SEC, optional: true, secret: true,
-    reward: { coins: 200, xp: 400, items: { potion_hp_l: 2 } }, storyPts: { u: 2 }, objective: { kind: 'flag', flag: 'cousins_reunion' },
+    reward: { coins: 200, xp: 400, items: { cousin_stew: 2 } }, storyPts: { u: 2 }, objective: { kind: 'flag', flag: 'cousins_reunion' },
   },
   {
     id: 'sec_777', title: 'Sete da Sorte', hint: 'Dizem que o caça-níquel paga fortuna a quem alinha a sorte.', type: 'collect', chapter: CH_SEC, optional: true, secret: true,
@@ -97,14 +97,14 @@ export const STORY_MISSIONS: MissionDef[] = [
   },
   {
     id: 'sec_breno_luz', title: 'A Luz do Breno', hint: 'Breno prometeu algo a quem o ajudou a sair do labirinto.', type: 'quest', chapter: CH_SEC, optional: true, secret: true,
-    branch: { choice: 'breno_help', option: 'union' }, reward: { coins: 130, xp: 300, items: { energizante: 2 } }, storyPts: { u: 1 },
+    branch: { choice: 'breno_help', option: 'union' }, reward: { coins: 130, xp: 300, items: { breno_light: 2 } }, storyPts: { u: 1 },
     objective: { kind: 'chain', steps: [
       { kind: 'talk', npcId: 'garoto_sombrio', hint: 'Fale com o Breno de novo.', lines: ['Achei uma lanterna velha no caminho. Fique com ela: sem você eu nunca teria visto a saída.'] },
     ] },
   },
   {
     id: 'sec_sigma_respeito', title: 'O Respeito do Sigma', hint: 'A estátua do Sigma Boy parece esperar algo de quem a rejeitou.', type: 'quest', chapter: CH_SEC, optional: true, secret: true,
-    branch: { choice: 'sigma_statue', option: 'glory' }, reward: { coins: 300, xp: 600, items: { old_coin: 1 } }, storyPts: { g: 2 },
+    branch: { choice: 'sigma_statue', option: 'glory' }, reward: { coins: 300, xp: 600, items: { sigma_coin: 1 } }, storyPts: { g: 2 },
     objective: { kind: 'chain', steps: [
       { kind: 'level', level: 20, hint: 'Prove que merece: chegue ao nível 20.' },
       { kind: 'talk', npcId: 'moai', hint: 'Volte à estátua do Sigma Boy.', lines: ['(A estátua parece sorrir.) "Quem rejeita o presente e ainda assim vence... esse é o verdadeiro Sigma."'] },

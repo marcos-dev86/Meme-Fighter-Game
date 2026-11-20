@@ -19,6 +19,8 @@ export const CHAR_LABEL: Record<CharacterKey, string> = {
   sahur: 'TOCÃO',
   sahur_god: 'SAHUR GOD',
   sahur_evil: 'SAHUR EVIL',
+  sea_beast: 'SEA BEAST',
+  poseidon: 'REI POSEIDON',
 };
 
 /** Ordem da grade de seleção (a do ROSTER). */

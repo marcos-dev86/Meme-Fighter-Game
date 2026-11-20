@@ -35,7 +35,7 @@ export const COSMETICS: CosmeticDef[] = [
   c('hat_wizard', 'hat', 'hat_wizard', 'epic'),
   c('hat_knight', 'hat', 'hat_knight', 'epic'),
   c('hat_gold', 'hat', 'hat_gold', 'legendary'),
-  { id: 'hat_crown', slot: 'hat', icon: 'crown', rarity: 'legendary', price: 0, exclusive: true }, // recompensa da missão secreta "Sem um Arranhão"
+  { id: 'hat_crown', slot: 'hat', icon: 'crown', rarity: 'secret', price: 0, exclusive: true }, // recompensa da missão secreta "Sem um Arranhão"
   // capas
   c('cape_brown', 'cape', 'cape_brown', 'common'),
   c('cape_red', 'cape', 'cape_red', 'uncommon'),

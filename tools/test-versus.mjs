@@ -16,8 +16,8 @@ const exists = (p) => fs.existsSync(new URL(`../${p}`, import.meta.url));
 const ROSTER = [...read('src/game/state/rosterState.ts').matchAll(/\{ key: '([a-z_]+)', unlock/g)].map((m) => m[1]);
 
 describe('cursor da grade', () => {
-  it('16 lutadores = grade 4 x 4', () => {
-    assert.equal(ROSTER.length, 16);
+  it('17 lutadores = grade de 4 colunas', () => {
+    assert.equal(ROSTER.length, 17);
     assert.equal(V.GRID_COLS, 4);
   });
   it('anda nas 4 direções e dá a volta nas bordas', () => {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { registerSaveExt } from './saveExt';
 import { getQuestStatus } from './questState';
+import { setFlag } from './storyFlags';
 import type { CharacterKey } from '@/game/battle/Fighter';
 
 /**
@@ -43,6 +44,8 @@ export const BOSSES: BossDef[] = [
   { id: 'boss_sahur_evil', island: 'vulcao', name: 'Sahur Evil', character: 'sahur_evil', stageKey: 'stage_4', spot: { x: 1905, y: 345 }, level: 46, hpMult: 1.9, dmgMult: 1.3, reward: { coins: 320, xp: 900, items: { power_brew: 2 }, armor: 'armor_arcane' } },
   { id: 'boss_camp', island: 'camp', name: 'Capitão Ferro', character: 'soldier', stageKey: 'stage_10', spot: null, storyMission: 'camp_showdown', level: 22, hpMult: 1, dmgMult: 1, reward: { coins: 0, xp: 0 } },
   { id: 'boss_dogisland', island: 'dogisland', name: 'Rei dos Cães', character: 'dogking', stageKey: 'stage_11', spot: null, storyMission: 'island_boss', level: 32, hpMult: 1, dmgMult: 1, reward: { coins: 0, xp: 0 } },
+  // SEA BEAST: só no fundo do Abismo Sombrio (mergulho). Sem ponto no mundo e sem missão de história: vence-se no mergulho.
+  { id: 'boss_sea_beast', island: 'trevas', name: 'Sea Beast', character: 'sea_beast', stageKey: 'stage_13', spot: null, level: 58, hpMult: 2.4, dmgMult: 1.4, reward: { coins: 1200, xp: 2500, items: { leviathan_scale: 1, beast_tooth: 1 }, armor: 'armor_leviathan' } },
   { id: 'boss_vulcao', island: 'vulcao', name: 'Guardião do Vulcão', character: 'tank', stageKey: 'stage_4', spot: null, storyMission: 'vulcao_boss', level: 45, hpMult: 1, dmgMult: 1, reward: { coins: 0, xp: 0 } },
 ];
 
@@ -65,6 +68,7 @@ export function isBossDefeated(id: string): boolean {
 export function markBossDefeated(id: string): boolean {
   if (defeated.has(id)) return false;
   defeated.add(id);
+  if (id === 'boss_sea_beast') setFlag('beat_sea_beast'); // alimenta a missão final do mar
   notify();
   return true;
 }

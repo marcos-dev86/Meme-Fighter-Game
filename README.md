@@ -37,6 +37,13 @@ CUTSCENES_STRICT=1 node tools/test-cutscenes.mjs   # confere também os vídeos 
 | `test-rival-elite` | 5 aparições do rival e inimigos de elite |
 | `test-roster-compra` | elenco do Versus: liberar pela história, comprar com diamantes (30 a 150 ou mais pelos atributos), dicas de como liberar, sem o rótulo TEM |
 | `test-morte-secret` | raridade Secret (dados, bônus, cores, preços, 5 idiomas) e avisos de morte contextuais (inimigo, chefe, rival, criatura, afogamento, veneno, região, estatísticas) |
+| `test-mergulho` | fôlego, afogamento, pressão, fôlego infinito, equipamentos, 9 locais + 8 travessias (alcançáveis e possíveis), criaturas, baús, save, assets |
+| `test-sea-beast` | Sea Beast: sprites, estados, 3 fases, memória e adaptação, regras de justiça, defesa, fôlego na luta, vitória possível |
+| `test-mar` | 35 missões do mar (inclui secretas), jogada completa, recompensas sem duplicar, save, regra Secret |
+| `test-mar-aberto` | mundo submerso: espelha 100% do mar, mergulho e emersão de qualquer costa, ar em todo o oceano, entradas, baús, criaturas por região |
+| `test-mar-extras` | eventos aleatórios, mini-chefes, conquistas do mar ponta a ponta, diário e cenas de revelação |
+| `test-acampamento` | ilha do acampamento menor, cerco dos orcs (3 a 6 ondas), ajuda do Soldado |
+| `test-ui-historia` | interface nova do modo história e andar em uma direção por vez |
 | `test-pause-timers` | pausa, timers sem limpeza e animações infinitas sem cancelamento; opções gráficas |
 
 Auditoria de traduções (5 idiomas): `node tools/check-i18n.mjs` (ou `npm run check:i18n`): chaves faltando, duplicadas, não traduzidas e problemas de estrutura.
@@ -94,3 +101,12 @@ Os scripts em `tools/` precisam de Python 3 com Pillow e numpy (e `ffmpeg` para 
 ## Gerar o APK
 
 Veja `docs/APK_CHECKLIST.md`.
+
+
+## Expansão marítima (mergulho)
+
+- `src/game/dive/`: fôlego (`breath.ts`), MUNDO SUBMERSO (`seaWorld.ts`: espelha o mar da superfície, mergulha-se de qualquer costa), locais com entrada no mar (`diveSites.ts`), criaturas (`diveCreatures.ts`, `diveSim.ts`), eventos (`diveEvents.ts`), estado salvo (`diveState.ts`), NPCs, cena (`DiveOverlay.tsx`).
+- `src/game/battle/seaBeastBrain.ts` + `combatMemory.ts`: o Sea Beast, rodando por cima do motor de luta existente.
+- Mapas de mergulho: `node tools/dump-dive-grids.mjs > /tmp/g.json && python3 tools/render_dive_maps.py /tmp/g.json`.
+- Sprites do chefe: `python3 tools/import_sea_beast.py <pasta com as folhas>`.
+- Créditos e licenças: `assets/sea/CREDITS.md`.

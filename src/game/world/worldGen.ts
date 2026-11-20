@@ -45,7 +45,10 @@ function rectCenter(r: Rect) {
 
 // ---- bonus strip (camp + dog island - predate the reference drawings, see header) ----
 const STRIP_Y0 = EXTRACTED_H;
-const CAMP_TILES: Rect = { x0: 260, y0: STRIP_Y0 + 60, x1: 540, y1: STRIP_Y0 + 220 };
+// Acampamento: antes 281x161 tiles, agora 121x121 (menos de 1/3 da área). O portão sul (y1) e a âncora (centro antigo) ficam onde
+// estavam, então o cais, o salão, os NPCs e as missões continuam nos mesmos lugares.
+const CAMP_TILES: Rect = { x0: 340, y0: STRIP_Y0 + 100, x1: 460, y1: STRIP_Y0 + 220 };
+const CAMP_ANCHOR = { x: 400, y: STRIP_Y0 + 140 };
 const DOGISLAND_TILES: Rect = { x0: 1050, y0: STRIP_Y0 + 40, x1: 1400, y1: STRIP_Y0 + 260 };
 export { CAMP_TILES, DOGISLAND_TILES };
 
@@ -325,7 +328,7 @@ export const REGION_ANCHORS = {
   vulcao: { x: 1888, y: 360 },
   trevas: { x: 90, y: 210 }, // just inside the maze's west opening
   fragA: { x: 1690, y: 1040 },
-  camp: rectCenter(CAMP_TILES),
+  camp: CAMP_ANCHOR,
   dogisland: rectCenter(DOGISLAND_TILES),
 };
 const LANDING_PADS = [REGION_ANCHORS.misteriosa, REGION_ANCHORS.vulcao, REGION_ANCHORS.trevas, REGION_ANCHORS.fragA, REGION_ANCHORS.camp, REGION_ANCHORS.dogisland].map((c) =>
