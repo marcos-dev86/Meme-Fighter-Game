@@ -5,6 +5,8 @@ import { useI18n } from '@/game/i18n/i18n';
 import { CURRENCY_ABBR } from '@/game/items/itemDefs';
 import { playSfx } from '@/game/audio/audioManager';
 import { haptic } from '@/game/audio/haptics';
+import { Emoji } from '@/game/ui/Emoji';
+import { EMOJI_DEATH } from '@/game/dive/seaFx';
 
 /**
  * Tela de DERROTA (mundo e lutas de história/Torre): animação de queda -> escolha.
@@ -95,6 +97,7 @@ export function DefeatOverlay({ fee, coins, diamonds, reviveCost, declineLabel, 
   return (
     <View style={styles.root} testID="defeat-overlay">
       <Animated.View style={[styles.dim, { opacity: dim }]} />
+      {stage !== 'rebirth' && cause ? <Emoji name={EMOJI_DEATH} size={44} style={{ marginBottom: 8 }} /> : null}
       {stage !== 'rebirth' && (
         <Animated.Text style={[styles.title, cause ? styles.titleCause : null, { transform: [{ scale: titleScale }, { rotate: tilt }] }]} testID="defeat-title" numberOfLines={4}>
           {cause ?? t('death_title')}

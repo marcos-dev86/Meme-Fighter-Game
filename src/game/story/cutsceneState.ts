@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { hasFlag, setFlag } from '@/game/state/storyFlags';
-import { cutsceneFlag, enqueueCutscene, CUTSCENE_BY_ID } from './cutscenes';
+import { cutsceneFlag, enqueueCutscene, enqueueCutscenes, CUTSCENE_BY_ID } from './cutscenes';
 
 /**
  * Estado das cutscenes em vídeo.
@@ -63,6 +63,10 @@ export function useSeenCutscenes(): string[] {
 let queue: string[] = [];
 export function queueCutscene(id: string) {
   queue = enqueueCutscene(queue, id, cutsceneSeen);
+}
+/** Várias de uma vez (ex.: uma missão que fecha duas cenas), na ordem do registro. */
+export function queueCutscenes(ids: readonly string[]) {
+  queue = enqueueCutscenes(queue, ids, cutsceneSeen);
 }
 export function nextQueuedCutscene(): string | null {
   const id = queue[0] ?? null;

@@ -26,8 +26,13 @@ def ramp(t, a, b):
 
 
 # --------------------------------------------------------------------------- cenarios
+CUSTOM_BG = {}  # nome -> funcao() que devolve uma imagem RGB 1280x720 (fundos gerados, ex.: submarinos em scenes_mar.py)
+
+
 @functools.lru_cache(maxsize=None)
 def stage_raw(name):
+    if name in CUSTOM_BG:
+        return CUSTOM_BG[name]().convert('RGB')
     return Image.open(A('legacy-art', 'stages', f'{name}.webp')).convert('RGB')
 
 
@@ -121,10 +126,10 @@ def IMG(path_parts):
 
 
 @functools.lru_cache(maxsize=4096)
-def _scaled(img_id, scale, flip, alpha_q, tint):
+def _scaled(img_id, scale, flip, alpha_q, tint, nearest=False):
     img = _IMGS[img_id]
     w, h = max(1, int(img.width * scale)), max(1, int(img.height * scale))
-    r = img.resize((w, h), Image.LANCZOS if scale < 1 else Image.BICUBIC)
+    r = img.resize((w, h), Image.NEAREST if nearest else (Image.LANCZOS if scale < 1 else Image.BICUBIC))
     if flip:
         r = r.transpose(Image.FLIP_LEFT_RIGHT)
     if tint:
@@ -137,17 +142,17 @@ def _scaled(img_id, scale, flip, alpha_q, tint):
     return r
 
 _IMGS = {}
-def scaled(img, scale, flip=False, alpha=1.0, tint=None):
+def scaled(img, scale, flip=False, alpha=1.0, tint=None, nearest=False):
     k = id(img)
     _IMGS[k] = img
-    return _scaled(k, round(scale, 3), flip, int(round(alpha * 100)), tint)
+    return _scaled(k, round(scale, 3), flip, int(round(alpha * 100)), tint, nearest)
 
 
 class Actor:
     """Ator: sprite(t_local)->RGBA; keys [(t,x,y),...] (y = pe do personagem); alpha [(t,a),...]; flip espelha."""
-    def __init__(self, sprite, keys, scale=1.0, flip=False, shadow=True, alpha=None, bob=0.0, tint=None, jitter=0.0):
+    def __init__(self, sprite, keys, scale=1.0, flip=False, shadow=True, alpha=None, bob=0.0, tint=None, jitter=0.0, nearest=False, rot=0.0):
         self.sprite, self.keys, self.scale, self.flip = sprite, keys, scale, flip
-        self.shadow, self.alpha, self.bob, self.tint, self.jitter = shadow, alpha, bob, tint, jitter
+        self.shadow, self.alpha, self.bob, self.tint, self.jitter, self.nearest, self.rot = shadow, alpha, bob, tint, jitter, nearest, rot
 
     def pos(self, t):
         k = self.keys
@@ -178,7 +183,9 @@ class Actor:
         y += math.sin(t * 3.0) * self.bob
         if self.jitter:
             x += math.sin(t * 90) * self.jitter
-        s = scaled(self.sprite(t), self.scale, self.flip, al, self.tint)
+        s = scaled(self.sprite(t), self.scale, self.flip, al, self.tint, self.nearest)
+        if self.rot:
+            s = s.rotate(self.rot, expand=True, resample=Image.BICUBIC)
         if self.shadow:
             sh = Image.new('RGBA', cv.size, (0, 0, 0, 0))
             w = s.width * 0.5
@@ -284,9 +291,10 @@ def tag(cv, txt, alpha):
 # --------------------------------------------------------------------------- shots / cena
 class Shot:
     def __init__(self, t0, t1, bg_name='stage1', grade='none', zoom=(1.0, 1.06), focus=(0.5, 0.5), actors=(), lines=(), fx=(),
-                 fade=0.6, card=None, black=False, tag=None, pan=0):
+                 fade=0.6, card=None, black=False, tag=None, pan=0, back=(), front=()):
         self.t0, self.t1, self.bg_name, self.grade, self.zoom, self.focus = t0, t1, bg_name, grade, zoom, focus
         self.actors, self.lines, self.fx, self.fade, self.card, self.black, self.tag, self.pan = list(actors), list(lines), list(fx), fade, card, black, tag, pan
+        self.back, self.front = list(back), list(front)  # camadas f(cv, t, tl): 'back' entre cenario e atores, 'front' entre atores e efeitos/falas
 
     def render(self, t):
         tl = t - self.t0
@@ -308,8 +316,12 @@ class Shot:
             ox = min(max(ox, 0), W - cw)
             oy = min(max(oy, 0), H - ch)
             cv = base.crop((int(ox), int(oy), int(ox + cw), int(oy + ch))).resize((W, H), Image.BILINEAR).convert('RGBA')
+        for L in self.back:
+            L(cv, t, tl)
         for a in sorted(self.actors, key=lambda a: a.pos(t)[1]):
             a.draw(cv, t)
+        for L in self.front:
+            L(cv, t, tl)
         for f in self.fx:
             if f[0] == 'hit' and f[1] <= t < f[1] + f[6]:
                 p = (t - f[1]) / f[6]

@@ -52,6 +52,15 @@ export const CUTSCENES: CutsceneDef[] = [
   { id: '11_tres_troncos', title: 'Os Três Troncos', trigger: { missions: ['tronco_sahur', 'tronco_sahur_god', 'tronco_sahur_evil'] } },
   { id: '12_subsolo_cassino', title: 'O Segredo do Subsolo', trigger: { missions: ['cas_subsolo'] } },
   { id: '13_pedra_moai', title: 'A Pedra Moai', trigger: { missions: ['moai_stone'] } },
+  // ---- Expansão marítima: encerramentos de arco (missões de src/game/story/missionsMar.ts) ----
+  { id: '14_mar_antigos', title: 'Os Antigos e a Tábua', trigger: { missions: ['mar_ruinas'] } },
+  { id: '15_mar_fantasma', title: 'O Fantasma do Capitão Meme', trigger: { missions: ['mar_naufragio'] } },
+  { id: '16_mar_atlantida', title: 'Atlântida, a Cidade Submersa', trigger: { missions: ['mar_chave'] } },
+  { id: '17_mar_marlene', title: 'Dona Marlene, a Baleia Filósofa', trigger: { missions: ['mar_marlene'] } },
+  { id: '18_mar_mapa', title: 'O Mapa Completo do Mar', trigger: { missions: ['mar_mapa'] } },
+  { id: '19_mar_leviata', title: 'A Queda do Leviatã', trigger: { missions: ['mar_sea_beast'] } },
+  { id: '20_mar_segredos', title: 'Quem Sabe Tudo do Mar', trigger: { missions: ['sec_mar_tudo'] } },
+  { id: '21_mar_paz', title: 'O Mar em Paz', trigger: { missions: ['mar_sea_beast', 'mar_mapa', 'mar_marlene'] } },
   { id: 'final_uniao', title: 'Final: A Ilha Inteira', trigger: { ending: 'union' }, final: true },
   { id: 'final_gloria', title: 'Final: O Verdadeiro Meme Fighter', trigger: { ending: 'glory' }, final: true },
   { id: 'final_poder', title: 'Final: O Rei das Sombras', trigger: { ending: 'power' }, final: true },
@@ -86,16 +95,23 @@ export function getCutscene(id: string | null | undefined): CutsceneDef | null {
 }
 
 /**
- * A cutscene que a conclusão de `missionId` libera, ou null. Quando o gatilho lista várias missões, só libera se TODAS já
- * estiverem concluídas (`isCompleted`), ou seja, na última que fechar. `alreadySeen` evita repetir.
+ * TODAS as cutscenes de história que a conclusão de `missionId` libera, na ORDEM DO REGISTRO (CUTSCENES). Quando o gatilho lista várias
+ * missões, só libera se TODAS já estiverem concluídas (`isCompleted`), ou seja, na última que fechar. `alreadySeen` evita repetir.
+ * Uma missão pode fechar duas cenas (ex.: mar_sea_beast fecha "A Queda do Leviatã" e, se o resto já estiver feito, "O Mar em Paz").
  */
-export function cutsceneForMission(missionId: string, isCompleted: (missionId: string) => boolean, alreadySeen: (cutsceneId: string) => boolean = () => false): CutsceneDef | null {
+export function cutscenesForMission(missionId: string, isCompleted: (missionId: string) => boolean, alreadySeen: (cutsceneId: string) => boolean = () => false): CutsceneDef[] {
+  const out: CutsceneDef[] = [];
   for (const c of CUTSCENES) {
     if (!('missions' in c.trigger) || !c.trigger.missions.includes(missionId)) continue;
     if (alreadySeen(c.id)) continue;
-    if (c.trigger.missions.every((m) => m === missionId || isCompleted(m))) return c;
+    if (c.trigger.missions.every((m) => m === missionId || isCompleted(m))) out.push(c);
   }
-  return null;
+  return out;
+}
+
+/** Compatível com o uso antigo: só a PRIMEIRA cutscene (ou null). Prefira `cutscenesForMission`. */
+export function cutsceneForMission(missionId: string, isCompleted: (missionId: string) => boolean, alreadySeen: (cutsceneId: string) => boolean = () => false): CutsceneDef | null {
+  return cutscenesForMission(missionId, isCompleted, alreadySeen)[0] ?? null;
 }
 
 /** A cutscene curta de um evento de ação (ver SHORT_EVENTS), ou null. */
@@ -116,4 +132,9 @@ export function cutsceneForEnding(ending: EndingKind): CutsceneDef | null {
 export function enqueueCutscene(queue: string[], id: string, alreadySeen: (cutsceneId: string) => boolean): string[] {
   if (!CUTSCENE_BY_ID[id] || alreadySeen(id) || queue.includes(id)) return queue;
   return [...queue, id];
+}
+
+/** Enfileira várias de uma vez, na ordem dada (duplicadas, desconhecidas e já vistas são ignoradas). */
+export function enqueueCutscenes(queue: string[], ids: readonly string[], alreadySeen: (cutsceneId: string) => boolean): string[] {
+  return ids.reduce((q, id) => enqueueCutscene(q, id, alreadySeen), queue);
 }

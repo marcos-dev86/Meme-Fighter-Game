@@ -1,0 +1,37 @@
+{
+  "splash": {
+    "frames": 15,
+    "w": 66,
+    "h": 77
+  },
+  "spike": {
+    "frames": 20,
+    "w": 64,
+    "h": 64
+  },
+  "ball_impact": {
+    "frames": 13,
+    "w": 64,
+    "h": 64
+  },
+  "ball_fly": {
+    "frames": 21,
+    "w": 64,
+    "h": 64
+  },
+  "blast_end": {
+    "frames": 8,
+    "w": 128,
+    "h": 128
+  },
+  "vortex": {
+    "frames": 11,
+    "w": 128,
+    "h": 128
+  },
+  "bubble": {
+    "frames": 5,
+    "w": 16,
+    "h": 16
+  }
+}

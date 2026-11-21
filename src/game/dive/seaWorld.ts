@@ -333,6 +333,49 @@ export function portalAt(x: number, y: number, radius = 1.6): Portal | null {
   return null;
 }
 
+// ---- onde reaparecer (nunca dentro da parede) -------------------------------------------------------------------------
+/** O tile e os vizinhos a até `margin` tiles não são rocha nem pilar? (margin 0 = só o próprio tile.) */
+function openWithMargin(x: number, y: number, margin: number): boolean {
+  for (let dy = -margin; dy <= margin; dy++) for (let dx = -margin; dx <= margin; dx++) if (isSeaSolid(x + dx, y + dy)) return false;
+  return true;
+}
+
+/**
+ * Tile de mar livre mais perto de (x, y), a pelo menos `minDist` tiles dele (anéis crescentes até `maxRing`).
+ * Serve para o jogador reaparecer no mar sem nascer dentro de um pilar de rocha (ficaria preso: toda direção bloqueada).
+ */
+export function clearSeaTile(x: number, y: number, opt: { minDist?: number; margin?: number; maxRing?: number } = {}): { x: number; y: number } | null {
+  const minDist = opt.minDist ?? 0;
+  const margin = opt.margin ?? 0;
+  const maxRing = opt.maxRing ?? 24;
+  for (let r = Math.max(0, Math.floor(minDist)); r <= maxRing; r++) {
+    let best: { x: number; y: number } | null = null;
+    let bd = 1e9;
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (r > 0 && Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+        const d = Math.hypot(dx, dy);
+        if (d < minDist || d >= bd) continue;
+        if (!openWithMargin(x + dx, y + dy, margin)) continue;
+        best = { x: x + dx, y: y + dy };
+        bd = d;
+      }
+    }
+    if (best) return best;
+  }
+  return null;
+}
+
+/**
+ * Onde o jogador volta ao mar depois de sair de um local: 3 tiles abaixo da entrada (fora do alcance do botão de entrar) quando
+ * esse tile está livre; senão o tile livre mais perto que fique fora desse alcance. Nunca devolve tile sólido.
+ */
+export function seaReturnTile(portal: { x: number; y: number }): { x: number; y: number } {
+  const pref = { x: portal.x, y: portal.y + 3 };
+  if (openWithMargin(pref.x, pref.y, 1)) return pref;
+  return clearSeaTile(portal.x, portal.y, { minDist: 2.5, margin: 1 }) ?? clearSeaTile(portal.x, portal.y, { minDist: 2.5 }) ?? { x: portal.x, y: portal.y };
+}
+
 // ---- baús do mar aberto ----------------------------------------------------------------------------------------------
 export const CHEST_CELL = 48;
 

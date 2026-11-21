@@ -82,8 +82,8 @@ import { getStoryDifficulty } from '@/game/state/difficulty';
 import { NPCS, OUTDOOR_NPCS, type NpcDef } from '@/game/world/npcs';
 import { isPlacementActive } from '@/game/world/npcActive';
 import { endingShouldPlay } from '@/game/story/storyEnding';
-import { cutsceneForMission } from '@/game/story/cutscenes';
-import { cutsceneSeen, nextQueuedCutscene, queueCutscene } from '@/game/story/cutsceneState';
+import { cutscenesForMission } from '@/game/story/cutscenes';
+import { cutsceneSeen, nextQueuedCutscene, queueCutscenes } from '@/game/story/cutsceneState';
 import { isShortCutscenePlaying, playShortCutscene, queueShortEvent, takeQueuedShortEvent } from '@/game/story/shortCutsceneState';
 import { CLIMB_COOLDOWN_MS, climbEventOnEntry } from '@/game/world/climbEvents';
 import { BOSS_LORE } from '@/game/story/bossLore';
@@ -413,8 +413,8 @@ export function WorldScreen() {
     const off = onMissionCompleted((def, reward) => {
       // Cutscene em vídeo: só para missões concluídas NESTA sessão (não durante o carregamento do save).
       if (!bootingRef.current) {
-        const cs = cutsceneForMission(def.id, (m) => getQuestStatus(m) === 'completed', cutsceneSeen);
-        if (cs) queueCutscene(cs.id);
+        // Uma missão pode fechar mais de uma cena (ex.: Sea Beast = "A Queda do Leviatã" + "O Mar em Paz"): entram todas, na ordem do registro.
+        queueCutscenes(cutscenesForMission(def.id, (m) => getQuestStatus(m) === 'completed', cutsceneSeen).map((c) => c.id));
       }
       if (!bootingRef.current) {
         // Parte 2: aparição do rival e elites que a missão libera.

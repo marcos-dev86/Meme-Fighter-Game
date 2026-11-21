@@ -1,4 +1,4 @@
-# Cutscenes — todas em VÍDEO (16 de história + 16 curtas por ação, ligadas ao jogo)
+# Cutscenes — todas em VÍDEO (24 de história + 16 curtas por ação, ligadas ao jogo)
 
 Pasta prevista para os vídeos quando liberados: `assets/cutscenes/` (um arquivo por cena, nomes abaixo). Nada foi gerado.
 
@@ -34,9 +34,9 @@ Precisa de: sprites animados (as folhas novas já têm andar, soco e nocaute), c
 
 ---
 
-## Estado atual: 16 cutscenes prontas e ligadas ao jogo
+## Estado atual: 24 cutscenes de história prontas e ligadas ao jogo
 Todas são arquivos `.mp4` em `assets/cutscenes/` (H.264 main, AAC, 1280x720, 30 fps). O jogo só abre o arquivo (decodificação nativa, `expo-video`).
-Nada é animado por código em tempo real. Total ≈ 62 MB.
+Nada é animado por código em tempo real. Total ≈ 100 MB (as 8 do arco do mar somam ≈ 40 MB).
 
 | Arquivo | Quando toca | Duração |
 |---|---|---|
@@ -53,6 +53,14 @@ Nada é animado por código em tempo real. Total ≈ 62 MB.
 | 11_tres_troncos | concluir as TRÊS missões dos troncos (Laranja, Anjo, Diabo) | 36 s |
 | 12_subsolo_cassino | concluir "O Segredo do Subsolo" | 40 s |
 | 13_pedra_moai | concluir "A Pedra Moai" | 40 s |
+| 14_mar_antigos | concluir "O Menu Antigo" (mar_ruinas): os Antigos e a Tábua | 38 s |
+| 15_mar_fantasma | concluir "O Naufrágio do Capitão" (mar_naufragio): o Fantasma do Capitão Meme | 38 s |
+| 16_mar_atlantida | concluir "A Chave de Atlântida" (mar_chave): Atlântida, a cidade submersa | 38 s |
+| 17_mar_marlene | concluir "Pergunta Existencial" (mar_marlene) | 40 s |
+| 18_mar_mapa | concluir "Mapa Completo" (mar_mapa) | 38 s |
+| 19_mar_leviata | concluir "O Predador do Abismo" = derrotar o Sea Beast (mar_sea_beast): a queda do Leviatã | 40 s |
+| 20_mar_segredos | concluir a secreta "Quem Sabe Tudo do Mar" (sec_mar_tudo) | 40 s |
+| 21_mar_paz | fecha o arco: Sea Beast + Mapa + Marlene concluídos (dispara na ÚLTIMA das três) | 38 s |
 | final_uniao | final A Ilha Inteira (antes dos slides de texto) | 88 s |
 | final_gloria | final O Verdadeiro Meme Fighter | 90 s |
 | final_poder | final O Rei das Sombras | 90 s |
@@ -61,6 +69,9 @@ Nada é animado por código em tempo real. Total ≈ 62 MB.
   ou se não carregar em 10 s (nunca trava); música/ambiente do jogo calam durante o vídeo; pausa ao ir para segundo plano; um toque inicia na web se o autoplay for bloqueado.
 - **Gatilhos** (`story/cutscenes.ts`): só tocam para missões concluídas NESTA sessão de jogo (saves antigos não recebem vídeos de repente), uma vez por save
   (bandeira `cs:<id>`), e só com o mundo livre (sem diálogo, escolha, interior, barco ou chefe aberto). O final tem prioridade.
+- **Arco do mar (14–21):** feitas por `tools/cutscenes/scenes_mar.py` (fundos submersos montados com os tiles de Atlântida do pacote `new-sea-assets`, sprites de
+  tritões/sereias, Poseidon, Sea Beast, baleia). Fontes copiadas em `assets/sea/cutscene-src/`. Gatilho plural: `cutscenesForMission()` devolve TODAS as cenas liberadas
+  pela missão concluída (em ordem de registro) e `queueCutscenes()` as enfileira uma a uma, sem repetir as já vistas (`cs:<id>`).
 - **Rever:** Opções → REVER CUTSCENES (lista as já vistas).
 - **Como foram feitas:** `tools/cutscenes/engine.py` (motor PIL + ffmpeg, offline) + `scenes_a.py`, `scenes_b.py`, `finals.py`; rodar
   `python3 tools/cutscenes/run.py 02 03 ...` (ou sem argumentos para todas) regrava os mp4. `render_01.py` gerou a 01.

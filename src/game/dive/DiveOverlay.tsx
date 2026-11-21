@@ -10,6 +10,8 @@ import { useDirectionalInput } from '@/game/input/useDirectionalInput';
 import type { Direction, MapDef } from '@/types/game';
 import { MenuButton } from '@/game/menu/MenuButton';
 import { GameIcon } from '@/game/ui/GameIcon';
+import { Emoji } from '@/game/ui/Emoji';
+import { getSettings } from '@/game/state/settingsState';
 import { CharacterMarker } from '@/game/world/CharacterMarker';
 import { ShopOverlay } from '@/game/world/ShopOverlay';
 import { SPRITE_ASPECTS, walkFrames } from '@/game/battle/sprites';
@@ -37,11 +39,16 @@ import { REVEAL_SCENES, introFor } from './diveScenes';
 import { EVENTS, rollEvent, rollWorldEvent, tickEvent, useSpot, type ActiveEvent, type EventReward } from './diveEvents';
 import { SITES, ALL_SITES, SWIM_SPEED, TILE, buildGrid, crossingFor, isBreathableChar, isSolidChar, tileAt, type DiveChest, type DiveSite } from './diveSites';
 import { WORLD_SITE, createSim, createWorldSim, feedCreature, nearestFriend, playerStrike, stepSim, syncWorldChunks, type DiveEntity, type DiveSim } from './diveSim';
-import { SEA_H, SEA_W, chestsNear, coastTiles, findLanding, getPortals, islandNear, moodAt, portalAt, regionNameAt, seaChar, type SeaChest, type SeaMood } from './seaWorld';
+import { SEA_H, SEA_W, chestsNear, clearSeaTile, coastTiles, findLanding, getPortals, islandNear, moodAt, portalAt, regionNameAt, seaChar, seaReturnTile, type SeaChest, type SeaMood } from './seaWorld';
 import {
   buffMsLeft, creaturesKnown, currentBreathMods, diveConsumables, getCreatureRecord, getDiveData, getEventHistory, noteEventDone, noteEventStarted, isChestOpen, logCreatureDefeated, logCreatureHelped, logCreatureSeen, markDiscovered, markSceneSeen, noteCrossing, noteDiveStart,
   noteSwim, openChest, revealWall, revealedWalls, sceneSeen, siteUnlocked, tickBuff, useDiveItem,
 } from './diveState';
+import { SeaFxLayer, type ActiveFx } from './SeaFxLayer';
+import {
+  EMOJI_BLOCKED, allowedInLightMode, emojiForBreathEvent, emojiForBossPattern, fxForBossRelease, fxForBossTelegraph, fxForBreathEvent, fxForCurrent, fxForStrike, fxForWaterTransition,
+  pressureSqueezing, type FxSpawn, type SeaEmojiName,
+} from './seaFx';
 import { DIVE_MAP_IMG, FLOOR_REVEAL_IMG, SEA_SHEET_IMG } from './seaAssets';
 
 const PLAYER_SIZE = { x: 22, y: 30 };
@@ -227,6 +234,15 @@ export function DiveOverlay({ startTile, startDock, fighter, onSurface, onDowned
   const [hpFrac, setHpFrac] = useState(() => fighter.health / fighter.maxHealth);
   const [flash, setFlash] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
+  const [toastEmoji, setToastEmoji] = useState<SeaEmojiName | null>(null);
+  /** Efeitos de água ativos (cada um nasce de um evento real: ver seaFx.ts). */
+  const [fxItems, setFxItems] = useState<ActiveFx[]>([]);
+  const fxSeq = useRef(0);
+  /** Golpes do chefe em andamento (uid -> aviso), para soltar o efeito quando o aviso acaba. */
+  const bossTgRef = useRef<Map<string, { kind: import('./diveCreatures').BossPattern; x: number; y: number; r: number }>>(new Map());
+  const currentFxMs = useRef(0);
+  const [squeeze, setSqueeze] = useState(false);
+  const squeezeRef = useRef(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [action, setAction] = useState<Action | null>(null);
   const actionRef = useRef<Action | null>(null);
@@ -238,7 +254,17 @@ export function DiveOverlay({ startTile, startDock, fighter, onSurface, onDowned
   const [journal, setJournal] = useState(false);
   const [, bump] = useState(0);
 
-  const say = (msg: string, ms = 2400) => {
+  const spawnFx = (list: FxSpawn[]) => {
+    if (!list.length) return;
+    const light = getSettings().lightMode;
+    const keep = light ? list.filter(allowedInLightMode) : list;
+    if (!keep.length) return;
+    setFxItems((cur) => [...cur, ...keep.map((f) => ({ ...f, key: `fx${(fxSeq.current += 1)}` }))].slice(-28));
+  };
+  const endFx = (key: string) => setFxItems((cur) => cur.filter((f) => f.key !== key));
+
+  const say = (msg: string, ms = 2400, emoji: SeaEmojiName | null = null) => {
+    setToastEmoji(emoji);
     setToast(msg);
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), ms);
@@ -293,7 +319,9 @@ export function DiveOverlay({ startTile, startDock, fighter, onSurface, onDowned
   };
 
   /** Entra no MAR ABERTO num tile do mundo: criaturas por área, evento aleatório ao redor. */
-  const enterWorld = (tile: { x: number; y: number }, withEvent = true) => {
+  const enterWorld = (want: { x: number; y: number }, withEvent = true) => {
+    // nunca nasce dentro de rocha ou pilar (o jogador ficaria preso): usa o tile livre mais perto do pedido
+    const tile = clearSeaTile(want.x, want.y) ?? want;
     setMode('world');
     gridRef.current = [];
     const sim = createWorldSim();
@@ -339,7 +367,7 @@ export function DiveOverlay({ startTile, startDock, fighter, onSurface, onDowned
     setCaption(introFor('mar', 'Mar Aberto', false));
     setPhaseBoth('cross');
     setTimeout(() => {
-      enterWorld({ x: ret.x, y: ret.y + 3 }, false);
+      enterWorld(seaReturnTile(ret), false);
       setPhaseBoth('in');
       setTimeout(() => setPhaseBoth('play'), 900);
     }, 900);
@@ -350,6 +378,7 @@ export function DiveOverlay({ startTile, startDock, fighter, onSurface, onDowned
     clearDamageCause();
     noteDiveStart();
     enterWorld(startTile);
+    spawnFx(fxForWaterTransition('dive', { x: startTile.x * TILE + TILE / 2, y: startTile.y * TILE + TILE / 2 }));
     const first = !sceneSeen('intro_mar');
     markSceneSeen('intro_mar');
     const timer = setTimeout(() => setPhaseBoth('play'), first ? 2600 : 1500);
@@ -493,21 +522,34 @@ export function DiveOverlay({ startTile, startDock, fighter, onSurface, onDowned
     const br = stepBreath(breathRef.current, dtMs, { submerged: true, breathable, deep, mods });
     breathRef.current = br.state;
     for (const ev of br.events) {
+      spawnFx(fxForBreathEvent(ev, feetC));
       if (ev === 'low') {
-        say(t('dive_low'));
+        say(t('dive_low'), 2400, emojiForBreathEvent(ev));
         playSfx('ui_denied');
       } else if (ev === 'empty') {
-        say(t('dive_empty'), 3000);
+        say(t('dive_empty'), 3000, emojiForBreathEvent(ev));
         haptic('medium');
       } else if (ev === 'recovered') {
         say(t('dive_recovered'));
         noteStat('dive_survived_empty'); // chegou a se afogar e voltou a respirar
       }
-      else if (ev === 'pressure') say(t('dive_pressure'));
+      else if (ev === 'pressure') say(t('dive_pressure'), 2400, emojiForBreathEvent(ev));
     }
     if (br.damageFrac > 0 && br.hazard) hurt(br.damageFrac, { kind: 'hazard', hazard: br.hazard, region: regionName });
     tickBuff(dtMs);
     noteSwim(dt, deep, mods.infinite);
+    const sq = pressureSqueezing({ deep, breathable, mods });
+    if (sq !== squeezeRef.current) {
+      squeezeRef.current = sq;
+      setSqueeze(sq);
+    }
+    if ((pushX !== 0 || pushY !== 0) && !sim.pull.x && !sim.pull.y) {
+      currentFxMs.current += dtMs;
+      if (currentFxMs.current >= 420) {
+        currentFxMs.current = 0;
+        spawnFx(fxForCurrent({ x: pushX, y: pushY }, feetC, Math.random));
+      }
+    }
 
     // --- Fumarolas e água gelada (dano periódico)
     if (ch === '~' || ch === 'k') {
@@ -522,6 +564,20 @@ export function DiveOverlay({ startTile, startDock, fighter, onSurface, onDowned
     // --- Criaturas
     if (world) for (const e of syncWorldChunks(sim, ft.x, ft.y, { questWhale: hasFlag('quest_whale_called') })) logCreatureSeen(e.def.id);
     const contacts = stepSim(sim, dtMs, { x: feetC.x, y: feetC.y });
+    // Sea Beast: o aviso do golpe começa (redemoinho da isca) e acaba (a água cai onde o círculo vermelho estava)
+    for (const e of sim.entities) {
+      if (!e.boss) continue;
+      const tg = e.boss.telegraph;
+      const tracked = bossTgRef.current.get(e.uid);
+      if (tg && !tracked) {
+        bossTgRef.current.set(e.uid, { kind: tg.kind, x: tg.x, y: tg.y, r: tg.r });
+        spawnFx(fxForBossTelegraph(tg.kind, { x: tg.x, y: tg.y }, tg.r, tg.totalMs));
+        if (tg.kind === 'sweep' || tg.kind === 'lure') say(t(tg.kind === 'sweep' ? 'dive_boss_sweep' : 'dive_boss_lure'), 1800, emojiForBossPattern(tg.kind));
+      } else if (!tg && tracked) {
+        bossTgRef.current.delete(e.uid);
+        spawnFx(fxForBossRelease(tracked.kind, { x: tracked.x, y: tracked.y }, tracked.r));
+      }
+    }
     for (const b of sim.spawned) logCreatureSeen(b.def.id); // filhotes invocados contam no diário
 
     // --- Evento aleatório: cardume dourado se pega encostando; o resto por botão; acaba por tempo
@@ -656,6 +712,7 @@ export function DiveOverlay({ startTile, startDock, fighter, onSurface, onDowned
     const feetC = { x: positionRef.current.x + FEET.x + FEET.w / 2, y: positionRef.current.y + FEET.y + FEET.h / 2 };
     playSfx(attack === 'light' ? 'water' : 'hit_heavy', { minGapMs: 80 });
     const res = playerStrike(simRef.current, feetC, facingVec.current, attack, base);
+    for (const h of res.hits) spawnFx(fxForStrike(attack, { x: h.entity.x, y: h.entity.y }, h.killed));
     for (const k of res.kills) {
       const def = k.def;
       logCreatureDefeated(def.id);
@@ -740,7 +797,7 @@ export function DiveOverlay({ startTile, startDock, fighter, onSurface, onDowned
       const landing = findLanding(ft2.x, ft2.y);
       if (!landing) {
         // costa só de parede (borda da ilha): não há onde pisar aqui, então não emerge; é só nadar para outro ponto da costa
-        say(t('dive_no_landing'), 3000);
+        say(t('dive_no_landing'), 3000, EMOJI_BLOCKED);
         playSfx('ui_denied');
         return;
       }
@@ -750,6 +807,7 @@ export function DiveOverlay({ startTile, startDock, fighter, onSurface, onDowned
         refreshMissions();
       }
       setCaption(introFor('saida', '', false));
+      spawnFx(fxForWaterTransition('surface', f));
       setPhaseBoth('out');
       setTimeout(() => onSurface(landing, endDock), 1200);
     } else if (a.kind === 'espot') {
@@ -917,6 +975,7 @@ export function DiveOverlay({ startTile, startDock, fighter, onSurface, onDowned
             </View>
           ),
         )}
+        <SeaFxLayer items={fxItems} onDone={endFx} />
         <Animated.View style={[styles.player, playerStyle]}>
           {wears && <CapeLayer characterKey={bodyChar} poseKey={bodyPose} box={bodyBox} dir={bodyDir} cosmeticId={cosEq.cape} />}
           <Image
@@ -931,6 +990,7 @@ export function DiveOverlay({ startTile, startDock, fighter, onSurface, onDowned
       {/* água: banho azul, escuridão do fundo, tinta do polvo e piscada de dano */}
       <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(10,70,140,0.16)' }]} />
       {dark > 0 && <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: `rgba(0,0,12,${dark})` }]} />}
+      {squeeze && <View pointerEvents="none" testID="dive-pressure-squeeze" style={[StyleSheet.absoluteFill, { borderWidth: 16, borderColor: 'rgba(0,10,50,0.55)' }]} />}
       {sim.inkMs > 0 && <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(5,0,15,0.72)' }]} />}
       {flash > 0 && <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: `rgba(255,0,0,${0.35 * flash})` }]} />}
 
@@ -974,6 +1034,7 @@ export function DiveOverlay({ startTile, startDock, fighter, onSurface, onDowned
 
       {toast && (
         <View pointerEvents="none" style={styles.toast}>
+          {toastEmoji && <Emoji name={toastEmoji} size={26} style={{ alignSelf: 'center', marginBottom: 4 }} />}
           <Text style={styles.toastText}>{toast}</Text>
         </View>
       )}

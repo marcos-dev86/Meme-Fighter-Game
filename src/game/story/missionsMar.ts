@@ -85,7 +85,7 @@ export const MAR_MISSIONS: MissionDef[] = [
     reward: { coins: 250, xp: 280 }, objective: { kind: 'flag', flag: 'dive_site_fumarolas' } }),
   M({ id: 'mar_gruta', title: 'Gruta Gelada', hint: 'Nade até a entrada da Gruta Gelada (no mar, perto do cais da ilha do gelo). A água gelada machuca.', type: 'discover', chapter: CH, requires: ['mar_fumarolas', 'visit_gelo'],
     reward: { coins: 250, xp: 280 }, objective: { kind: 'flag', flag: 'dive_site_gruta' } }),
-  M({ id: 'mar_travessia_dura', title: 'Fôlego de Aço', hint: 'Mergulhe na costa do Acampamento e emerja na costa do Vulcão, num só mergulho. É longe: planeje bolsões de ar, poções e equipamento.', type: 'discover', chapter: CH, requires: ['mar_fumarolas', 'mar_lagoa'],
+  M({ id: 'mar_travessia_dura', title: 'Fôlego de Aço', hint: 'Mergulhe na costa do Acampamento e emerja na costa do Vulcão, num só mergulho. É longe e passa por águas fundas: sem proteção contra a pressão (a Armadura de Coral, no baú do Abismo) a pressão te derruba. Planeje bolsões de ar, poções e equipamento.', type: 'discover', chapter: CH, requires: ['mar_fumarolas', 'mar_lagoa'],
     reward: { coins: 350, xp: 360, items: { diver_elixir: 1 } }, objective: { kind: 'flag', flag: 'dive_cross_cross_lagoa_fumarolas' } }),
   M({ id: 'mar_canto', title: 'Canto Distante', hint: 'Pergunte ao Cientista Nemo sobre os sons graves que vêm de Atlântida.', type: 'talk', chapter: CH, requires: ['mar_atlantis'],
     reward: { coins: 60, xp: 100, flag: 'quest_whale_called' }, objective: { kind: 'talk', npcId: 'cientista_nemo' } }),

@@ -1,7 +1,7 @@
 /**
  * Testes das cutscenes em vídeo: registro, gatilhos (lógica pura), arquivos e ligação no código.
  *   node tools/test-cutscenes.mjs            (arquivos .mp4 ausentes viram "skip" avisando quais faltam)
- *   CUTSCENES_STRICT=1 node tools/test-cutscenes.mjs   (exige os 32 mp4 e confere codec/tamanho/duração com ffprobe)
+ *   CUTSCENES_STRICT=1 node tools/test-cutscenes.mjs   (exige os 40 mp4 e confere codec/tamanho/duração com ffprobe)
  */
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
@@ -17,7 +17,7 @@ const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8')
 const exists = (p) => fs.existsSync(new URL(`../${p}`, import.meta.url));
 const STRICT = process.env.CUTSCENES_STRICT === '1';
 
-const missionSrc = ['missionsDogge', 'missionsCassino', 'missionsStory'].map((f) => read(`src/game/story/${f}.ts`)).join('\n');
+const missionSrc = ['missionsDogge', 'missionsCassino', 'missionsStory', 'missionsMar'].map((f) => read(`src/game/story/${f}.ts`)).join('\n');
 const missionIds = new Set([...missionSrc.matchAll(/\bid: '([a-z0-9_]+)'/g)].map((m) => m[1]));
 const assetsSrc = read('src/game/story/cutsceneAssets.ts');
 const STORY = CS.CUTSCENES.filter((c) => !c.short);
@@ -25,11 +25,11 @@ const SHORT = CS.CUTSCENES.filter((c) => c.short);
 const missingFiles = CS.CUTSCENES.filter((c) => !exists(`assets/cutscenes/${c.id}.mp4`)).map((c) => c.id);
 
 describe('registro das cutscenes', () => {
-  it('tem 32 itens: 16 de história (13 + 3 finais) + 16 curtas por ação, ids únicos', () => {
-    assert.equal(CS.CUTSCENES.length, 32);
-    assert.equal(STORY.length, 16);
+  it('tem 40 itens: 24 de história (13 + 8 do mar + 3 finais) + 16 curtas por ação, ids únicos', () => {
+    assert.equal(CS.CUTSCENES.length, 40);
+    assert.equal(STORY.length, 24);
     assert.equal(SHORT.length, 16);
-    assert.equal(new Set(CS.CUTSCENES.map((c) => c.id)).size, 32);
+    assert.equal(new Set(CS.CUTSCENES.map((c) => c.id)).size, 40);
     assert.equal(CS.CUTSCENES.filter((c) => c.final).length, 3);
     for (const c of CS.CUTSCENES) assert.ok(c.title.length > 3, c.id);
   });
@@ -48,7 +48,7 @@ describe('registro das cutscenes', () => {
   });
   it('cada cutscene tem a entrada em cutsceneAssets.ts apontando para assets/cutscenes/<id>.mp4', () => {
     for (const c of CS.CUTSCENES) assert.ok(assetsSrc.includes(`assets/cutscenes/${c.id}.mp4'`), c.id);
-    assert.equal([...assetsSrc.matchAll(/require\(/g)].length, 32);
+    assert.equal([...assetsSrc.matchAll(/require\(/g)].length, 40);
   });
   it('arquivos .mp4 existem', { skip: !STRICT && missingFiles.length ? `ainda faltam ${missingFiles.length}: ${missingFiles.join(', ')}` : false }, () => {
     assert.deepEqual(missingFiles, []);
@@ -120,6 +120,39 @@ describe('cutscenes curtas por ação', () => {
 
 describe('gatilhos (lógica pura)', () => {
   const done = (set) => (m) => set.has(m);
+  it('MAR: cada missão do arco libera a sua cena, uma só vez (persistência pelo "já vista")', () => {
+    const MAP = { mar_ruinas: '14_mar_antigos', mar_naufragio: '15_mar_fantasma', mar_chave: '16_mar_atlantida', mar_marlene: '17_mar_marlene', mar_mapa: '18_mar_mapa', sec_mar_tudo: '20_mar_segredos' };
+    for (const [m, id] of Object.entries(MAP)) {
+      assert.equal(CS.cutscenesForMission(m, done(new Set([m])))[0]?.id, id, m);
+      assert.deepEqual(CS.cutscenesForMission(m, done(new Set([m])), (x) => x === id).map((c) => c.id).filter((x) => x === id), [], `${m}: já vista não repete`);
+    }
+  });
+  it('MAR: derrotar o Sea Beast fecha "A Queda do Leviatã" e, com mapa+Marlene feitos, TAMBÉM "O Mar em Paz" (na ordem do registro)', () => {
+    const all = new Set(['mar_sea_beast', 'mar_mapa', 'mar_marlene']);
+    assert.deepEqual(CS.cutscenesForMission('mar_sea_beast', done(all)).map((c) => c.id), ['19_mar_leviata', '21_mar_paz']);
+    // sem o resto, só a queda do Leviatã
+    assert.deepEqual(CS.cutscenesForMission('mar_sea_beast', done(new Set(['mar_sea_beast']))).map((c) => c.id), ['19_mar_leviata']);
+    // a ÚLTIMA das três fecha a paz, qualquer que seja
+    for (const last of ['mar_sea_beast', 'mar_mapa', 'mar_marlene']) {
+      const s = new Set(['mar_sea_beast', 'mar_mapa', 'mar_marlene']);
+      const ids = CS.cutscenesForMission(last, done(s), (id) => id === '19_mar_leviata').map((c) => c.id);
+      assert.ok(ids.includes('21_mar_paz'), last);
+    }
+    for (const first of ['mar_mapa', 'mar_marlene']) assert.ok(!CS.cutscenesForMission(first, done(new Set([first]))).some((c) => c.id === '21_mar_paz'), `${first} sozinha não fecha a paz`);
+  });
+  it('MAR: compatibilidade — cutsceneForMission (singular) devolve a primeira; fila enfileira todas sem duplicar e sem as já vistas', () => {
+    const all = new Set(['mar_sea_beast', 'mar_mapa', 'mar_marlene']);
+    assert.equal(CS.cutsceneForMission('mar_sea_beast', done(all))?.id, '19_mar_leviata');
+    let q = CS.enqueueCutscenes([], ['19_mar_leviata', '21_mar_paz', '19_mar_leviata', 'nao_existe'], () => false);
+    assert.deepEqual(q, ['19_mar_leviata', '21_mar_paz']);
+    q = CS.enqueueCutscenes([], ['19_mar_leviata', '21_mar_paz'], (id) => id === '19_mar_leviata');
+    assert.deepEqual(q, ['21_mar_paz']);
+  });
+  it('MAR: gatilhos reais — as 8 cenas do mar usam só missões existentes e nenhuma usa a missão final da história', () => {
+    const mar = CS.CUTSCENES.filter((c) => /^(1[4-9]|2[01])_mar_/.test(c.id));
+    assert.equal(mar.length, 8);
+    for (const c of mar) { assert.ok(!c.final && !c.short); for (const m of c.trigger.missions) assert.ok(missionIds.has(m), `${c.id}: ${m}`); }
+  });
   it('missão simples libera a cutscene dela, uma só vez', () => {
     assert.equal(CS.cutsceneForMission('talk_bento', done(new Set(['talk_bento'])))?.id, '01_flashback_vovo');
     assert.equal(CS.cutsceneForMission('talk_bento', done(new Set(['talk_bento'])), (id) => id === '01_flashback_vovo'), null);
@@ -167,7 +200,7 @@ describe('ligação no jogo (código-fonte)', () => {
   });
   it('mundo: só enfileira fora do carregamento e só abre com o mundo livre', () => {
     const w = read('src/screens/WorldScreen.tsx');
-    assert.ok(/cutsceneForMission\(def\.id/.test(w) && /!bootingRef\.current/.test(w));
+    assert.ok(/cutscenesForMission\(def\.id/.test(w) && /queueCutscenes\(/.test(w) && /!bootingRef\.current/.test(w));
     assert.ok(/nextQueuedCutscene\(\)/.test(w) && /\/cutscene\?id=/.test(w));
     const gate = w.match(/cutsceneGateRef\.current = ([^;]+);/)?.[1] ?? '';
     for (const k of ['worldFocused', '!paused', '!interior', '!dialogueNpc', '!choiceNpc', '!questOffer', '!bossOffer', '!downed', '!sail']) assert.ok(gate.includes(k), k);
