@@ -14,7 +14,7 @@ const FLASHBACK: CodeCutscene = {
   music: 'medieval_library',
   ambient: 'wind',
   beats: [
-    { bg: 'stage2', tint: MEM, shot: true, title: 'FLASHBACK', ms: 2600, actors: [{ char: 'c08', kind: 'npc', x: 0.37, y: 0.7, h: 1.9, enter: 'left', anim: 'none' }] },
+    { bg: 'stage2', tint: MEM, shot: true, title: 'FLASHBACK', ms: 3600, cam: { z0: 1, z1: 1.08 }, actors: [{ char: 'c08', kind: 'npc', x: -0.12, y: 0.7, h: 1.9, anim: 'none', dir: 'right', path: [{ t: 0, x: -0.12, y: 0.7 }, { t: 3000, x: 0.37, y: 0.7 }] }] },
     { bg: 'stage2', tint: MEM, speaker: 'Vovô Bento', text: 'Há muito tempo, esta ilha era inteira, e os memes viviam em paz.', ms: 5200, actors: [{ char: 'c08', kind: 'npc', x: 0.37, y: 0.7, h: 1.9, enter: 'none', anim: 'none' }] },
     { bg: 'stage2', tint: MEM, speaker: 'Vovô Bento', text: 'Até o dia em que o poder que a mantinha unida se partiu.', ms: 4800, fx: ['flash', 'shake'], actors: [{ char: 'c08', kind: 'npc', x: 0.37, y: 0.7, h: 1.9, enter: 'none', anim: 'none' }], sfx: [{ key: 'thunder', at: 2800, vol: 0.7 }] },
     { bg: 'stage1', tint: MEM, shot: true, speaker: 'Vovô Bento', text: 'Um guardião ficou com cada pedaço. Na floresta, o Dragão da Floresta...', ms: 5000, actors: [{ char: 'green_dragon', x: 0.5, y: 0.67, h: 0.55, anim: 'bob' }] },

@@ -294,12 +294,34 @@ describe('roteiros em código', () => {
           if (k === 'fig') assert.ok(exists(`assets/sprites-v2/${a.char}/idle.png`), `${c.id}#${i}: lutador ${a.char}`);
           else if (k === 'npc') assert.ok(exists(`assets/npcs/${a.char}.png`), `${c.id}#${i}: npc ${a.char}`);
           else assert.ok(ICONS.has(a.char), `${c.id}#${i}: ícone ${a.char}`);
-          assert.ok(a.x >= -0.05 && a.x <= 1.05 && a.y >= 0 && a.y <= 1.2, `${c.id}#${i}: posição ${a.x},${a.y}`);
+          const lim = (a.path || a.enter) ? 0.7 : 0.05;
+          assert.ok(a.x >= -lim && a.x <= 1 + lim && a.y >= 0 && a.y <= 1.3, `${c.id}#${i}: posição ${a.x},${a.y}`);
           assert.ok(a.h > 0, `${c.id}#${i}: tamanho`);
         }
         for (const ic of b.icons ?? []) assert.ok(ICONS.has(ic.name), `${c.id}#${i}: ícone ${ic.name}`);
       }
     }
+  });
+  it('trajetos, poses, fades, câmera e efeitos: tempos crescentes e dentro do quadro, efeitos que existem', () => {
+    const EFFECTS = new Set(['hit_flash', 'hit_strong', 'hit_ult', 'hit_block', 'item_heal', 'item_attack', 'item_haste', 'item_guard', 'charge_up', 'bomb']);
+    const POSES = new Set(['idle', 'walk', 'dash', 'flash', 'strong', 'shield', 'charge', 'hurt', 'ko']);
+    const inc = (arr, id) => { for (let i = 1; i < arr.length; i++) assert.ok(arr[i].t > arr[i - 1].t, `${id}: tempos fora de ordem`); };
+    let paths = 0, poses = 0, effects = 0, cams = 0;
+    for (const c of scripts) {
+      for (const [i, b] of c.beats.entries()) {
+        const id = `${c.id}#${i}`;
+        const ms = b.ms ?? 3000;
+        for (const a of b.actors ?? []) {
+          if (a.path) { paths++; inc(a.path, id); assert.ok(a.path.length >= 2 && a.path[0].t === 0 && a.path[a.path.length - 1].t <= ms + 50, `${id}: trajeto`); for (const k of a.path) assert.ok(k.x > -0.8 && k.x < 1.8 && k.y > -0.2 && k.y < 1.4, `${id}: ponto ${k.x},${k.y}`); }
+          if (a.poses) { poses++; inc(a.poses, id); for (const k of a.poses) assert.ok(POSES.has(k.pose) && k.t <= ms, `${id}: pose ${k.pose}`); }
+          if (a.fades) { inc(a.fades, id); for (const f of a.fades) assert.ok(f.a >= 0 && f.a <= 1, `${id}: fade`); }
+        }
+        for (const e of b.effects ?? []) { effects++; assert.ok(EFFECTS.has(e.name) && e.t >= 0 && e.t <= ms && e.size > 0, `${id}: efeito ${e.name}`); }
+        if (b.cam) { cams++; assert.ok(b.cam.z0 >= 1 && b.cam.z1 >= 1 && b.cam.z0 <= 1.6 && b.cam.z1 <= 1.6, `${id}: zoom`); }
+        if (b.textFor !== undefined) assert.ok(b.textFor > 0 && b.textFor <= ms, `${id}: textFor`);
+      }
+    }
+    assert.ok(paths >= 30 && poses >= 20 && effects >= 6 && cams >= 100, `movimento perdido: ${paths}/${poses}/${effects}/${cams}`);
   });
   it('as cenas do Dogge mostram o personagem do jogador (skin, chapéu e capa) onde o Dogge aparece', () => {
     for (const c of scripts.filter((x) => x.characterId === 'dogge')) {

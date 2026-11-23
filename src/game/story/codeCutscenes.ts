@@ -26,17 +26,35 @@ export type CodeBg = SceneKey | string;
 
 export type CodeActorKind = 'fig' | 'npc' | 'icon';
 
+/** Ponto de um trajeto: `t` em ms desde o início do quadro; x e y são frações da tela. O movimento entre pontos é suave. */
+export interface CodeKey {
+  t: number;
+  x: number;
+  y: number;
+}
+/** Troca de pose no instante `t` (ms desde o início do quadro). */
+export interface CodePoseKey {
+  t: number;
+  pose: CodePose;
+}
+/** Opacidade `a` (0 a 1) no instante `t`; entre dois pontos muda suavemente. */
+export interface CodeFade {
+  t: number;
+  a: number;
+}
+
 export interface CodeActor {
   /** fig: id do lutador. npc: id do NPC do pacote (c08...). icon: nome de um ícone do jogo. */
   char: string;
   kind?: CodeActorKind;
-  /** Posição do pé (fração da tela). */
+  /** Posição do pé (fração da tela) no começo do quadro. */
   x: number;
   y: number;
   /** fig/icon: altura (fração da tela). npc: escala do sprite original (como no mundo). */
   h: number;
   flip?: boolean;
   pose?: CodePose;
+  /** Entrada simples (só para cenas escritas à mão): desliza de fora da tela. Prefira `path`. */
   enter?: CodeEnter;
   anim?: CodeAnim;
   opacity?: number;
@@ -44,6 +62,31 @@ export interface CodeActor {
   player?: boolean;
   /** Direção do NPC (down, left, right, up). */
   dir?: 'down' | 'left' | 'right' | 'up';
+  /** Trajeto durante o quadro. Enquanto se move, o personagem anda (quadros de caminhada). */
+  path?: CodeKey[];
+  /** Mudanças de pose durante o quadro. */
+  poses?: CodePoseKey[];
+  /** Aparece e some aos poucos (opacidade ao longo do quadro). */
+  fades?: CodeFade[];
+}
+
+/** Câmera de um quadro: zoom de `z0` até `z1` (com foco `fx`,`fy`) e deslize lateral `pan` (fração da largura, positivo = para a direita). */
+export interface CodeCam {
+  z0: number;
+  z1: number;
+  fx?: number;
+  fy?: number;
+  pan?: number;
+}
+
+/** Efeito de golpe (as animações de hit_flash, hit_strong, hit_ult, charge_up do jogo) no instante `t` do quadro. */
+export interface CodeEffect {
+  name: string;
+  t: number;
+  x: number;
+  y: number;
+  /** Tamanho de um quadro do efeito, em fração da altura da tela. */
+  size: number;
 }
 
 export interface CodeIcon {
@@ -73,8 +116,14 @@ export interface CodeBeat {
   speaker?: Loc;
   text?: Loc;
   fx?: CodeFx[];
+  /** Câmera do quadro (zoom e deslize suaves). Sem ela, vale um zoom lento de 1,0 até 1,05. */
+  cam?: CodeCam;
+  /** Efeitos de golpe nos instantes certos. */
+  effects?: CodeEffect[];
   /** Duração em ms; se faltar, é calculada pelo tamanho do texto. */
   ms?: number;
+  /** Por quanto tempo a fala fica na tela (ms); se faltar, fica até o fim do quadro. */
+  textFor?: number;
   /** Primeiro quadro de uma tomada nova: entra com uma transição a partir do preto. */
   shot?: boolean;
   sfx?: CodeSfx[];
