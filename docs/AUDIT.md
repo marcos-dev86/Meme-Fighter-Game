@@ -1024,8 +1024,8 @@ exploração sólida primeiro.
 - **Descrições** (`items/itemBonusText.ts`, `skillText.ts`): linhas de bônus nos 5 idiomas na cor da raridade, no Inventário e na Loja (os números saem da mesma tabela do combate, então não divergem; um teste confere item por item).
 
 ### Verificado
-- `npx tsc --noEmit`: 0 erros (antes e depois). `node tools/test-parte01.mjs`: 65/65 (tabela de raridade, contas de dano/guarda/cura/energia, procs com 20 mil sorteios, textos nos 5 idiomas sem `{}` sobrando, limites dos efeitos, flash/reação em TODOS os 11 lutadores, sem mudar dano/hitstun/hitbox).
-- `node tools/e2e-parte01.mjs <dist>`: **90/90** no Expo Web + Chromium (Playwright), luta real contra a CPU, 10 oponentes: flash em todos (maior episódio 150 ms; começa em 1,00 e decai), caixa do flash igual à do sprite com diferença 0,00 px em ~800 quadros, prova por pixels (flash 92 a 97% branco vs 0 a 6% no sprite normal, em gadigago, mystic, dogking, ninja, 3 dragões), números vermelhos (100%), sobem ~54 px relativos à arena, somem, vivem 0,8 a 1,1 s, FORTE (~40 px) maior que comum (~27 px), nenhum par sobreposto (menor distância ~12 px), pausa congela e retoma, luta completa termina e a revanche começa limpa, sem erros de JS. Com `CRIT=1` em um build de teste (crítico garantido só na cópia): 50/50, `CRÍTICO!` aparece e o número é maior.
+- `npx tsc --noEmit`: 0 erros (antes e depois). `node tests/unit/combate/game-feel-e-raridade.test.mjs`: 65/65 (tabela de raridade, contas de dano/guarda/cura/energia, procs com 20 mil sorteios, textos nos 5 idiomas sem `{}` sobrando, limites dos efeitos, flash/reação em TODOS os 11 lutadores, sem mudar dano/hitstun/hitbox).
+- `node tests/e2e/combate/game-feel.e2e.mjs <dist>`: **90/90** no Expo Web + Chromium (Playwright), luta real contra a CPU, 10 oponentes: flash em todos (maior episódio 150 ms; começa em 1,00 e decai), caixa do flash igual à do sprite com diferença 0,00 px em ~800 quadros, prova por pixels (flash 92 a 97% branco vs 0 a 6% no sprite normal, em gadigago, mystic, dogking, ninja, 3 dragões), números vermelhos (100%), sobem ~54 px relativos à arena, somem, vivem 0,8 a 1,1 s, FORTE (~40 px) maior que comum (~27 px), nenhum par sobreposto (menor distância ~12 px), pausa congela e retoma, luta completa termina e a revanche começa limpa, sem erros de JS. Com `CRIT=1` em um build de teste (crítico garantido só na cópia): 50/50, `CRÍTICO!` aparece e o número é maior.
 - Desempenho no navegador do servidor: mediana de quadro 16,7 ms (60 fps), p95 16,8 ms, normal e MODO LEVE. **Não representa o Galaxy A14.**
 
 ### Achados preexistentes (não causados por esta parte; confirmados no commit original)
@@ -1040,7 +1040,7 @@ exploração sólida primeiro.
 - Rebalanceamento: armas e escudo ficaram um pouco mais fortes (ver valores acima). É intencional ("raridade com consequência"); ajuste a tabela `RARITY_BONUS` se quiser menos.
 
 ### Como rodar
-`node tools/test-parte01.mjs` (sem dependências novas). Navegador: `npx expo export --platform web --output-dir dist` e `node tools/e2e-parte01.mjs dist` (usa o Playwright já instalado no ambiente, que NÃO está no `package.json`; variáveis opcionais: `ONLY`, `VISUAL`, `SHOTS_DIR`, `CRIT=1`, `PLAYWRIGHT_PATH`).
+`node tests/unit/combate/game-feel-e-raridade.test.mjs` (sem dependências novas). Navegador: `npx expo export --platform web --output-dir dist` e `node tests/e2e/combate/game-feel.e2e.mjs dist` (usa o Playwright já instalado no ambiente, que NÃO está no `package.json`; variáveis opcionais: `ONLY`, `VISUAL`, `SHOTS_DIR`, `CRIT=1`, `PLAYWRIGHT_PATH`).
 
 ## Parte Urgente 1 — recriação dos assets perdidos (`assets/legacy-sprites`, `assets/legacy-art`)
 
@@ -1063,14 +1063,14 @@ Contexto: as pastas `assets/legacy-sprites` e `assets/legacy-art` nunca estivera
 - `src/game/battle/sprites.ts`: `SPRITE_ASPECTS` reescrito a partir dos tamanhos reais dos PNGs. **Novo `LAYOUT_ASPECTS` + `getLayoutAspect()`**: a altura de um lutador em jogo é `drawWidth / proporção do idle` (`Fighter.getReferenceHeight`). Como o idle recriado tem outro tamanho de quadro que o antigo, usar o idle novo mudaria o tamanho em tela de vários personagens. `LAYOUT_ASPECTS` guarda a proporção do desenho antigo (orc, soldier, dogking, tank, ninja, mystic), então a altura em jogo não muda. Dogge e Gadigago não precisam (os PNGs são os originais).
 - `BattleScreen.tsx` e `WorldScreen.tsx` passam a usar `getLayoutAspect` em `createFighter`.
 - `Fighter.ts`: `drawWidth` do dragão sombrio 440 -> 400. O dragão foi redesenhado (144x104, mais compacto); com 440 ele ficaria com cerca de 317 px de altura, maior que os outros dragões. Com 400 fica com ~289 px (verde 272, gelo 284). **Muda o tamanho do dragão sombrio em jogo**: se preferir o antigo, é só voltar o número, mas a altura passa de 289 px para 317 px.
-- `tools/e2e-parte01.mjs`: `DRAW_WIDTH.shadow_dragon` 440 -> 400, e o limite da prova por pixels do flash caiu de 45% para 15% do retângulo (os desenhos novos, como o manto estreito do mystic e as asas, ocupam menos do retângulo; a cobertura exata continua checada com diferença <= 1,5 px e o flash foi conferido a olho nas capturas).
+- `tests/e2e/combate/game-feel.e2e.mjs`: `DRAW_WIDTH.shadow_dragon` 440 -> 400, e o limite da prova por pixels do flash caiu de 45% para 15% do retângulo (os desenhos novos, como o manto estreito do mystic e as asas, ocupam menos do retângulo; a cobertura exata continua checada com diferença <= 1,5 px e o flash foi conferido a olho nas capturas).
 
 ### Verificado
-- `python3 -I tools/test_legacy_sprites.py`: **512 verificações, 0 falhas, 0 avisos** (todo `require` de `src/` existe; 8 quadros por lutador; tamanho de cada PNG = `SPRITE_ASPECTS`; mesma altura nas poses de corpo; pés na base; corpo centrado; pelo menos 6 quadros distintos; arquivos de Cara Tranquilo e Troll Face).
+- `python3 -I tests/assets/sprites-legados.test.py`: **512 verificações, 0 falhas, 0 avisos** (todo `require` de `src/` existe; 8 quadros por lutador; tamanho de cada PNG = `SPRITE_ASPECTS`; mesma altura nas poses de corpo; pés na base; corpo centrado; pelo menos 6 quadros distintos; arquivos de Cara Tranquilo e Troll Face).
 - `npx tsc --noEmit`: 0 erros.
 - `npx expo export --platform web` numa cópia descartável **sem nenhum placeholder** (o script de placeholders gerou 0 arquivos: o repositório agora está completo): exportou.
-- `node tools/e2e-urgente1.mjs <dist>`: **44/44** (os 11 lutadores abrem em `/battle`, altura em tela igual ao desenho original, nenhuma imagem com 404, sem erro de JS), com capturas conferidas a olho.
-- `node tools/e2e-parte01.mjs <dist>`: após o ajuste do limite do flash, **90/90 em uma execução**; em outras duas houve 1 e 2 falhas **intermitentes** na medição dos números de dano (`cada número sobe...`). Rodando o mesmo teste no build anterior (sprites antigos) também apareceram falhas intermitentes desse tipo e uma em que o Gadigago foi derrubado antes do flash. Ou seja, é instabilidade do teste contra a CPU do jogo, não dos sprites novos, mas **não consegui um 90/90 repetido**.
+- `node tests/e2e/combate/sprites-cenarios-e-retratos.e2e.mjs <dist>`: **44/44** (os 11 lutadores abrem em `/battle`, altura em tela igual ao desenho original, nenhuma imagem com 404, sem erro de JS), com capturas conferidas a olho.
+- `node tests/e2e/combate/game-feel.e2e.mjs <dist>`: após o ajuste do limite do flash, **90/90 em uma execução**; em outras duas houve 1 e 2 falhas **intermitentes** na medição dos números de dano (`cada número sobe...`). Rodando o mesmo teste no build anterior (sprites antigos) também apareceram falhas intermitentes desse tipo e uma em que o Gadigago foi derrubado antes do flash. Ou seja, é instabilidade do teste contra a CPU do jogo, não dos sprites novos, mas **não consegui um 90/90 repetido**.
 
 ### Limitações / não verificado
 - **Não testado em aparelho** (Galaxy A14 5G). Nada de som/desempenho aqui.
@@ -1081,7 +1081,7 @@ Contexto: as pastas `assets/legacy-sprites` e `assets/legacy-art` nunca estivera
 - O orc/soldier/mystic originais tinham quadros minúsculos (27x23, 21x26...); os novos têm mais detalhe, por isso `LAYOUT_ASPECTS`.
 
 ### Como regenerar
-`python3 tools/make_legacy_sprites.py --src <pasta legacy-sprites extraída do ZIP>` (determinístico, ~2 s; opções `--only a,b`, `--aspects`) e `python3 tools/make_legacy_art.py --out assets/legacy-art`. Depois `python3 -I tools/test_legacy_sprites.py`.
+`python3 tools/make_legacy_sprites.py --src <pasta legacy-sprites extraída do ZIP>` (determinístico, ~2 s; opções `--only a,b`, `--aspects`) e `python3 tools/make_legacy_art.py --out assets/legacy-art`. Depois `python3 -I tests/assets/sprites-legados.test.py`.
 
 ## Parte Urgente 2 — Troll Face e Cara Tranquilo no jogo (Versus + história)
 
@@ -1109,9 +1109,9 @@ Os dois mudam de padrão com 50% de vida (`hasPhases`), como os outros chefes. O
 - Falas, dicas e o aviso da porta estão em `src/game/i18n/stringsUrgente2.ts`, nos **5 idiomas**, sem emoji. Os nomes dos lutadores no Versus e as ficha de chefe (`bossLore.ts`) seguem o padrão do jogo (português), como os demais.
 
 ### Verificado
-- `npx tsc --noEmit`: 0 erros. `node tools/test-parte01.mjs`: 65/65. `python3 -I tools/test_legacy_sprites.py`: 610/610.
-- `node tools/test-urgente2.mjs`: **12/12** (stats e altura de referência, elenco e chefes, Troll na trilha em frente à porta, todos os marcadores/NPCs em chão andável e longe de barqueiros e de outros NPCs, textos idênticos nos 5 idiomas, sem emoji).
-- Navegador (exportação web sem placeholders): `tools/e2e-urgente1.mjs` **52/52** (13 lutadores abrem em `/battle`, altura de referência correta, sem 404 e sem erro de JS) e `tools/e2e-urgente2-world.mjs` **18/18** (porta do cassino barrada e desafio do Troll Face com nível e ACEITAR, interior não abre; FALAR e falas do Cara Tranquilo com dica e do Troll Face com pegadinha; lutas `boss_troll`, `boss_chill`, `boss_chill_2` abrem contra o oponente certo).
+- `npx tsc --noEmit`: 0 erros. `node tests/unit/combate/game-feel-e-raridade.test.mjs`: 65/65. `python3 -I tests/assets/sprites-legados.test.py`: 610/610.
+- `node tests/unit/cassino/troll-face-e-cara-tranquilo.test.mjs`: **12/12** (stats e altura de referência, elenco e chefes, Troll na trilha em frente à porta, todos os marcadores/NPCs em chão andável e longe de barqueiros e de outros NPCs, textos idênticos nos 5 idiomas, sem emoji).
+- Navegador (exportação web sem placeholders): `tests/e2e/combate/sprites-cenarios-e-retratos.e2e.mjs` **52/52** (13 lutadores abrem em `/battle`, altura de referência correta, sem 404 e sem erro de JS) e `tests/e2e/cassino/porta-e-npcs-no-mundo.e2e.mjs` **18/18** (porta do cassino barrada e desafio do Troll Face com nível e ACEITAR, interior não abre; FALAR e falas do Cara Tranquilo com dica e do Troll Face com pegadinha; lutas `boss_troll`, `boss_chill`, `boss_chill_2` abrem contra o oponente certo).
 
 ### Limitações / não verificado
 - Não testei vencer a luta do Troll Face até o fim e entrar no cassino (o fluxo de vitória é o mesmo dos outros chefes, mas essa sequência específica ficou fora do teste automático). Também não testei no celular.
@@ -1120,12 +1120,12 @@ Os dois mudam de padrão com 50% de vida (`hasPhases`), como os outros chefes. O
 - Os trios "Tung Tung Sahur" e os 9 memes estáticos **não** entram nesta parte (ver relatório de entrega).
 
 ### Como rodar
-`node tools/test-urgente2.mjs`; navegador: `npx expo export --platform web --output-dir dist`, depois `node tools/e2e-urgente1.mjs dist` e `node tools/e2e-urgente2-world.mjs dist`.
+`node tests/unit/cassino/troll-face-e-cara-tranquilo.test.mjs`; navegador: `npx expo export --platform web --output-dir dist`, depois `node tests/e2e/combate/sprites-cenarios-e-retratos.e2e.mjs dist` e `node tests/e2e/cassino/porta-e-npcs-no-mundo.e2e.mjs dist`.
 
 ## Parte Urgente 3 — Sahur God/Sahur/Sahur Evil, cassino gigante, memes ×3, cenários com variação, revanche
 
 ### Dano aleatório e crítico (commit `977ab1c`, ainda não entregue em ZIP)
-- Cada golpe sorteia dano em faixa; crítico base de 5%; lâminas afiadas aumentam a chance. Cobertura em `tools/test-dano.mjs` (15 testes).
+- Cada golpe sorteia dano em faixa; crítico base de 5%; lâminas afiadas aumentam a chance. Cobertura em `tests/unit/combate/dano-e-critico.test.mjs` (15 testes).
 
 ### Personagens Sahur God (anjo), Sahur (laranja) e Sahur Evil (diabo)
 - Sprites cortados da folha enviada pelo usuário (`tools/art_src/folha_3_personagens.png`) por `tools/folha_sprites.py` → `tools/make_legacy_sprites.py` (`from_sheet`). Poses: idle, walk1–4, dash, flash (soco curto), strong (soco longo), ult.
@@ -1172,14 +1172,14 @@ Os dois mudam de padrão com 50% de vida (`hasPhases`), como os outros chefes. O
 - Desligar por personagem em `assets/sprites-v2/ACTIVE.json`.
 
 ### Testes (executados)
-- `tools/test-parte2.mjs` (20) e e2e `tools/e2e-parte2.mjs` (batalha dos 5 com hurt/ko visíveis, vulcão com e sem piolet) + `e2e-urgente1` (64, altura dos 16 lutadores).
+- `tests/unit/historia/sahur-vulcao-e-sprites-novos.test.mjs` (20) e e2e `tests/e2e/historia/sahur-e-vulcao.e2e.mjs` (batalha dos 5 com hurt/ko visíveis, vulcão com e sem piolet) + `e2e-urgente1` (64, altura dos 16 lutadores).
 
 
 ## Parte 2, rodada 2 — renomeação total, vida persistente, armaduras, 8 folhas novas, NPCs andando, PNGs leves
 
 ### Renomeação (ids, pastas, arquivos, textos)
 - `tocao` → `sahur` ("Sahur"), `serafim` → `sahur_god` ("Sahur God"), `capiroto` → `sahur_evil` ("Sahur Evil"; corrigido o "Evl"). Trocado em ids de personagem, chefes (`boss_sahur…`), NPCs (`sahur_npc…`), missões (`tronco_sahur…`), chaves de i18n, pastas (`assets/legacy-sprites/`, `assets/sprites-v2/sahur`, `tools/art_src/…`), ferramentas, testes e docs.
-- **Saves antigos**: `src/game/state/legacyIds.ts` troca os ids velhos no texto do JSON antes do parse (save, roster e perfil), então personagens liberados, chefes vencidos, missões e chave de revanche (`boss:boss_*`) migram sozinhos. Teste em `tools/test-parte3.mjs`.
+- **Saves antigos**: `src/game/state/legacyIds.ts` troca os ids velhos no texto do JSON antes do parse (save, roster e perfil), então personagens liberados, chefes vencidos, missões e chave de revanche (`boss:boss_*`) migram sozinhos. Teste em `tests/unit/historia/vida-persistente-armaduras-e-npcs.test.mjs`.
 
 ### Vida persistente (mundo ↔ luta de história) — `src/game/state/healthState.ts`
 - Guardada como fração (0–1) da vida máxima, salva no jogo (ext `storyHp`; saves antigos começam cheios).
@@ -1287,7 +1287,7 @@ Os dois mudam de padrão com 50% de vida (`hasPhases`), como os outros chefes. O
 - **Responsivo** (`gridLayout(total, largura, altura)`): escolhe colunas/tamanho para qualquer quantidade de lutadores e de tela (célula de 48 a 84 px, nunca sobrepõe; se nem 48 px cabe na altura, a grade rola); sem dependência de hover; prévia visível em telas pequenas; em telas grandes mantém a identidade (logo + prévia + grade).
 - **Tela VS** (`VersusSplash.tsx`): lutadores deslizam, "VS" estoura com clarão (sons `encounter` e `hit_heavy`), nomes e arena entram, escurece e abre a luta (2,6 s; um toque pula). Voltar da luta não repete a tela VS. **Abertura** (`BattleScreen`): "ROUND n" e, nos últimos 520 ms, "LUTE!". Integra com o Versus de sempre (as configurações e habilidades de cada lutador não mudaram; sem multiplayer online).
 - Textos em 5 idiomas (`stringsVersus.ts`: `vs_tap_preview`, `vs_tap_again`, `vs_stat_*`...). Só assets que já existiam.
-- Testes: `node tools/test-versus.mjs` (lógica: dois toques, troca de prévia, confirmação, `gridLayout` para várias quantidades e telas) e `node tools/e2e-versus.mjs dist` (navegador: logo no meio, 48 px de toque, sem sobreposição, 1º toque não confirma, prévia à esquerda, bloqueado, fluxo até a luta).
+- Testes: `node tests/unit/versus/selecao-e-tela-vs.test.mjs` (lógica: dois toques, troca de prévia, confirmação, `gridLayout` para várias quantidades e telas) e `node tests/e2e/versus/selecao-e-tela-vs.e2e.mjs dist` (navegador: logo no meio, 48 px de toque, sem sobreposição, 1º toque não confirma, prévia à esquerda, bloqueado, fluxo até a luta).
 
 ## Parte 5: auditoria final
 Sistemas revisados: saves (3 slots e versões antigas), traduções (5 idiomas), pausa em todo o jogo, timers/animações (vazamentos), opções gráficas, barra de platina, documentação e checklist do APK.
@@ -1318,7 +1318,7 @@ Instalar o APK; som real dos ambientes novos (timbre e volume relativo nos alto-
 - Loops novos, **sintetizados** por `python3 tools/make_ambient.py` (ruído filtrado, chilreios, pulsos, gotas, murmúrio; nenhuma amostra externa), no mesmo padrão de `rain/wind/waves` (mp3 mono, 32 kHz, 48 kb/s, 16 s, emenda de loop suave): `birds`, `crickets`, `cave`, `volcano`, `casino`, `shop`, `home` em `assets/audio/ambient/`. Gelo reaproveita `wind.mp3`. O script é determinístico: rodar de novo recria os mesmos arquivos.
 - Mistura pura em `src/game/audio/ambientMix.ts` (`ambientMix(ctx)`): **uma cama regional** (floresta: pássaros de dia / grilos de noite; vulcão: ronco; cassino; loja/guilda/salões; casa; caverna e subsolo: pingos) **+ no máximo uma camada de clima/água** (chuva, vento ou ondas, vence a mais forte). Nunca mais de 2 loops. Chuva cala os bichos; camada forte (>= 0,6) abafa a cama ao ar livre; dentro de casa a chuva chega abafada; caverna e cassino não ouvem clima; vento e ondas não entram em interiores. Gelo e Trevas usam vento como ambientação.
 - `WorldScreen` chama a mistura a cada 500 ms (relógio do mundo; parada com o jogo pausado) e entrega os níveis ao `audioManager.setAmbient`, que faz o cross-fade suave (~2 s), multiplica pelo volume **AMBIENTE** das Opções e não toca na música nem nos efeitos (players separados). Pausa: `setAudioPaused` pausa os ambientes; ao despausar, só volta o que estava tocando.
-- Testes: `node tools/test-ambient.mjs` (18; inclui varredura de 4.000+ combinações de ilha/interior/clima/hora/navegação provando a regra de no máximo 2 loops).
+- Testes: `node tests/unit/sistema/sons-ambiente.test.mjs` (18; inclui varredura de 4.000+ combinações de ilha/interior/clima/hora/navegação provando a regra de no máximo 2 loops).
 - Só se confirma no celular: o som real (timbre/volume relativo dos loops novos nos alto-falantes) e as transições ouvidas na prática.
 
 ### 3.2 Barra de platina rebalanceada (soma 100)
@@ -1351,7 +1351,7 @@ Soma = 100. Justificativa: antes, missões (26) + mapa/NPCs/baús (27) somavam m
 - Nível máximo 99; quatro atributos; **147 pontos** de status no total (níveis 2 a 50 = 1, 51 a 99 = 2); maximizar os 4 atributos = **100 pontos**; árvore cheia = **68 pontos por personagem** e **não é exigida** (sobram só 47). A platina exige os 5 ramos (25 habilidades = 45 pontos): 100 + 45 = 145 <= 147, sobram 2. A linha final (23 pontos) é opcional.
 - Escolhas da história dão pontos/XP extras: só ajudam. Respec (500 moedas) permite refazer a árvore sem perder pontos.
 
-### 3.4 Teste de 100% (`node tools/test-platina100.mjs`, 14 testes)
+### 3.4 Teste de 100% (`node tests/unit/conta/platina-100-por-cento.test.mjs`, 14 testes)
 - Monta um mundo pelas funções REAIS do jogo (relatórios de NPC/prédio/ilha/compra/cassino/monstros, XP até 99, `buyUpgrade` e `learnSkill` reais, missões, chefes, Torre, escolhas, final) para os dois personagens de história e prova: todas as 18 categorias chegam a 100%, soma 100, platina libera, **qualquer escolha** leva à platina, e **faltando qualquer uma** categoria (cada uma testada sozinha) a platina NÃO libera. Grava o mundo num slot, recarrega com `startSession` e confere que o 100% sobrevive.
 - Segurança dos saves: roda no Node com AsyncStorage **em memória** (nenhum save real é lido ou alterado) e o teste confere que um "save real" sentinela no slot 3 permanece idêntico.
 - Limite: a conta (cosméticos, conquistas) é global e não tem "zerar"; por isso o teste de cosméticos roda primeiro.
@@ -1367,5 +1367,5 @@ Soma = 100. Justificativa: antes, missões (26) + mapa/NPCs/baús (27) somavam m
 - 6 elites, cada um é um inimigo comum de um ponto de spawn que já existe, promovido depois de uma missão (`kills_5`, `kills_12`, `camp_showdown`, `island_boss`, `lore_complete`, `vulcao_boss`). Reusam o `EnemyManager`: mesma perseguição, golpes do jogador, respawn (3x mais lento) e itens; **sem sprite novo**: o mesmo sprite maior (1,3x a 1,4x), aura dourada, coroa (ícone existente) e barra de vida dourada.
 - Vida 3,5x a 6x e dano 1,5x a 2x do comum, mais rápidos e com aggro maior; moedas 5x a 8x e XP 6x a 10x (a recompensa sempre cresce mais que a vida) e um item existente na 1ª derrota (`firstDrop`). Um aviso ("ELITE DERROTADO!") aparece no toast do prêmio.
 - Save: ext `elites` (derrotados); save antigo sem a chave carrega vazio.
-- Testes: `node tools/test-rival-elite.mjs` (21).
+- Testes: `node tests/unit/combate/rival-e-inimigos-de-elite.test.mjs` (21).
 - Só se confirma no aparelho/navegador jogando: dificuldade sentida das lutas do rival e dos elites (os multiplicadores foram conferidos em teste, não o "feeling").

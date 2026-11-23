@@ -12,7 +12,7 @@ const CH_SEC = 'Segredos do Mar';
  *  - fim: Atlântida, o abismo (aberto por uma missão), criaturas raras e o Sea Beast;
  *  - segredos: cada parede secreta revela uma missão secreta (flag `found:<id>`); nenhuma é obrigatória.
  * O item de fôlego infinito (Brânquias de Atlântida) NÃO é requisito de nenhuma missão.
- * Regra de raridade: item que só vem de segredo ou de esconderijo é Secret (ver tools/test-mar.mjs).
+ * Regra de raridade: item que só vem de segredo ou de esconderijo é Secret (ver tests/unit/mar/missoes-do-mar.test.mjs).
  */
 const M = (m: MissionDef): MissionDef => ({ optional: true, ...m });
 

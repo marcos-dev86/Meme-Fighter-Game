@@ -1,6 +1,6 @@
 /**
  * Layout do CASSINO GIGANTE (interior da Ilha Misteriosa): TRES ANDARES - térreo, mezanino VIP (2º andar) e subsolo secreto (-1).
- * Módulo puro (sem React Native): os testes (tools/test-urgente3.mjs) carregam este arquivo direto no Node para provar que as
+ * Módulo puro (sem React Native): os testes (tests/unit/cassino/cassino-gigante-e-memes.test.mjs) carregam este arquivo direto no Node para provar que as
  * mesas não bloqueiam a porta/escadas, que todo NPC é alcançável e que não há nada hostil.
  *
  * Cada andar é uma sala de 28 x 20 tiles (ROOM_TILE 44 px = 1232 x 880 px), maior que a tela: a câmera segue o jogador.

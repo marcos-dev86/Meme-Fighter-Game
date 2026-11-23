@@ -6,6 +6,7 @@ import { grantCosmetic } from './cosmeticsState';
 import { noteIslandVisit, noteMissionDone } from '@/game/account/accountState';
 import { allLorePiecesFound } from './loreState';
 import { getStoryCharacter } from '@/game/story/characters';
+import { setAbilityCharacter } from '@/game/story/abilities';
 import { unlockCharacters } from './profileState';
 import type { ChainStep, MissionDef, MissionType } from '@/game/story/missionTypes';
 import { MISSIONS_ALL } from '@/game/story/allMissions';
@@ -659,6 +660,7 @@ export interface QuestSaveData {
 /** Overwrites this module's state from a loaded save (and picks the story character the save belongs to). */
 export function restoreQuestState(data: QuestSaveData, character?: string) {
   characterId = character ?? 'dogge';
+  setAbilityCharacter(characterId);
   for (const key of Object.keys(quests)) delete quests[key];
   Object.assign(quests, data.quests);
   for (const key of Object.keys(questProgress)) delete questProgress[key];
@@ -680,6 +682,7 @@ export function restoreQuestState(data: QuestSaveData, character?: string) {
 /** Brand-new world for a story character: every mission back to its starting state. */
 export function resetQuestState(character = 'dogge') {
   characterId = character;
+  setAbilityCharacter(characterId);
   for (const key of Object.keys(quests)) delete quests[key];
   for (const key of Object.keys(questProgress)) delete questProgress[key];
   stats = freshStats();

@@ -2,7 +2,7 @@
  * EFEITOS DO MAR (lógica pura, sem imagens): QUANDO e ONDE cada efeito de água / emoji do pacote `new-sea-assets` aparece.
  * Nada aqui é sorteado nem decorativo: cada efeito nasce de um evento real do mergulho (golpe que acerta, golpe do Sea Beast
  * que cai, mergulho/emersão, fôlego baixo, pressão das profundezas, correnteza). As imagens ficam em `SeaFxLayer.tsx`.
- * Os quadros vêm de `assets/sea/fx/index.json` (gerado por `tools/import_sea_fx.py`); `tools/test-sea-fx.mjs` confere as duas pontas.
+ * Os quadros vêm de `assets/sea/fx/index.json` (gerado por `tools/import_sea_fx.py`); `tests/unit/mar/efeitos-de-agua.test.mjs` confere as duas pontas.
  */
 import type { BossPattern } from './diveCreatures';
 import type { BreathEvent, BreathMods } from './breath';

@@ -1,6 +1,6 @@
 /**
  * Lógica pura (sem React) do VERSUS estilo "Mortal Kombat": cursor da grade de lutadores, quem pode ser escolhido,
- * linha do tempo da tela "VS" e do letreiro ROUND/FIGHT da abertura de cada round. Testada em tools/test-versus.mjs.
+ * linha do tempo da tela "VS" e do letreiro ROUND/FIGHT da abertura de cada round. Testada em tests/unit/versus/selecao-e-tela-vs.test.mjs.
  */
 
 /** Colunas padrão da grade (16 lutadores = 4 x 4). A grade real é calculada por gridLayout() conforme a tela e a quantidade. */

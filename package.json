@@ -43,7 +43,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "check:i18n": "node tools/check-i18n.mjs"
+    "check:i18n": "node tools/check-i18n.mjs",
+    "test": "node tests/rodar-todos.mjs"
   },
   "private": true
 }

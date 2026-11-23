@@ -11,6 +11,7 @@ import { boxesOverlap, createFighter, Fighter, HIT_FLASH_MS, STATUS_COLOR, STATU
 import { clearFx, createFx, hitKindOf, KIND_STYLE, numberVisual, particleVisual, reactionVisual, shakeOffset, spawnBurst, spawnDamageNumber, spawnImpact, stepFx, type FxState } from '@/game/battle/combatFx';
 import { grantVictory, resolveSetup, type Granted } from '@/game/battle/battleModes';
 import { applySkills } from '@/game/items/skills';
+import { applyAbility } from '@/game/story/abilities';
 import { getLearned } from '@/game/state/skillState';
 import { endRun, getRun } from '@/game/state/towerState';
 import { CpuController } from '@/game/battle/CpuController';
@@ -153,6 +154,7 @@ function checkHit(attacker: Fighter, defender: Fighter, ctx: HitCtx, onEffect: (
       // Status effects (burn / freeze / poison / stun) from the attacker's gear, skills or nature.
       for (const pr of attacker.rollStatusProcs(atkType)) {
         if (defender.applyStatus(pr.kind, pr.ms)) {
+          if (pr.kind === 'burn') defender.burnTakenMult = Math.max(1, attacker.burnDotMult);
           playSfx(STATUS_SFX[pr.kind], { minGapMs: 120, gain: 0.8 });
           const d2 = defender.getHurtbox();
           spawnBurst(ctx.fx, { x: (d2.x1 + d2.x2) / 2, y: (d2.y1 + d2.y2) / 2, count: 10, speed: 3, life: 450, color: STATUS_COLOR[pr.kind], vyBias: -1, light: ctx.light });
@@ -233,6 +235,9 @@ export function BattleScreen() {
   useEffect(() => {
     applyUpgrades(p1, getUpgradeLevels());
     applySkills(p1, getStoryCharacterId(), getLearned());
+    // Habilidade exclusiva do personagem (vale em todos os modos; no Versus o 2º jogador também usa a do seu lutador).
+    applyAbility(p1, p1Key);
+    if (setup.kind === 'free') applyAbility(p2, p2Key);
     // Armadura equipada: regenera vida durante a luta (soma com a regeneração das habilidades).
     applyArmorRegen(p1, p1.regenPerSec);
     // Luta de história: entra com a vida que o jogador tinha no mundo (ver state/healthState.ts).

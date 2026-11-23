@@ -113,7 +113,7 @@ function pointsSpent(): number {
   return sum;
 }
 
-/** Tudo que a barra precisa que exista (ids reais do conteúdo). Usado pelo teste de 100% (tools/test-platina100.mjs). */
+/** Tudo que a barra precisa que exista (ids reais do conteúdo). Usado pelo teste de 100% (tests/unit/conta/platina-100-por-cento.test.mjs). */
 export function progressTargets() {
   const islands = Array.from(new Set(Object.values(ISLANDS).map((i) => realIslandOf(i.id))));
   return {

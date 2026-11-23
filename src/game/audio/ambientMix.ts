@@ -6,7 +6,7 @@ import type { InteriorTemplate } from '@/game/world/buildingContent';
  * Mistura dos sons ambiente por região (Parte 3.1). Função PURA: dado o contexto do mundo devolve o nível alvo (0..1) de
  * cada loop. O audioManager faz a suavização (cross-fade) e aplica o volume AMBIENTE; aqui só se decide QUEM toca.
  *
- * Regras (testadas em tools/test-ambient.mjs):
+ * Regras (testadas em tests/unit/sistema/sons-ambiente.test.mjs):
  *  - no máximo UMA "cama" regional (pássaros, grilos, caverna, vulcão, cassino, loja, casa) + UMA camada de clima/água
  *    (chuva, vento ou ondas): nunca mais de dois loops ao mesmo tempo;
  *  - floresta: pássaros de dia, grilos de noite; chuva/tempestade calam os bichos;

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { luckyPayout, luckyRoll } from '@/game/story/abilities';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { GameIcon, IconLabel } from '@/game/ui/GameIcon';
 import type { IconName } from '@/game/ui/iconRegistry';
@@ -182,8 +183,8 @@ export function CasinoOverlay({ onClose, initialGame }: Props) {
   const spinSlots = () => {
     const bet = effectiveBet;
     if (!begin(bet)) return;
-    const final = [rollSlotSymbol(rand), rollSlotSymbol(rand), rollSlotSymbol(rand)];
-    const payout = bet * slotMultiplier(final);
+    const final = luckyRoll(() => [rollSlotSymbol(rand), rollSlotSymbol(rand), rollSlotSymbol(rand)], (f) => bet * slotMultiplier(f), bet);
+    const payout = luckyPayout(bet * slotMultiplier(final), bet);
     pending.current = payout;
     if (final.every((s) => s.id === 'seven')) setFlag('secret_777'); // segredo: três setes
     const stopped = [false, false, false];
@@ -204,8 +205,8 @@ export function CasinoOverlay({ onClose, initialGame }: Props) {
   const toss = () => {
     const bet = effectiveBet;
     if (!begin(bet)) return;
-    const res: 'heads' | 'tails' = rand() < 0.5 ? 'heads' : 'tails';
-    const payout = flipPayout(bet, res === pick);
+    const res: 'heads' | 'tails' = luckyRoll<'heads' | 'tails'>(() => (rand() < 0.5 ? 'heads' : 'tails'), (r) => flipPayout(bet, r === pick), bet);
+    const payout = luckyPayout(flipPayout(bet, res === pick), bet);
     pending.current = payout;
     let n = 0;
     const tick = every(() => {
@@ -222,8 +223,8 @@ export function CasinoOverlay({ onClose, initialGame }: Props) {
   const rollDiceGame = () => {
     const bet = effectiveBet;
     if (!begin(bet)) return;
-    const final = rollDice(rand);
-    const payout = dicePayout(bet, diceBet, final);
+    const final = luckyRoll(() => rollDice(rand), (f) => dicePayout(bet, diceBet, f), bet);
+    const payout = luckyPayout(dicePayout(bet, diceBet, final), bet);
     pending.current = payout;
     const tick = every(() => {
       setDice([1 + Math.floor(rand() * 6), 1 + Math.floor(rand() * 6)]);
@@ -239,9 +240,9 @@ export function CasinoOverlay({ onClose, initialGame }: Props) {
   const spinWheel = () => {
     const bet = effectiveBet;
     if (!begin(bet)) return;
-    const n = spinRoulette(rand);
+    const n = luckyRoll(() => spinRoulette(rand), (x) => (rouletteWins(rBet, x) ? bet * rouletteMult(rBet) : 0), bet);
     const target = ROULETTE_WHEEL.indexOf(n);
-    const payout = rouletteWins(rBet, n) ? bet * rouletteMult(rBet) : 0;
+    const payout = luckyPayout(rouletteWins(rBet, n) ? bet * rouletteMult(rBet) : 0, bet);
     pending.current = payout;
     setRResult(null);
     const start = ballIdx;
@@ -275,8 +276,8 @@ export function CasinoOverlay({ onClose, initialGame }: Props) {
       setSuits((s) => [s[1], rand() < 0.5]);
       setNxt(null);
     }
-    const next = drawCard(rand);
-    const payout = cardPayout(bet, base, guess, next);
+    const next = luckyRoll(() => drawCard(rand), (c) => cardPayout(bet, base, guess, c), bet);
+    const payout = luckyPayout(cardPayout(bet, base, guess, next), bet);
     pending.current = payout;
     later(() => {
       setNxt(next);

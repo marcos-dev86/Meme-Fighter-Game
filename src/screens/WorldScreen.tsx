@@ -54,6 +54,7 @@ import { OutdoorNpcs } from '@/game/world/OutdoorNpcs';
 import { BossMarkers } from '@/game/world/BossMarkers';
 import { BOSSES, BOSS_BY_ID, isBossDefeated, type BossDef } from '@/game/state/bossState';
 import { applySkills } from '@/game/items/skills';
+import { applyAbility, healMult, lootBonusItem, lootCoins, worldRegenPerSec } from '@/game/story/abilities';
 import { getLearned } from '@/game/state/skillState';
 import { npcPose } from '@/game/world/npcRoutine';
 import { tip } from '@/game/state/tipsState';
@@ -493,6 +494,7 @@ export function WorldScreen() {
   useEffect(() => {
     applyUpgrades(fighter, getUpgradeLevels());
     applySkills(fighter, getStoryCharacterId(), getLearned());
+    applyAbility(fighter, getStoryCharacterId());
     baseRegenRef.current = fighter.regenPerSec; // só o das habilidades; a armadura soma por cima a cada quadro
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -532,6 +534,10 @@ export function WorldScreen() {
   useGameLoop((dtMs) => {
     if (booting || !worldFocused || pausedRef.current || downedRef.current || interior || diveSite || dialogueNpc || choiceNpc || questOffer || bossOffer || isShortCutscenePlaying()) return;
     applyArmorRegen(fighter, baseRegenRef.current); // armadura equipada: regenera vida aos poucos (fighter.update aplica)
+    const sap = worldRegenPerSec(); // Seiva Viva (Dragão Verde): regenera ao andar pelo mundo, fora de combate
+    if (sap > 0 && !fighter.isKO && fighter.health < fighter.maxHealth) {
+      fighter.health = Math.min(fighter.maxHealth, fighter.health + fighter.maxHealth * sap * (dtMs / 1000) * healMult());
+    }
     if (sailRef.current) {
       stepSail(dtMs);
       return;
@@ -817,11 +823,20 @@ export function WorldScreen() {
         playSfx(pickup.coins ? 'coin' : 'use_item');
         haptic(pickup.coins ? 'light' : 'medium');
         if (pickup.coins) {
-          addCoins(pickup.coins);
-          showToast(`+${pickup.coins} ${CURRENCY_ABBR}`);
+          const got = lootCoins(pickup.coins); // Mão Leve (Ninja): +35% de moedas
+          addCoins(got);
+          showToast(`+${got} ${CURRENCY_ABBR}`);
         } else if (pickup.itemId) {
           addItem(pickup.itemId, 1);
           showToast(itemName(pickup.itemId));
+        }
+        if (pickup.chest) {
+          // Mão Leve (Ninja): chance de um item raro extra, só se couber na mochila (nunca perde nada).
+          const bonus = lootBonusItem();
+          if (bonus && bagRoomFor(bonus, 1) >= 1) {
+            addItem(bonus, 1);
+            setTimeout(() => showToast(`+ ${itemName(bonus)}`), 900);
+          }
         }
         if (pickup.lorePiece) {
           const isNew = markLorePieceFound(pickup.lorePiece);

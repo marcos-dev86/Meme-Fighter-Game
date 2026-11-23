@@ -44,7 +44,7 @@ import {
 /**
  * O CASSINO GIGANTE por dentro: 28 x 20 tiles (bem maior que a tela, a câmera segue o jogador),
  * 6 mesas + 9 caça-níqueis, um bar, ~28 moradores e missões. Zona de paz: não existe nenhum inimigo aqui
- * (o mundo de fora não tem spawn perto da porta; ver enemySpawns.ts e tools/test-urgente3.mjs).
+ * (o mundo de fora não tem spawn perto da porta; ver enemySpawns.ts e tests/unit/cassino/cassino-gigante-e-memes.test.mjs).
  */
 
 const PLAYER_SIZE = { x: 22, y: 30 };

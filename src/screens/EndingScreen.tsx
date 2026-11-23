@@ -105,7 +105,7 @@ export function EndingScreen() {
   // 0 = título; 1..n = falas; n+1..n+3 = créditos
   const total = 1 + text.lines.length + CREDITS.length;
   const [step, setStep] = useState(0);
-  // Vídeo do final (assets/cutscenes/final_*.mp4) antes dos slides; se faltar ou falhar, o player chama onDone e segue direto.
+  // Cutscene em código do final (campaigns/doggeCutscenes.ts, ids final_*) antes dos slides; se faltar ou falhar, o player chama onDone e segue direto.
   const finalCutscene = useMemo(() => cutsceneForEnding(ending), [ending]);
   const [videoDone, setVideoDone] = useState(!finalCutscene);
   const playing = !videoDone;

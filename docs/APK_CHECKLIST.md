@@ -8,7 +8,7 @@ Conferido contra `app.json`, `eas.json` e `package.json` deste repositório.
 - [x] `eas.json` com perfis `development`, `preview` e `production` (`appVersionSource: remote`, `autoIncrement` na produção).
 - [x] Dependências nativas (SDK 57): `expo-video` ~57.0.2 (cutscenes), `expo-audio` ~57.0.5 (música, sons e ambientes), `expo-haptics` ~57.0.3 (vibração), `react-native-reanimated` 4.5.1 + `react-native-worklets` 0.10.1, `react-native-gesture-handler`, `react-native-screens`, `react-native-safe-area-context`, `react-native-svg`, `expo-image`, `expo-font`, `expo-splash-screen`. React Compiler ligado (`experiments.reactCompiler`). Nenhuma dependência tem plugin de configuração no `app.json` além de `expo-router` e `expo-splash-screen`.
 - [x] `npx tsc --noEmit` limpo e todos os `tools/test-*.mjs` passam.
-- [x] Saves antigos migram sem erro (`tools/test-saves.mjs`).
+- [x] Saves antigos migram sem erro (`tests/unit/conta/saves-antigos.test.mjs`).
 
 ## Conferências de build (por escrito; só o build real confirma)
 - Versão `1.0.0` em `app.json` e `package.json`; nome exibido **Meme Fighter**; pacote `com.marcosros4.memefighterrpg`; `appVersionSource: remote` com `autoIncrement` na produção.

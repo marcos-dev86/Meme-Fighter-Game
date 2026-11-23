@@ -1,6 +1,6 @@
 /**
  * NÚCLEO PURO da CONTA do jogador (perfil global). Sem React e sem AsyncStorage: tudo aqui são funções que recebem a conta
- * e devolvem uma conta nova, para poder ser testado em Node (tools/test-conta.mjs) e para a store (accountState.ts) só
+ * e devolvem uma conta nova, para poder ser testado em Node (tests/unit/conta/conta-perfil-e-conquistas.test.mjs) e para a store (accountState.ts) só
  * cuidar de guardar/avisar. A conta vive FORA dos slots: apagar um save nunca mexe nela.
  */
 import { ACHIEVEMENTS, ACH_BY_ID, type Cond, type SetName } from './achievementDefs';

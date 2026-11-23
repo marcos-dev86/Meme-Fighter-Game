@@ -182,7 +182,7 @@ const META: Record<string, [Rarity, number]> = {
   sea_shell: ['common', 0.1], coral_shard: ['uncommon', 0.2], sunken_coin: ['uncommon', 0.1], pearl: ['rare', 0.1], diver_badge: ['common', 0.1],
   wreck_logbook: ['rare', 0.2], tide_compass: ['rare', 0.3], whale_song: ['rare', 0.2], relic_tablet: ['epic', 1], atlantis_key: ['epic', 0.5], beast_tooth: ['epic', 2],
   abyss_pearl: ['secret', 0.1], leviathan_scale: ['secret', 0.3], atlantis_heart: ['secret', 0.5],
-  // Itens exclusivos de MISSÃO SECRETA: todos Secret, nenhuma loja vende (regra testada em tools/test-mar.mjs).
+  // Itens exclusivos de MISSÃO SECRETA: todos Secret, nenhuma loja vende (regra testada em tests/unit/mar/missoes-do-mar.test.mjs).
   midnight_brew: ['secret', 0.5], rain_elixir: ['secret', 0.5], cousin_stew: ['secret', 0.6], breno_light: ['secret', 0.3], sigma_coin: ['secret', 0.1],
 };
 for (const d of list) {

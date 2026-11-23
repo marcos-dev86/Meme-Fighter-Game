@@ -178,6 +178,21 @@ export class Fighter {
   startEnergy = 0;
 
   /**
+   * Habilidade exclusiva do personagem de história (story/abilities.ts). Tudo começa desligado e só vale para quem
+   * recebeu applyAbility; os valores nunca se somam sozinhos porque abilityId guarda qual já foi aplicada.
+   */
+  abilityId: string | null = null;
+  /** Fração da vida máxima curada UMA vez por luta quando a vida cai a 20% ou menos. */
+  secondWindPct = 0;
+  secondWindUsed = false;
+  /** Vidas extras por luta: ao zerar a vida volta com 1 de vida e 1 s de imunidade. */
+  extraLives = 0;
+  /** Quanto mais forte é a queimadura que ESTE lutador causa (1 = normal). */
+  burnDotMult = 1;
+  /** Intensidade da queimadura que ESTE lutador está recebendo (definida por quem queimou). */
+  burnTakenMult = 1;
+
+  /**
    * Feedback visual de golpe recebido. SÓ APARÊNCIA: nada disto altera posição,
    * hitbox, dano ou estados; o BattleScreen apenas lê para desenhar.
    * - hitFlashTimer/hitFlashPower: o flash branco do sprite (ms restantes / intensidade 0..1).
@@ -317,10 +332,40 @@ export class Fighter {
     }
 
     this.health = Math.max(0, this.health - finalDamage * this.damageTakenMult);
+    if (this.survivalCheck()) return;
     if (this.health <= 0) {
       this.isKO = true;
       this.setState('ko');
     }
+  }
+
+  /**
+   * Efeitos de sobrevivência da habilidade exclusiva. Segundo Fôlego: uma cura única quando a vida cai a 20% ou menos.
+   * Vida extra: ao zerar, volta com 1 de vida e 1 s de imunidade. Devolve true se salvou o lutador do nocaute.
+   */
+  private survivalCheck(): boolean {
+    if (this.health > 0 && this.secondWindPct > 0 && !this.secondWindUsed && this.health <= this.maxHealth * 0.2) {
+      this.secondWindUsed = true;
+      this.health = Math.min(this.maxHealth, this.health + this.maxHealth * this.secondWindPct);
+      return false;
+    }
+    if (this.health <= 0 && this.extraLives > 0) {
+      this.extraLives -= 1;
+      this.health = 1;
+      this.isKO = false;
+      this.lastHurtBy = 'hit';
+      this.status = {};
+      this.burnTakenMult = 1;
+      this.hitstunTimer = 0;
+      this.currentAttack = null;
+      this.dashTimer = 0;
+      this.isShielding = false;
+      this.isCharging = false;
+      this.invulnTimer = 1000;
+      this.setState('idle');
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -375,6 +420,7 @@ export class Fighter {
 
   clearStatus() {
     this.status = {};
+    this.burnTakenMult = 1;
   }
 
   /** Tem algum status ativo (queimar, congelar, envenenar ou atordoar)? */
@@ -574,7 +620,7 @@ export class Fighter {
     for (const k of STATUS_KINDS) {
       const left = this.status[k] ?? 0;
       if (left <= 0) continue;
-      dps += DOT_PER_SEC[k] ?? 0;
+      dps += (DOT_PER_SEC[k] ?? 0) * (k === 'burn' ? this.burnTakenMult : 1);
       // O dano ao longo do tempo mais duradouro é o "responsável" se ele der o golpe final (aviso de morte).
       if ((DOT_PER_SEC[k] ?? 0) > 0 && left > dotLeft && this.invulnTimer <= 0) {
         dotLeft = left;
@@ -586,6 +632,7 @@ export class Fighter {
     }
     if (dps > 0 && this.invulnTimer <= 0) {
       this.health = Math.max(0, this.health - (dps * dt) / 1000);
+      if (this.survivalCheck()) return;
       if (this.health <= 0) {
         this.isKO = true;
         this.setState('ko');

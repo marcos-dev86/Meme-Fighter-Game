@@ -3,6 +3,11 @@ import { getSettings } from '@/game/state/settingsState';
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { Image as ExpoImage } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import { SCENES, type SceneKey } from './sceneArt';
+import { SCENE_IMAGES } from './sceneImages';
+import { SceneParticles } from './SceneParticles';
 import { playSfx } from '@/game/audio/audioManager';
 import Animated, {
   cancelAnimation,
@@ -20,6 +25,10 @@ interface Props {
   children: React.ReactNode;
   onBack?: () => void;
   backLabel?: string;
+  /** Cenário de fundo (arte + partículas). Sem ele, vale o fundo animado padrão. */
+  scene?: SceneKey;
+  /** Conteúdo (botões) na área livre à esquerda, deixando o personagem da arte à direita. */
+  rail?: boolean;
 }
 
 const SKY_COLORS = ['#1b1030', '#2a1540', '#160c28', '#241238'];
@@ -32,7 +41,7 @@ const PARTICLE_COUNT = 14;
  * asset) plus a handful of drifting embers/fireflies, all Reanimated : 
  * zero new dependencies.
  */
-export function ArtBackdrop({ children, onBack, backLabel = '< VOLTAR' }: Props) {
+export function ArtBackdrop({ children, onBack, backLabel = '< VOLTAR', scene, rail }: Props) {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const t = useSharedValue(0);
@@ -58,12 +67,27 @@ export function ArtBackdrop({ children, onBack, backLabel = '< VOLTAR' }: Props)
     [width]
   );
 
+  const def = scene ? SCENES[scene] : null;
   return (
-    <Animated.View style={[styles.bg, bgStyle]}>
-      {particles.map((p) => (
-        <Ember key={p.id} x={p.x} size={p.size} delay={p.delay} duration={p.duration} height={height} />
-      ))}
-      <View style={styles.content}>{children}</View>
+    <Animated.View style={[styles.bg, !def && bgStyle, def && styles.sceneBg]}>
+      {def && scene ? (
+        <>
+          <ExpoImage source={SCENE_IMAGES[scene]} style={StyleSheet.absoluteFill} contentFit="cover" contentPosition={{ right: 0, bottom: 0 }} transition={0} />
+          {/* sombra suave na área livre à esquerda: os botões ficam legíveis sem escurecer o personagem */}
+          <LinearGradient
+            pointerEvents="none"
+            colors={[`rgba(${def.scrim},0.72)`, `rgba(${def.scrim},0.38)`, `rgba(${def.scrim},0)`]}
+            locations={[0, 0.45, 0.8]}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={StyleSheet.absoluteFill}
+          />
+          <SceneParticles scene={scene} />
+        </>
+      ) : (
+        particles.map((p) => <Ember key={p.id} x={p.x} size={p.size} delay={p.delay} duration={p.duration} height={height} />)
+      )}
+      <View style={[styles.content, rail && { alignItems: 'flex-start', paddingLeft: insets.left + 28, paddingRight: '48%' }]}>{children}</View>
       {onBack && (
         <Pressable
           onPress={() => {
@@ -101,6 +125,7 @@ function Ember({ x, size, delay, duration, height }: { x: number; size: number; 
 
 const styles = StyleSheet.create({
   bg: { flex: 1, width: '100%', height: '100%' },
+  sceneBg: { backgroundColor: '#05050c' },
   content: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   ember: { position: 'absolute', backgroundColor: '#FFD700' },
   backButton: {

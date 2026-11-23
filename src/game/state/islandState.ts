@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { hasFlag } from '@/game/state/storyFlags';
 import { getQuestStatus } from './questState';
 
 /**
@@ -44,6 +45,8 @@ export const ISLANDS: Record<IslandId, IslandDef> = {
 export function isIslandUnlocked(id: IslandId): boolean {
   const def = ISLANDS[id];
   if (def.unlockedFromStart) return true;
+  // Campanhas dos outros personagens abrem as ilhas por bandeira (missão com reward.flag 'isl_open_<ilha>').
+  if (hasFlag(`isl_open_${id}`)) return true;
   if (def.unlockQuestId) return getQuestStatus(def.unlockQuestId) === 'completed';
   return false;
 }

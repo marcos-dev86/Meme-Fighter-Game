@@ -2,6 +2,7 @@ import React from 'react';
 import { Platform, StyleSheet, Text } from 'react-native';
 import { router } from 'expo-router';
 import { ArtBackdrop } from '@/game/menu/ArtBackdrop';
+import { SCREEN_SCENE } from '@/game/menu/sceneArt';
 import { ButtonColumn, MenuButton } from '@/game/menu/MenuButton';
 import { useI18n } from '@/game/i18n/i18n';
 
@@ -18,7 +19,7 @@ export function ExitConfirmScreen() {
   };
 
   return (
-    <ArtBackdrop onBack={() => router.back()}>
+    <ArtBackdrop scene={SCREEN_SCENE.exit} rail onBack={() => router.back()}>
       <ButtonColumn>
         <Text style={styles.question}>{t('exit_question')}</Text>
         {canQuit ? (

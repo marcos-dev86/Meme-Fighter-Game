@@ -4,9 +4,11 @@
  * agora muda números de verdade no combate (ver RARITY_BONUS).
  *
  * Este arquivo é PURO (sem imports de estado ou React): assim a matemática dos
- * bônus pode ser testada fora do app (tools/test-parte01.mjs) e usada por
+ * bônus pode ser testada fora do app (tests/unit/combate/game-feel-e-raridade.test.mjs) e usada por
  * gear.ts, itemDefs.ts e pelos textos de descrição sem ciclos de importação.
  */
+import { healMult } from '@/game/story/abilities';
+
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'secret';
 
 export const RARITY_ORDER: Rarity[] = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'secret'];
@@ -78,7 +80,7 @@ export function rarityBonus(r: Rarity | undefined): RarityBonus {
 
 /** Cura final de um item: valor base × bônus da mochila × bônus de raridade (arredondado). */
 export function scaledHeal(base: number, rarity: Rarity | undefined, bagHealMult = 1): number {
-  return Math.round(base * bagHealMult * rarityBonus(rarity).heal);
+  return Math.round(base * bagHealMult * rarityBonus(rarity).heal * healMult());
 }
 
 /** Energia final de um item: valor base × bônus de raridade (arredondado). */

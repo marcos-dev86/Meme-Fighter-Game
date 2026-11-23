@@ -4,7 +4,7 @@ import type { Difficulty } from '@/game/state/difficulty';
  * CERCO DOS ORCS no acampamento: várias batalhas SEGUIDAS contra orcs para vencer a missão. A quantidade de ondas vem da
  * dificuldade do mundo (3 a 6). Perder uma batalha derrota o cerco (volta ao checkpoint e recomeça da onda 1); a vida do
  * jogador segue entre as ondas (vida persistente da história), então dá para se desgastar. Estado só da sessão: se fechar o
- * jogo no meio, o cerco recomeça (por isso não vai para o save). Módulo puro, testado em tools/test-acampamento.mjs.
+ * jogo no meio, o cerco recomeça (por isso não vai para o save). Módulo puro, testado em tests/unit/historia/acampamento-e-cerco.test.mjs.
  */
 export const SIEGE_WAVES: Record<Difficulty, number> = { beginner: 3, easy: 3, medium: 4, hard: 5, hardcore: 6 };
 

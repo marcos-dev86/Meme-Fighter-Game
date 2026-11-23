@@ -8,7 +8,7 @@
  */
 import type { EnemyTypeId } from './enemyDefs';
 
-/** Zona de paz do CASSINO (Urgente 3): nenhum spawn a menos de 30 tiles do predio gigante (1040..1215, 152..217); tools/test-urgente3.mjs confere. */
+/** Zona de paz do CASSINO (Urgente 3): nenhum spawn a menos de 30 tiles do predio gigante (1040..1215, 152..217); tests/unit/cassino/cassino-gigante-e-memes.test.mjs confere. */
 export const ENEMY_SPAWNS: [EnemyTypeId, number, number, number][] = [
   ['bat', 1219, 1081, 2],
   ['spider', 15, 765, 3],

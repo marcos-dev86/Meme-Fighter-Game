@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { shopPrice } from '@/game/story/abilities';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CURRENCY_ABBR, ITEMS, SHOP_STOCK } from '@/game/items/itemDefs';
 import { addItem, bagRoomFor, getOwnedArmors, getOwnedBags, giveArmor, giveBag, spendCoins, usePlayerState } from '@/game/state/playerState';
@@ -53,7 +54,7 @@ export function ShopOverlay({ onClose, stock: baseStock = SHOP_STOCK, title, bag
       playSfx('ui_denied');
       return;
     }
-    const ok = spendCoins(item.price);
+    const ok = spendCoins(shopPrice(item.price));
     if (ok) {
       addItem(itemId, 1);
       reportPurchase(itemId);
@@ -72,7 +73,7 @@ export function ShopOverlay({ onClose, stock: baseStock = SHOP_STOCK, title, bag
       playSfx('ui_denied');
       return;
     }
-    if (spendCoins(o.price)) {
+    if (spendCoins(shopPrice(o.price))) {
       addItem(o.itemId, 1);
       markFlashBought(shopKey, o);
       reportPurchase(o.itemId);
@@ -87,7 +88,7 @@ export function ShopOverlay({ onClose, stock: baseStock = SHOP_STOCK, title, bag
   const buyBag = (bagId: string) => {
     const bag = BAGS[bagId];
     if (!bag || bag.price === null || getOwnedBags().includes(bagId)) return;
-    if (spendCoins(bag.price)) {
+    if (spendCoins(shopPrice(bag.price))) {
       giveBag(bagId);
       playSfx('coin');
       setMessage(`${t('bag_got')} ${bag.name}!`);
@@ -100,7 +101,7 @@ export function ShopOverlay({ onClose, stock: baseStock = SHOP_STOCK, title, bag
   const buyArmor = (armorId: string) => {
     const a = ARMORS[armorId];
     if (!a || a.price === null || getOwnedArmors().includes(armorId)) return;
-    if (spendCoins(a.price)) {
+    if (spendCoins(shopPrice(a.price))) {
       giveArmor(armorId);
       playSfx('coin');
       setMessage(`${t('armor_got')} ${a.name}!`);
@@ -146,7 +147,7 @@ export function ShopOverlay({ onClose, stock: baseStock = SHOP_STOCK, title, bag
                 </Text>
               </View>
               <Pressable style={[styles.buyBtn, styles.flashBtn, soldOut && styles.buyBtnOff]} onPress={() => buyFlash(o)} disabled={soldOut}>
-                <Text style={styles.buyLabel}>{soldOut ? t('shop_soldout') : `${o.price} ${CURRENCY_ABBR}`}</Text>
+                <Text style={styles.buyLabel}>{soldOut ? t('shop_soldout') : `${shopPrice(o.price)} ${CURRENCY_ABBR}`}</Text>
                 {!soldOut && <Text style={styles.oldPrice}>{o.basePrice}</Text>}
               </Pressable>
             </View>
@@ -170,7 +171,7 @@ export function ShopOverlay({ onClose, stock: baseStock = SHOP_STOCK, title, bag
                 <Text style={styles.itemDesc}>{bag.effectText}</Text>
               </View>
               <Pressable style={[styles.buyBtn, has && styles.buyBtnOff]} onPress={() => buyBag(bagId)} disabled={has}>
-                <Text style={styles.buyLabel}>{has ? t('bag_owned') : `${bag.price} ${CURRENCY_ABBR}`}</Text>
+                <Text style={styles.buyLabel}>{has ? t('bag_owned') : `${shopPrice(bag.price)} ${CURRENCY_ABBR}`}</Text>
               </Pressable>
             </View>
           );
@@ -193,7 +194,7 @@ export function ShopOverlay({ onClose, stock: baseStock = SHOP_STOCK, title, bag
                 </Text>
               </View>
               <Pressable style={[styles.buyBtn, has && styles.buyBtnOff]} onPress={() => buyArmor(armorId)} disabled={has}>
-                <Text style={styles.buyLabel}>{has ? t('bag_owned') : `${a.price} ${CURRENCY_ABBR}`}</Text>
+                <Text style={styles.buyLabel}>{has ? t('bag_owned') : `${shopPrice(a.price)} ${CURRENCY_ABBR}`}</Text>
               </Pressable>
             </View>
           );
@@ -218,7 +219,7 @@ export function ShopOverlay({ onClose, stock: baseStock = SHOP_STOCK, title, bag
               </View>
               <Pressable style={styles.buyBtn} onPress={() => buy(id)}>
                 <Text style={styles.buyLabel}>
-                  {item.price} {CURRENCY_ABBR}
+                  {shopPrice(item.price)} {CURRENCY_ABBR}
                 </Text>
               </Pressable>
             </View>

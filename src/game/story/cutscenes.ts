@@ -14,7 +14,7 @@ export type CutsceneTrigger =
   | { event: string };
 
 export interface CutsceneDef {
-  /** Também é o nome do arquivo: assets/cutscenes/<id>.mp4 */
+  /** Também é a chave do roteiro em código: story/campaigns (CODE_CUTSCENES[id]). */
   id: string;
   title: string;
   trigger: CutsceneTrigger;

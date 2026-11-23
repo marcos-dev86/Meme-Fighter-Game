@@ -31,7 +31,7 @@ const KEY_MAP: Record<string, DirectionKey> = {
  */
 /**
  * ANDAR EM UMA DIREÇÃO POR VEZ (sem diagonal): se mais de um botão estiver apertado, vale o ÚLTIMO que foi apertado; ao soltar
- * esse, volta a valer o anterior que ainda estiver segurado. Lógica pura em `resolveSingleAxis`, testada em tools/test-ui-historia.mjs.
+ * esse, volta a valer o anterior que ainda estiver segurado. Lógica pura em `resolveSingleAxis`, testada em tests/unit/historia/interface-e-movimento.test.mjs.
  */
 export function resolveSingleAxis(held: DirectionKey[]): DirectionalInput {
   const last = held[held.length - 1];

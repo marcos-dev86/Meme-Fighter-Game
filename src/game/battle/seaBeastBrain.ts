@@ -7,7 +7,7 @@
  *  - devolve multiplicadores para o dano que o chefe recebe (`incoming`) e para cura/bomba do jogador (`onItem`);
  *  - usa as mesmas regras do Fighter (escudo, energia, golpe SUPER, invulnerabilidade de fase).
  *
- * Regras de justiça (testadas em tools/test-sea-beast.mjs):
+ * Regras de justiça (testadas em tests/unit/combate/chefe-sea-beast.test.mjs):
  *  - golpes básicos (FLASH, FORTE) NUNCA ficam inúteis: no pior caso causam 70% do dano; sem limite de usos;
  *  - o especial repetido perde força aos poucos, com piso de 60%; o outro golpe volta com força total;
  *  - itens e equipamentos têm resposta PARCIAL e limitada; o chefe só reage ao que já viu (memória começa vazia);

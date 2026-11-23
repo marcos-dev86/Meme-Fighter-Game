@@ -17,43 +17,29 @@ Orientação: sempre paisagem. Idiomas: português (BR), inglês, espanhol, fran
 
 ## Testes
 
-Todos os testes de lógica rodam no Node, sem Expo (`tools/ts-register.cjs` transpila o TypeScript na hora):
+Os testes ficam em `tests/`, separados por categoria. Os de lógica rodam no Node, sem Expo (`tests/_support/ts-register.cjs`
+transpila o TypeScript na hora):
 
 ```bash
-for f in tools/test-*.mjs; do node $f; done
-CUTSCENES_STRICT=1 node tools/test-cutscenes.mjs   # confere também os vídeos em disco
+npm test                                  # todos os testes de lógica (tests/unit), com resumo por categoria
+node tests/rodar-todos.mjs mar cassino    # só algumas categorias
+python3 tests/assets/sprites-legados.test.py
 ```
 
-| Arquivo | O que cobre |
+| Pasta (tests/unit) | O que cobre |
 | --- | --- |
-| `test-parte01` / `test-parte2` / `test-parte3` / `test-urgente2` / `test-urgente3` / `test-dano` | combate, sprites, itens, mapa, vida persistente, armaduras, renomeações |
-| `test-conta` | conta, perfil, conquistas, progresso |
-| `test-cutscenes` | as 32 cutscenes (história, finais e curtas) |
-| `test-versus` | grade de seleção, tela VS, abertura ROUND/LUTE! |
-| `test-i18n` | os 5 idiomas têm as mesmas chaves, marcadores `{x}` iguais, sem texto fixo |
-| `test-saves` | saves antigos (v1, v2, ids antigos, JSON quebrado, 3 slots) e campos novos (rival, elites, opções) com padrão seguro |
-| `test-platina` / `test-platina100` | pesos da barra (soma 100), regras de nível 99/147 pontos/árvore e o teste de 100% que prova que a platina libera |
-| `test-ambient` | sons por região (floresta dia/noite, caverna, vulcão, gelo, cassino, interiores): no máximo 2 loops |
-| `test-rival-elite` | 5 aparições do rival e inimigos de elite |
-| `test-roster-compra` | elenco do Versus: liberar pela história, comprar com diamantes (30 a 150 ou mais pelos atributos), dicas de como liberar, sem o rótulo TEM |
-| `test-morte-secret` | raridade Secret (dados, bônus, cores, preços, 5 idiomas) e avisos de morte contextuais (inimigo, chefe, rival, criatura, afogamento, veneno, região, estatísticas) |
-| `test-mergulho` | fôlego, afogamento, pressão, fôlego infinito, equipamentos, 9 locais + 8 travessias (alcançáveis e possíveis), criaturas, baús, save, assets |
-| `test-sea-beast` | Sea Beast: sprites, estados, 3 fases, memória e adaptação, regras de justiça, defesa, fôlego na luta, vitória possível |
-| `test-mar` | 35 missões do mar (inclui secretas), jogada completa, recompensas sem duplicar, save, regra Secret |
-| `test-mar-aberto` | mundo submerso: espelha 100% do mar, mergulho e emersão de qualquer costa, ar em todo o oceano, entradas, baús, criaturas por região |
-| `test-mar-extras` | eventos aleatórios, mini-chefes, conquistas do mar ponta a ponta, diário e cenas de revelação |
-| `test-acampamento` | ilha do acampamento menor, cerco dos orcs (3 a 6 ondas), ajuda do Soldado |
-| `test-ui-historia` | interface nova do modo história e andar em uma direção por vez |
-| `test-pause-timers` | pausa, timers sem limpeza e animações infinitas sem cancelamento; opções gráficas |
+| `combate` | dano e crítico, game feel e raridade, revanche, rival e elites, chefe Sea Beast |
+| `habilidades` | as 16 habilidades exclusivas dos personagens (lutador, loja, baús, cura, cassino) |
+| `historia` | interface e movimento, acampamento, Sahur e vulcão, vida persistente e armaduras, cutscenes por código |
+| `cassino` | Troll Face e Cara Tranquilo, cassino gigante |
+| `mar` | missões, eventos e chefes, mundo submerso, mergulho, travessia, efeitos de água |
+| `versus` | seleção e tela VS, elenco e compra de lutadores |
+| `conta` | conta, perfil e conquistas, saves antigos, platina |
+| `itens` | raridade Secret e avisos de morte |
+| `sistema` | idiomas, pausa e timers, sons ambiente |
 
-Auditoria de traduções (5 idiomas): `node tools/check-i18n.mjs` (ou `npm run check:i18n`): chaves faltando, duplicadas, não traduzidas e problemas de estrutura.
-
-Testes no navegador (precisam de Playwright e de um export web):
-
-```bash
-npx expo export --platform web --output-dir dist
-node tools/e2e-versus.mjs dist      # idem: e2e-conta, e2e-cutscenes, e2e-parte01, e2e-parte2, e2e-urgente1, e2e-urgente3 ...
-```
+Os de navegador ficam em `tests/e2e` (mesmas categorias): precisam de `npx expo export --platform web --output-dir dist` e do
+Playwright; o cabeçalho de cada arquivo diz como rodar.
 
 ## Estrutura
 
