@@ -29,6 +29,8 @@ interface Props {
   scene?: SceneKey;
   /** Conteúdo (botões) na área livre à esquerda, deixando o personagem da arte à direita. */
   rail?: boolean;
+  /** Conteúdo ocupando a tela toda: escurece a arte para a leitura. */
+  dim?: boolean;
 }
 
 const SKY_COLORS = ['#1b1030', '#2a1540', '#160c28', '#241238'];
@@ -41,7 +43,7 @@ const PARTICLE_COUNT = 14;
  * asset) plus a handful of drifting embers/fireflies, all Reanimated : 
  * zero new dependencies.
  */
-export function ArtBackdrop({ children, onBack, backLabel = '< VOLTAR', scene, rail }: Props) {
+export function ArtBackdrop({ children, onBack, backLabel = '< VOLTAR', scene, rail, dim }: Props) {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const t = useSharedValue(0);
@@ -82,12 +84,13 @@ export function ArtBackdrop({ children, onBack, backLabel = '< VOLTAR', scene, r
             end={{ x: 1, y: 0.5 }}
             style={StyleSheet.absoluteFill}
           />
+          {dim ? <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: `rgba(${def.scrim},0.58)` }]} /> : null}
           <SceneParticles scene={scene} />
         </>
       ) : (
         particles.map((p) => <Ember key={p.id} x={p.x} size={p.size} delay={p.delay} duration={p.duration} height={height} />)
       )}
-      <View style={[styles.content, rail && { alignItems: 'flex-start', paddingLeft: insets.left + 28, paddingRight: '48%' }]}>{children}</View>
+      <View style={[styles.content, rail && { alignItems: 'flex-start', paddingLeft: insets.left + 28, paddingRight: '48%', paddingTop: 10, paddingBottom: 64 }]}>{children}</View>
       {onBack && (
         <Pressable
           onPress={() => {

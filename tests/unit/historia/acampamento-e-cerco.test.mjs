@@ -28,17 +28,17 @@ const read = (p) => fs.readFileSync(new URL(`../../../${p}`, import.meta.url), '
 const R = W.CAMP_TILES;
 const OLD = { x0: 260, y0: 1208, x1: 540, y1: 1368 };
 
-describe('a ilha do acampamento ficou menor', () => {
-  it('menos de 1/3 da área antiga, mas ainda com espaço para o salão e os NPCs', () => {
+describe('a ilha do acampamento ficou bem menor', () => {
+  it('menos de 1/6 da área original, mas ainda com espaço para o salão e os NPCs', () => {
     const area = (r) => (r.x1 - r.x0 + 1) * (r.y1 - r.y0 + 1);
-    assert.ok(area(R) < area(OLD) / 3, `${area(R)} vs ${area(OLD)}`);
-    assert.ok(R.x1 - R.x0 >= 100 && R.y1 - R.y0 >= 100);
+    assert.ok(area(R) < area(OLD) / 6, `${area(R)} vs ${area(OLD)}`);
+    assert.ok(R.x1 - R.x0 >= 60 && R.y1 - R.y0 >= 60);
   });
   it('o portão sul e o cais ficam onde estavam (o barco continua chegando)', () => {
     assert.equal(R.y1, OLD.y1);
     const midX = Math.round((R.x0 + R.x1) / 2);
     assert.equal(W.getWorldTile(midX, R.y1), 'path', 'portão');
-    assert.deepEqual(W.REGION_ANCHORS.camp, { x: 400, y: 1288 });
+    assert.deepEqual(W.REGION_ANCHORS.camp, { x: 400, y: 1338 });
   });
   it('o que era camp e agora está fora é mar; o que ficou é parede e chão', () => {
     assert.equal(W.getWorldTile(270, 1300), 'water');
@@ -49,16 +49,42 @@ describe('a ilha do acampamento ficou menor', () => {
   it('NPCs do acampamento, salão e dica estão DENTRO da ilha nova e em chão andável', () => {
     const inside = (x, y) => x > R.x0 && x < R.x1 && y > R.y0 && y < R.y1;
     const solid = new Set(['water', 'tree', 'rock', 'wall', 'lava', 'shop', 'house']);
-    for (const [x, y] of [[360, 1308], [400, 1278], [400, 1348], [403, 1284], [420, 1260]]) {
+    for (const [x, y] of [[376, 1330], [400, 1306], [400, 1348], [424, 1312], [424, 1336]]) {
       assert.ok(inside(x, y), `${x},${y} fora da ilha`);
       assert.equal(solid.has(W.getWorldTile(x, y)), false, `${x},${y} em tile sólido: ${W.getWorldTile(x, y)}`);
     }
     assert.equal(W.getWorldTile(400, 1318), 'house', 'salão do acampamento');
     assert.equal(W.islandAt ? W.islandAt(400, 1300) : 'camp', 'camp');
   });
-  it('os NPCs de lugar fixo continuam relativos à âncora antiga', () => {
+  it('os NPCs do acampamento têm lugar fixo dentro da ilha nova (nenhum ficou na água)', () => {
     const src = read('src/game/world/npcs.ts');
-    assert.match(src, /REGION_ANCHORS\.camp\.x - 40/);
+    assert.match(src, /npcId: 'orc_guard', x: 376, y: 1330/);
+    assert.match(src, /npcId: 'soldier_captain', x: 400, y: 1306/);
+    assert.match(src, /npcId: 'tico', x: 400, y: 1348/);
+  });
+});
+
+describe('a Ilha dos Cães ficou bem menor', () => {
+  const D = W.DOGISLAND_TILES;
+  const OLDD = { x0: 1050, y0: 1188, x1: 1400, y1: 1408 };
+  const area = (r) => (r.x1 - r.x0 + 1) * (r.y1 - r.y0 + 1);
+  it('cerca de 1/3 da área anterior, com a borda norte (píer) no mesmo lugar', () => {
+    assert.ok(area(D) < area(OLDD) / 2.5, `${area(D)} vs ${area(OLDD)}`);
+    assert.equal(D.y0, OLDD.y0);
+    assert.ok(D.x1 - D.x0 >= 120 && D.y1 - D.y0 >= 120, 'ainda dá para andar');
+  });
+  it('âncora de chegada, cais e NPCs continuam dentro da ilha, em chão andável', () => {
+    assert.deepEqual(W.REGION_ANCHORS.dogisland, { x: 1225, y: 1298 });
+    const dock = W.FERRY_DOCKS.dogisland;
+    assert.deepEqual(dock.anchor, { x: 1224, y: 1182 });
+    const solid = new Set(['water', 'tree', 'rock', 'wall', 'lava', 'shop', 'house']);
+    const npcs = [[1166, 1277], [1164, 1319], [1264, 1299], [1229, 1295], [1202, 1303], [1189, 1339]];
+    for (const [x, y] of npcs) {
+      assert.ok(x > D.x0 && x < D.x1 && y > D.y0 && y < D.y1, `${x},${y} fora da ilha`);
+    }
+    assert.equal(W.getWorldTile(1050, 1250), 'water', 'o que era ilha e saiu virou mar');
+    assert.equal(W.getWorldTile(1380, 1380), 'water');
+    assert.equal(solid.has(W.getWorldTile(1225, 1298)), false, 'âncora em chão andável');
   });
 });
 

@@ -2,12 +2,13 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { ArtBackdrop } from '@/game/menu/ArtBackdrop';
+import { SCREEN_SCENE } from '@/game/menu/sceneArt';
 import { useI18n } from '@/game/i18n/i18n';
 
 export function CreditsScreen() {
   const { t } = useI18n();
   return (
-    <ArtBackdrop onBack={() => router.back()}>
+    <ArtBackdrop scene={SCREEN_SCENE.credits} rail onBack={() => router.back()}>
       <View style={styles.card}>
         <Text style={styles.title}>{t('credits_title')}</Text>
         <Text style={styles.line}>{t('credits_direction')}</Text>

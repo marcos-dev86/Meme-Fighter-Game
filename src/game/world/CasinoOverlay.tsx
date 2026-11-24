@@ -1,4 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Image as ExpoImage } from 'expo-image';
+import { SCENE_IMAGES } from '@/game/menu/sceneImages';
+import { SceneParticles } from '@/game/menu/SceneParticles';
 import { luckyPayout, luckyRoll } from '@/game/story/abilities';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { GameIcon, IconLabel } from '@/game/ui/GameIcon';
@@ -430,6 +433,9 @@ export function CasinoOverlay({ onClose, initialGame }: Props) {
 
   return (
     <View style={styles.root}>
+      <ExpoImage source={SCENE_IMAGES.casino} style={StyleSheet.absoluteFill} contentFit="cover" contentPosition={{ right: 0, bottom: 0 }} transition={0} />
+      <View pointerEvents="none" style={styles.scenePanel} />
+      <SceneParticles scene="casino" />
       <ScrollView style={{ flex: 1, width: '100%' }} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator>
         <IconLabel icon="roulette" size={24} gap={8} textStyle={styles.title}>
           {t('casino_title')}
@@ -485,7 +491,8 @@ export function CasinoOverlay({ onClose, initialGame }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: 'rgba(30,6,14,0.97)' },
+  root: { flex: 1, backgroundColor: '#14060c' },
+  scenePanel: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(20,4,12,0.6)' },
   scroll: { padding: 12, alignItems: 'center', gap: 6, flexGrow: 1, justifyContent: 'center' },
   title: { color: '#FFD700', fontSize: 19, fontWeight: '800' },
   coins: { color: '#fff', opacity: 0.85 },

@@ -3,6 +3,7 @@ import { isMissionRevealed } from '@/game/state/questState';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { ArtBackdrop } from '@/game/menu/ArtBackdrop';
+import { SCREEN_SCENE } from '@/game/menu/sceneArt';
 import { useMissionList } from '@/game/state/questState';
 import { useProgress } from '@/game/state/progressState';
 import { GameIcon, IconLabel } from '@/game/ui/GameIcon';
@@ -29,7 +30,7 @@ export function MissionsScreen() {
   }
 
   return (
-    <ArtBackdrop onBack={() => router.back()}>
+    <ArtBackdrop scene={SCREEN_SCENE.missions} dim onBack={() => router.back()}>
       <View style={styles.header}>
         <Text style={styles.title}>{t('missions_title')}</Text>
         <Text style={styles.count}>

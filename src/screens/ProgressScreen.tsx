@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { ArtBackdrop } from '@/game/menu/ArtBackdrop';
+import { SCREEN_SCENE } from '@/game/menu/sceneArt';
 import { useProgress, PROGRESS_LEVEL_TARGET } from '@/game/state/progressState';
 import { GameIcon, IconLabel } from '@/game/ui/GameIcon';
 import type { IconName } from '@/game/ui/iconRegistry';
@@ -35,7 +36,7 @@ export function ProgressScreen() {
   const info = useProgress();
 
   return (
-    <ArtBackdrop onBack={() => router.back()}>
+    <ArtBackdrop scene={SCREEN_SCENE.progress} rail onBack={() => router.back()}>
       <View style={styles.header}>
         <Text style={styles.title}>{t('progress_title')}</Text>
         <IconLabel icon={info.platinum ? 'trophy' : 'target'} size={20} gap={6} textStyle={[styles.percent, info.platinum && styles.percentGold]}>{`${info.percent}%`}</IconLabel>

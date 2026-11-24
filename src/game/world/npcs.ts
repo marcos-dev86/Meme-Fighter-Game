@@ -644,13 +644,13 @@ export const OUTDOOR_NPCS: OutdoorPlacement[] = [
   { npcId: 'zeca', x: REGION_ANCHORS.dock.x - 7, y: REGION_ANCHORS.dock.y - 2 },
   { npcId: 'iara', x: 661, y: 541 },
   { npcId: 'rocha', x: IGLOO_TILE.x + 10, y: IGLOO_TILE.y + 40 },
-  { npcId: 'orc_guard', x: REGION_ANCHORS.camp.x - 40, y: REGION_ANCHORS.camp.y + 20 },
-  { npcId: 'soldier_captain', x: REGION_ANCHORS.camp.x, y: REGION_ANCHORS.camp.y - 10 },
+  { npcId: 'orc_guard', x: 376, y: 1330 },
+  { npcId: 'soldier_captain', x: 400, y: 1306 },
   { npcId: 'footman_dog', x: 1166, y: 1277 },
   { npcId: 'tank_dog', x: 1164, y: 1319 },
   { npcId: 'dogking', x: 1264, y: 1299 },
   { npcId: 'silvana', x: 1360, y: 900 },
-  { npcId: 'tico', x: REGION_ANCHORS.camp.x, y: REGION_ANCHORS.camp.y + 60 },
+  { npcId: 'tico', x: 400, y: 1348 },
   { npcId: 'moai', x: 169, y: 549 },
   { npcId: 'guardiao_pedra', x: CAVE_GUARDIAN_SPOT.x, y: CAVE_GUARDIAN_SPOT.y },
   { npcId: 'tank_vulcao', x: REGION_ANCHORS.vulcao.x + 30, y: REGION_ANCHORS.vulcao.y },
@@ -681,7 +681,7 @@ export const OUTDOOR_NPCS: OutdoorPlacement[] = [
   { npcId: 'cara_tranquilo', x: 1891, y: 356 }, // vulcao
   { npcId: 'cara_tranquilo', x: 93, y: 206 }, // trevas
   { npcId: 'cara_tranquilo', x: 1693, y: 1036 }, // fragmentos
-  { npcId: 'cara_tranquilo', x: 403, y: 1284 }, // acampamento
+  { npcId: 'cara_tranquilo', x: 424, y: 1312 }, // acampamento
   { npcId: 'cara_tranquilo', x: 1229, y: 1295 }, // ilha dos caes
   // Os 3 troncos (Urgente 3): aparecem como moradores depois de vencidos como chefes; 3 tiles ao lado do lugar do chefe (area 5x5 livre, mas conferida no teste).
   { npcId: 'sahur_npc', x: 842, y: 905, after: 'boss_sahur' },
@@ -694,7 +694,7 @@ export const OUTDOOR_NPCS: OutdoorPlacement[] = [
   // Mesmo meme em varios lugares (no maximo 3 no jogo todo, contando o cassino): mais memes pelo mapa sem ficar repetitivo.
   { npcId: 'azulao', x: 990, y: 840 }, // ilha principal, planicie
   { npcId: 'rei_dourado', x: 1872, y: 298 }, // vulcao
-  { npcId: 'gato_bocao', x: 420, y: 1260 }, // acampamento
+  { npcId: 'gato_bocao', x: 424, y: 1336 }, // acampamento
   { npcId: 'shiba_manso', x: 675, y: 996 }, // neve, oeste
   { npcId: 'gato_arco_iris', x: 1700, y: 1075 }, // fragmentos
   { npcId: 'vermelhao', x: 102, y: 228 }, // trevas

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { ArtBackdrop } from '@/game/menu/ArtBackdrop';
+import { SCREEN_SCENE } from '@/game/menu/sceneArt';
 import { MenuButton } from '@/game/menu/MenuButton';
 import { DEFAULT_CHARACTER_ID, STORY_CHARACTERS } from '@/game/story/characters';
 import { useUnlockedCharacters } from '@/game/state/profileState';
@@ -73,7 +74,7 @@ export function SaveSlotsScreen() {
   if (creating !== null) {
     const i = creating;
     return (
-      <ArtBackdrop onBack={() => (setCreating(null), setError(false))}>
+      <ArtBackdrop scene={SCREEN_SCENE.slots} dim onBack={() => (setCreating(null), setError(false))}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.newWrap}>
           <ScrollView contentContainerStyle={styles.newScroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             <Text style={styles.heading}>{t('slots_new_title')}</Text>
@@ -112,7 +113,7 @@ export function SaveSlotsScreen() {
   const cardW = Math.max(150, Math.min(220, (width - 120) / SLOT_COUNT));
 
   return (
-    <ArtBackdrop onBack={() => router.back()}>
+    <ArtBackdrop scene={SCREEN_SCENE.slots} dim onBack={() => router.back()}>
       <Text style={styles.heading}>{t('slots_title')}</Text>
       <View style={styles.row}>
         {(slots ?? Array.from({ length: SLOT_COUNT }, () => null)).map((data, i) => (

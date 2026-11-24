@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { ArtBackdrop } from '@/game/menu/ArtBackdrop';
+import { SCREEN_SCENE } from '@/game/menu/sceneArt';
 import { MenuButton } from '@/game/menu/MenuButton';
 import { Slider } from '@/game/menu/Slider';
 import { useI18n, setLang } from '@/game/i18n/i18n';
@@ -47,16 +48,16 @@ export function OptionsScreen() {
     page === 'sound' ? t('opt_cat_sound') : page === 'game' ? t('opt_cat_game') : page === 'controls' ? t('opt_cat_controls') : page === 'language' ? t('options_language') : page === 'cutscenes' ? t('opt_cat_cutscenes') : t('options_title');
 
   return (
-    <ArtBackdrop onBack={onBack}>
+    <ArtBackdrop scene={SCREEN_SCENE.options} rail onBack={onBack}>
       <Text style={styles.title}>{title}</Text>
 
       {page === 'hub' && (
         <View style={styles.hub}>
-          <MenuButton label={t('opt_cat_sound')} onPress={() => setPage('sound')} />
-          <MenuButton label={t('opt_cat_game')} onPress={() => setPage('game')} />
-          <MenuButton label={t('opt_cat_controls')} onPress={() => setPage('controls')} />
-          <MenuButton label={t('options_language')} onPress={() => setPage('language')} />
-          <MenuButton label={t('opt_cat_cutscenes')} onPress={() => setPage('cutscenes')} />
+          <MenuButton fit compact label={t('opt_cat_sound')} onPress={() => setPage('sound')} />
+          <MenuButton fit compact label={t('opt_cat_game')} onPress={() => setPage('game')} />
+          <MenuButton fit compact label={t('opt_cat_controls')} onPress={() => setPage('controls')} />
+          <MenuButton fit compact label={t('options_language')} onPress={() => setPage('language')} />
+          <MenuButton fit compact label={t('opt_cat_cutscenes')} onPress={() => setPage('cutscenes')} />
         </View>
       )}
 
@@ -181,8 +182,8 @@ export function OptionsScreen() {
 
 const styles = StyleSheet.create({
   title: { color: '#FFD700', fontWeight: '800', fontSize: 20, letterSpacing: 1, marginBottom: 12 },
-  hub: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, justifyContent: 'center', maxWidth: 620 },
-  col: { alignItems: 'center', gap: 12, maxWidth: 380 },
+  hub: { gap: 8, width: 260 },
+  col: { alignItems: 'flex-start', gap: 12, maxWidth: 380 },
   csList: { maxHeight: 210 },
   csListContent: { alignItems: 'center', gap: 10 },
   sublabel: { color: '#fff', fontWeight: '700', fontSize: 13 },

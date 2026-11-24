@@ -55,22 +55,25 @@ export const SCENES: Record<SceneKey, SceneDef> = {
 };
 
 /**
- * Telas que JÁ usam cenário: só as de botões em coluna, que cabem na área livre à esquerda (a arte fica à direita).
- * As demais ficam com o fundo animado padrão até existir uma arte própria para o layout delas (ver SCREENS_AWAITING_ART).
+ * Cenário de cada tela: os 13 aparecem, um em cada uma, nenhum repete.
+ *  - rail: o conteúdo é um bloco compacto e fica na área livre à esquerda, sem cobrir o personagem da arte (à direita);
+ *  - dim: o conteúdo ocupa a tela toda (listas, grades, árvores): a arte fica atrás, escurecida, para a leitura.
  */
 export const SCREEN_SCENE = {
   home: 'sunset',
   play: 'battle',
+  options: 'ice',
   exit: 'shadow',
+  credits: 'forest',
+  status: 'cave',
+  progress: 'sea',
+  versus: 'duel',
+  slots: 'tree',
+  missions: 'city',
+  skills: 'lava',
+  tower: 'trio',
+  casino: 'casino',
 } as const satisfies Record<string, SceneKey>;
 
-/** Telas com botões em coluna: o conteúdo fica na área livre à esquerda, sem cobrir o personagem da arte (à direita). */
-export const RAIL_SCREENS: ReadonlyArray<keyof typeof SCREEN_SCENE> = ['home', 'play', 'exit'];
-
-/** Telas cujo conteúdo é centralizado ou ocupa a largura toda: precisam de fundos adaptados (ainda sem arte). */
-export const SCREENS_AWAITING_ART = [
-  'Mundos (SaveSlotsScreen)', 'Seleção do Versus (VersusScreen)', 'Torre (TowerScreen)', 'Missões (MissionsScreen)',
-  'Habilidades (SkillsScreen)', 'Status (StatusScreen)', 'Opções (OptionsScreen)', 'Créditos (CreditsScreen)',
-  'Progresso (ProgressScreen)', 'Inventário (InventoryScreen)', 'Perfil (ProfileScreen)', 'Tutorial (TutorialScreen)',
-  'Controles (ControlsInfoScreen)', 'Cassino (CasinoOverlay)',
-] as const;
+export const RAIL_SCREENS: ReadonlyArray<keyof typeof SCREEN_SCENE> = ['home', 'play', 'options', 'exit', 'credits', 'status', 'progress'];
+export const DIM_SCREENS: ReadonlyArray<keyof typeof SCREEN_SCENE> = ['versus', 'slots', 'missions', 'skills', 'tower', 'casino'];

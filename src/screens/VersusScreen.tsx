@@ -8,6 +8,7 @@ import { PICK_COUNT, drawOffer, drawRandomPair, encodeItems } from '@/game/battl
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArtBackdrop } from '@/game/menu/ArtBackdrop';
+import { SCREEN_SCENE } from '@/game/menu/sceneArt';
 import { ButtonColumn, MenuButton } from '@/game/menu/MenuButton';
 import { STAGE_ART } from '@/game/menu/art';
 import { STAGE_DEFS } from '@/game/battle/stages';
@@ -74,7 +75,7 @@ export function VersusScreen() {
 
   if (step === 'mode') {
     return (
-      <ArtBackdrop onBack={() => router.back()}>
+      <ArtBackdrop scene={SCREEN_SCENE.versus} dim onBack={() => router.back()}>
         <ButtonColumn>
           <MenuButton label={t('versus_mode_cpu')} onPress={() => chooseMode('cpu')} />
           <MenuButton label={t('versus_mode_2p')} onPress={() => chooseMode('2p')} />
@@ -85,7 +86,7 @@ export function VersusScreen() {
 
   if (step === 'difficulty') {
     return (
-      <ArtBackdrop onBack={() => setStep('mode')}>
+      <ArtBackdrop scene={SCREEN_SCENE.versus} dim onBack={() => setStep('mode')}>
         <Text style={styles.heading}>{t('difficulty_title')}</Text>
         <DifficultyPicker value={difficulty} onChange={setDifficulty} />
         <View style={{ height: 24 }} />
@@ -96,7 +97,7 @@ export function VersusScreen() {
 
   if (step === 'characters') {
     return (
-      <ArtBackdrop onBack={() => setStep(mode === 'cpu' && !params.skipMode ? 'difficulty' : 'mode')}>
+      <ArtBackdrop scene={SCREEN_SCENE.versus} dim onBack={() => setStep(mode === 'cpu' && !params.skipMode ? 'difficulty' : 'mode')}>
         <FighterSelect
           mode={mode}
           unlocked={unlocked}
@@ -125,7 +126,7 @@ export function VersusScreen() {
 
   if (step === 'items') {
     return (
-      <ArtBackdrop onBack={() => setStep('stage')}>
+      <ArtBackdrop scene={SCREEN_SCENE.versus} dim onBack={() => setStep('stage')}>
         <Text style={styles.heading}>{t('versus_items_title')}</Text>
         <Text style={styles.itemsNote}>{itemsOn ? t('versus_items_note') : t('versus_items_off')}</Text>
         {itemsOn && (
@@ -154,7 +155,7 @@ export function VersusScreen() {
   }
 
   return (
-    <ArtBackdrop onBack={() => setStep('characters')}>
+    <ArtBackdrop scene={SCREEN_SCENE.versus} dim onBack={() => setStep('characters')}>
       <Text style={styles.heading}>{t('versus_choose_stage')}</Text>
       <ScrollView style={styles.stageScroll} contentContainerStyle={styles.stageRow}>
         {STAGE_DEFS.map((s) => (

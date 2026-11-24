@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { ArtBackdrop } from '@/game/menu/ArtBackdrop';
+import { SCREEN_SCENE } from '@/game/menu/sceneArt';
 import { MenuButton } from '@/game/menu/MenuButton';
 import { PowerPointsView } from '@/game/menu/PowerPointsView';
 import { CosmeticBrowser } from '@/game/menu/CosmeticBrowser';
@@ -26,7 +27,7 @@ export function StatusScreen() {
   };
 
   return (
-    <ArtBackdrop onBack={onBack}>
+    <ArtBackdrop scene={SCREEN_SCENE.status} rail onBack={onBack}>
       {page === 'hub' && (
         <>
           <Text style={styles.title}>{t('status_title')}</Text>

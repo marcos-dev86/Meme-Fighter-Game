@@ -3,6 +3,7 @@ import { IconLabel } from '@/game/ui/GameIcon';
 import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { ArtBackdrop } from '@/game/menu/ArtBackdrop';
+import { SCREEN_SCENE } from '@/game/menu/sceneArt';
 import { MenuButton } from '@/game/menu/MenuButton';
 import { checkpointFloor, startRun, useTower } from '@/game/state/towerState';
 import { getStoryCharacter } from '@/game/story/characters';
@@ -27,7 +28,7 @@ export function TowerScreen() {
   const nextKind: 'boss' | 'rival' | '' = isTowerBossFloor(next) ? 'boss' : isTowerRivalFloor(next) ? 'rival' : '';
 
   return (
-    <ArtBackdrop onBack={() => router.back()}>
+    <ArtBackdrop scene={SCREEN_SCENE.tower} dim onBack={() => router.back()}>
       <Text style={styles.title}>{t('tower_title')}</Text>
       <Text style={styles.sub}>{t('tower_desc')}</Text>
       <View style={styles.cols}>
