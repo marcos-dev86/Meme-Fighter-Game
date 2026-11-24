@@ -3,6 +3,7 @@ import { GameIcon } from '@/game/ui/GameIcon';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { ArtBackdrop } from '@/game/menu/ArtBackdrop';
+import { SCREEN_SCENE } from '@/game/menu/sceneArt';
 import { CURRENCY_ABBR, ITEMS, isUsable } from '@/game/items/itemDefs';
 import { usePlayerState, equipItem, equipBag, equipArmor, getBagUsage, getOwnedBags, getOwnedArmors, getEquippedArmorId } from '@/game/state/playerState';
 import { ARMORS } from '@/game/items/armorDefs';
@@ -59,7 +60,7 @@ export function InventoryScreen() {
   const overWeight = usage.weight > usage.maxWeight + 1e-6;
 
   return (
-    <ArtBackdrop onBack={() => router.back()}>
+    <ArtBackdrop scene={SCREEN_SCENE.inventory} dim onBack={() => router.back()}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.title}>{t('inventory_title')}</Text>

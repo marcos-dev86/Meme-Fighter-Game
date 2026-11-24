@@ -48,7 +48,6 @@ export default function RootLayout() {
         <Stack.Screen name="cutscene" />
         <Stack.Screen name="tower" />
         <Stack.Screen name="tutorial" />
-        <Stack.Screen name="exit-confirm" />
       </Stack>
       <TipBanner />
       <AchievementToast />

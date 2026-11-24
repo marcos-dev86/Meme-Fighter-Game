@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } fr
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArtBackdrop } from '@/game/menu/ArtBackdrop';
+import { SCREEN_SCENE } from '@/game/menu/sceneArt';
 import { MenuButton } from '@/game/menu/MenuButton';
 import { ACTION_COLORS, ACTION_LABELS } from '@/game/input/ActionCluster';
 import { GameIcon } from '@/game/ui/GameIcon';
@@ -58,7 +59,7 @@ export function TutorialScreen() {
   const lines = p.legend ? [] : t(`tut_${page + 1}_b`).split('\n');
 
   return (
-    <ArtBackdrop>
+    <ArtBackdrop scene={SCREEN_SCENE.tutorial} dim>
       <View style={[styles.card, { maxHeight: height - 28 }]}>
         <View style={styles.headerRow}>
           <Text style={styles.header}>

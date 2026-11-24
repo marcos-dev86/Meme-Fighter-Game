@@ -55,7 +55,7 @@ export const SCENES: Record<SceneKey, SceneDef> = {
 };
 
 /**
- * Cenário de cada tela: os 13 aparecem, um em cada uma, nenhum repete.
+ * Cenário de cada tela: os 13 aparecem e, como há mais telas que imagens, alguns se repetem.
  *  - rail: o conteúdo é um bloco compacto e fica na área livre à esquerda, sem cobrir o personagem da arte (à direita);
  *  - dim: o conteúdo ocupa a tela toda (listas, grades, árvores): a arte fica atrás, escurecida, para a leitura.
  */
@@ -63,7 +63,6 @@ export const SCREEN_SCENE = {
   home: 'sunset',
   play: 'battle',
   options: 'ice',
-  exit: 'shadow',
   credits: 'forest',
   status: 'cave',
   progress: 'sea',
@@ -73,7 +72,11 @@ export const SCREEN_SCENE = {
   skills: 'lava',
   tower: 'trio',
   casino: 'casino',
+  inventory: 'shadow',
+  profile: 'trio',
+  tutorial: 'battle',
+  controls: 'ice',
 } as const satisfies Record<string, SceneKey>;
 
-export const RAIL_SCREENS: ReadonlyArray<keyof typeof SCREEN_SCENE> = ['home', 'play', 'options', 'exit', 'credits', 'status', 'progress'];
-export const DIM_SCREENS: ReadonlyArray<keyof typeof SCREEN_SCENE> = ['versus', 'slots', 'missions', 'skills', 'tower', 'casino'];
+export const RAIL_SCREENS: ReadonlyArray<keyof typeof SCREEN_SCENE> = ['home', 'play', 'options', 'credits', 'status', 'progress'];
+export const DIM_SCREENS: ReadonlyArray<keyof typeof SCREEN_SCENE> = ['versus', 'slots', 'missions', 'skills', 'tower', 'casino', 'inventory', 'profile', 'tutorial', 'controls'];

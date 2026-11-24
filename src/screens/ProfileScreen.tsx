@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { ArtBackdrop } from '@/game/menu/ArtBackdrop';
+import { SCREEN_SCENE } from '@/game/menu/sceneArt';
 import { MenuButton } from '@/game/menu/MenuButton';
 import { useI18n } from '@/game/i18n/i18n';
 import { RARITY_COLOR, RARITY_ORDER, rarityKey } from '@/game/items/rarity';
@@ -42,7 +43,7 @@ export function ProfileScreen() {
   const compact = width < 700;
 
   return (
-    <ArtBackdrop onBack={() => router.back()}>
+    <ArtBackdrop scene={SCREEN_SCENE.profile} dim onBack={() => router.back()}>
       <View style={[styles.shell, { height: panelH, maxHeight: panelH, width: Math.min(width - 24, 940) }]}>
         <View style={[styles.side, compact && styles.sideCompact]}>
           <ProfileBadge avatar={acc.avatar} bg={acc.bg} frame={acc.frame} size={compact ? 64 : 104} />
