@@ -20,6 +20,9 @@ import { GameIcon } from '@/game/ui/GameIcon';
 import type { IconName } from '@/game/ui/iconRegistry';
 import { NPC_SHEET } from '@/game/world/npcSheet';
 import { NpcSprite, hasWalkSheet } from '@/game/world/NpcSprite';
+import { getStoryCharacterId } from '@/game/state/questState';
+import { LevelUpBackdrop } from './LevelUpBackdrop';
+import { getLevelUpGround } from './levelUpScene';
 import { useI18n } from '@/game/i18n/i18n';
 import { beatDuration, type CodeActor, type CodeBeat, type CodeCutscene, type CodeFade, type CodeKey, type CodePose } from './codeCutscenes';
 import { resolveCutsceneText } from './cutsceneText';
@@ -222,7 +225,9 @@ function BeatView({ beat, lang, name, onTap }: { beat: CodeBeat; lang: string; n
   return (
     <Pressable style={StyleSheet.absoluteFill} onPress={() => (!typedAll ? setShown(text.length) : onTap())}>
       <Animated.View style={[StyleSheet.absoluteFill, bgStyle]}>
-        {bg.kind === 'scene' ? (
+        {beat.levelUp ? (
+          <LevelUpBackdrop characterId={getStoryCharacterId()} ground={getLevelUpGround()} />
+        ) : bg.kind === 'scene' ? (
           <ExpoImage source={SCENE_IMAGES[bg.key]} style={StyleSheet.absoluteFill} contentFit="cover" contentPosition={{ right: 0, bottom: 0 }} transition={0} />
         ) : bg.kind === 'image' ? (
           <Image source={bg.src} resizeMode="cover" style={{ width, height }} />
@@ -279,10 +284,12 @@ interface ActorProps {
 }
 
 function Actor(props: ActorProps) {
-  const { a } = props;
-  if (a.kind === 'npc') return <NpcActor {...props} />;
-  if (a.kind === 'icon') return <IconActor {...props} />;
-  return <FighterActor {...props} />;
+  // '@player' = o personagem de história do mundo atual (cenas que valem para todos, como subir de nível)
+  const a = props.a.char === '@player' ? { ...props.a, char: getStoryCharacterId() } : props.a;
+  const p = { ...props, a };
+  if (a.kind === 'npc') return <NpcActor {...p} />;
+  if (a.kind === 'icon') return <IconActor {...p} />;
+  return <FighterActor {...p} />;
 }
 
 /** Trajeto e opacidade do ator ao longo do relógio do quadro (movimento suave, sem pressa). */

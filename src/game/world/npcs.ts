@@ -676,7 +676,7 @@ export const OUTDOOR_NPCS: OutdoorPlacement[] = [
   { npcId: 'troll_trapaceiro', x: 379, y: 1080 }, // cais da ilha do gelo
   { npcId: 'troll_trapaceiro', x: 1536, y: 272 }, // cais do vulcao
   // Cara Tranquilo: pode estar em quase qualquer lugar; da dicas simples do jogo.
-  { npcId: 'cara_tranquilo', x: 862, y: 944 }, // praca (oeste)
+  // (praça: o Cara Tranquilo da praça é o chefe amigo boss_chill em (880,950); não há um segundo, só decorativo, ao lado dele)
   { npcId: 'cara_tranquilo', x: 1119, y: 221 }, // Ilha Misteriosa
   { npcId: 'cara_tranquilo', x: 1891, y: 356 }, // vulcao
   { npcId: 'cara_tranquilo', x: 93, y: 206 }, // trevas

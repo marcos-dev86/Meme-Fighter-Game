@@ -44,7 +44,7 @@ export interface CodeFade {
 }
 
 export interface CodeActor {
-  /** fig: id do lutador. npc: id do NPC do pacote (c08...). icon: nome de um ícone do jogo. */
+  /** fig: id do lutador, ou '@player' para o personagem de história do mundo atual. npc: id do NPC do pacote (c08...). icon: nome de um ícone do jogo. */
   char: string;
   kind?: CodeActorKind;
   /** Posição do pé (fração da tela) no começo do quadro. */
@@ -126,6 +126,8 @@ export interface CodeBeat {
   textFor?: number;
   /** Primeiro quadro de uma tomada nova: entra com uma transição a partir do preto. */
   shot?: boolean;
+  /** Fundo de "subiu de nível": gradiente com as cores do personagem, aura atrás dele e o chão do lugar onde ele está. */
+  levelUp?: boolean;
   sfx?: CodeSfx[];
 }
 

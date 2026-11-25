@@ -61,6 +61,8 @@ export function OptionsScreen() {
         </View>
       )}
 
+      {page !== 'hub' && (
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.panel} showsVerticalScrollIndicator>
       {page === 'sound' && (
         <View style={styles.col}>
           <Slider label={t('opt_music')} value={settings.musicVolume} onChange={setMusicVolume} />
@@ -176,6 +178,8 @@ export function OptionsScreen() {
           </View>
         </View>
       )}
+        </ScrollView>
+      )}
     </ArtBackdrop>
   );
 }
@@ -183,6 +187,9 @@ export function OptionsScreen() {
 const styles = StyleSheet.create({
   title: { color: '#FFD700', fontWeight: '800', fontSize: 20, letterSpacing: 1, marginBottom: 12 },
   hub: { gap: 8, width: 260 },
+  scroll: { flex: 1, alignSelf: 'stretch' },
+  // painel escuro atrás das páginas de ajustes: o texto continua legível sobre a arte clara, e a rolagem não passa por baixo do VOLTAR
+  panel: { backgroundColor: 'rgba(6,8,24,0.8)', borderRadius: 14, padding: 14, paddingBottom: 24, gap: 12, alignItems: 'flex-start' },
   col: { alignItems: 'flex-start', gap: 12, maxWidth: 380 },
   csList: { maxHeight: 210 },
   csListContent: { alignItems: 'center', gap: 10 },

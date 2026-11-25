@@ -19,11 +19,12 @@ import { useItemMenuAnchor } from '@/game/input/controlsLayout';
 import { SpriteEffect, type EffectName } from '@/game/battle/SpriteEffect';
 import { EquipMenu } from '@/game/items/EquipMenu';
 import { AuraEffect } from '@/game/battle/AuraEffect';
+import { ShieldGif } from '@/game/battle/ShieldGif';
 import { useDirectionalInput, type DirectionKey } from '@/game/input/useDirectionalInput';
 import { TapDashDetector } from '@/game/input/tapDash';
 import { TileMapRenderer, type ChunkCoord } from '@/game/world/TileMapRenderer';
 import { CHUNK_SIZE, overworld } from '@/game/world/overworld';
-import { BUILDING_RECTS, TOWER, getBuildingAtDoor, FERRY_DOCKS } from '@/game/world/worldGen';
+import { BUILDING_RECTS, TOWER, getBuildingAtDoor, FERRY_DOCKS, getWorldTile } from '@/game/world/worldGen';
 import { computeProgress } from '@/game/state/progressState';
 import { getBagEffects } from '@/game/items/bagRuntime';
 import { playMusic, playSfx, setAmbient, stopAmbients, warmSfx } from '@/game/audio/audioManager';
@@ -67,10 +68,11 @@ import { CasinoInterior } from '@/game/world/CasinoInterior';
 import { PauseButton, PauseMenu } from '@/game/menu/PauseMenu';
 import { isWorldFrozen, setGamePaused } from '@/game/state/pauseState';
 import { setWorldPosition } from '@/game/state/worldPosition';
+import { groundFromTile, setLevelUpGround } from '@/game/story/levelUpScene';
 import { createFighter, Fighter } from '@/game/battle/Fighter';
 import { FAINT_HP, getStoryHp, setStoryHp } from '@/game/state/healthState';
 import { applyArmorRegen } from '@/game/items/armor';
-import { getLayoutAspect, SPRITE_ASPECTS, walkFrames } from '@/game/battle/sprites';
+import { getLayoutAspect, hasPose, SPRITE_ASPECTS, walkFrames } from '@/game/battle/sprites';
 import { getHandAnchor } from '@/game/battle/handAnchors';
 import { rollHit } from '@/game/battle/damageRoll';
 import { getGear, isGear } from '@/game/items/gear';
@@ -435,6 +437,8 @@ export function WorldScreen() {
       const lvl = takeLevelNotice();
       if (lvl !== null) {
         missionToastQueue.current.unshift(`NÍVEL ${lvl}! +1 ponto de status`);
+        // chão da cena de nível: o tipo de bloco onde o jogador está (ou o fundo do mar, se estiver mergulhado)
+        setLevelUpGround(groundFromTile(getWorldTile(Math.floor(positionRef.current.x), Math.floor(positionRef.current.y)), diveStartRef.current !== null));
         queueShortEvent('level:up'); // toca quando o mundo estiver livre (não durante batalha)
       }
       const next = missionToastQueue.current.shift();
@@ -1245,7 +1249,7 @@ export function WorldScreen() {
   useEffect(() => {
     preloadBodySprites(worldChar, wears ? cosEq.skin : null);
   }, [worldChar, wears, cosEq.skin]);
-  const poseKey = attacking ? (attacking === 'ultimate' ? 'dash' : attacking) : playerState === 'walking' ? `walk${frameIndex + 1}` : 'idle';
+  const poseKey = attacking ? (attacking === 'ultimate' ? 'dash' : attacking) : charging && hasPose(worldChar, 'charge') ? 'charge' : playerState === 'walking' ? `walk${frameIndex + 1}` : 'idle';
   const sprite = getBodySprite(worldChar, poseKey, wears ? cosEq.skin : null);
   const BOX_W = PLAYER_SIZE.x * 1.9;
   const BOX_H = PLAYER_SIZE.y * 1.7;
@@ -1371,8 +1375,9 @@ export function WorldScreen() {
           )}
 
           <Animated.View style={[styles.player, playerStyle, sail && styles.hiddenWhileSailing]}>
-            {shielding && <View style={[styles.shieldGlow, { width: PLAYER_SIZE.x * 2.1, height: PLAYER_SIZE.x * 2.1, left: PLAYER_SIZE.x / 2 - PLAYER_SIZE.x * 1.05, top: PLAYER_SIZE.y / 2 - PLAYER_SIZE.x * 1.05 }]} />}
-            {charging && <AuraEffect active={charging} width={PLAYER_SIZE.x} height={PLAYER_SIZE.y} />}
+            {shielding && <ShieldGif cx={PLAYER_SIZE.x / 2} cy={PLAYER_SIZE.y / 2} size={Math.max(PLAYER_SIZE.x * 1.9, PLAYER_SIZE.y * 1.7) * 1.1} />}
+            {/* Aura igual à da luta: com pose de carregar, o sprite muda; sem ela, o brilho procedural do tamanho do corpo */}
+            {charging && !hasPose(worldChar, 'charge') && <AuraEffect active={charging} width={PLAYER_SIZE.x * 1.9} height={PLAYER_SIZE.y * 1.7} />}
             {wears && <CapeLayer characterKey={worldChar} poseKey={poseKey} box={poseBox} dir={faceDir} cosmeticId={cosEq.cape} />}
             <Image
               source={sprite}

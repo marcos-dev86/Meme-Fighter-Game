@@ -16,6 +16,7 @@ const read = (p) => fs.readFileSync(new URL(`../../../${p}`, import.meta.url), '
 const exists = (p) => fs.existsSync(new URL(`../../../${p}`, import.meta.url));
 const CODE = require('../../../src/game/story/campaigns/index.ts');
 const TXT = require('../../../src/game/story/cutsceneText.ts');
+const LU = require('../../../src/game/story/levelUpScene.ts');
 
 const missionSrc = ['missionsDogge', 'missionsCassino', 'missionsStory', 'missionsMar'].map((f) => read(`src/game/story/${f}.ts`)).join('\n');
 const missionIds = new Set([...missionSrc.matchAll(/\bid: '([a-z0-9_]+)'/g)].map((m) => m[1]));
@@ -291,7 +292,7 @@ describe('roteiros em código', () => {
       for (const [i, b] of c.beats.entries()) {
         for (const a of b.actors ?? []) {
           const k = a.kind ?? 'fig';
-          if (k === 'fig') assert.ok(exists(`assets/sprites-v2/${a.char}/idle.png`), `${c.id}#${i}: lutador ${a.char}`);
+          if (k === 'fig') assert.ok(a.char === '@player' || exists(`assets/sprites-v2/${a.char}/idle.png`), `${c.id}#${i}: lutador ${a.char}`);
           else if (k === 'npc') assert.ok(exists(`assets/npcs/${a.char}.png`), `${c.id}#${i}: npc ${a.char}`);
           else assert.ok(ICONS.has(a.char), `${c.id}#${i}: ícone ${a.char}`);
           const lim = (a.path || a.enter) ? 0.7 : 0.05;
@@ -366,5 +367,41 @@ describe('roteiros em código', () => {
     for (const c of scripts) for (const b of c.beats) if (b.ms !== undefined) assert.ok(b.ms >= 1500 && b.ms <= 30000, `${c.id}: ms ${b.ms}`);
     for (const c of CS.CUTSCENES.filter((x) => x.short)) assert.ok(secs(CODE.CODE_CUTSCENES[c.id]) >= 3 && secs(CODE.CODE_CUTSCENES[c.id]) <= 10, c.id);
     for (const c of CS.CUTSCENES.filter((x) => x.final)) assert.ok(secs(CODE.CODE_CUTSCENES[c.id]) >= 30, `${c.id} final curto`);
+  });
+});
+
+describe('subir de nível: aura do personagem e chão do lugar', () => {
+  it('cada um dos 16 personagens tem as 3 cores da aura, todas diferentes entre si', () => {
+    const ids = ['dogge', 'gadigago', 'orc', 'soldier', 'dogking', 'tank', 'ninja', 'mystic', 'green_dragon', 'ice_dragon', 'shadow_dragon', 'troll_face', 'cara_tranquilo', 'sahur', 'sahur_god', 'sahur_evil'];
+    const seen = new Set();
+    for (const id of ids) {
+      const c = LU.auraColors(id);
+      assert.equal(c.length, 3, id);
+      for (const x of c) assert.match(x, /^#[0-9a-f]{6}$/i, id);
+      const key = c.join(',');
+      assert.ok(!seen.has(key), `${id}: paleta repetida`);
+      seen.add(key);
+    }
+    assert.deepEqual(LU.auraColors('desconhecido'), LU.auraColors('dogge'));
+  });
+  it('o chão vem do bloco do mapa: grama, areia, neve, pedra, lava, cinza, cais, água e fundo do mar', () => {
+    const t = LU.groundFromTile;
+    assert.equal(t('grass'), 'grass'); assert.equal(t('flower'), 'grass'); assert.equal(t('tree'), 'grass');
+    assert.equal(t('sand'), 'sand'); assert.equal(t('snow'), 'snow'); assert.equal(t('lava'), 'lava'); assert.equal(t('ash'), 'ash');
+    assert.equal(t('dock'), 'dock'); assert.equal(t('water'), 'water');
+    for (const k of ['stone', 'path', 'rock', 'cliff', 'wall', 'door', 'shop', 'house']) assert.equal(t(k), 'stone', k);
+    assert.equal(t('grass', true), 'underwater', 'mergulhado, é sempre o fundo do mar');
+    for (const g of LU.GROUND_KINDS) assert.equal(LU.GROUND_COLORS[g].length, 3, g);
+  });
+  it('a cena usa o fundo especial, o personagem do mundo (@player) e o chão avisado pelo mundo', () => {
+    const c = CODE.CODE_CUTSCENES.subiu_de_nivel;
+    assert.equal(c.beats[0].levelUp, true);
+    assert.ok(c.beats[0].actors.some((a) => a.char === '@player' && a.player === true));
+    LU.setLevelUpGround('snow');
+    assert.equal(LU.getLevelUpGround(), 'snow');
+    LU.setLevelUpGround('grass');
+    const w = read('src/screens/WorldScreen.tsx');
+    assert.ok(/setLevelUpGround\(groundFromTile\(getWorldTile\(/.test(w));
+    assert.ok(/LevelUpBackdrop/.test(read('src/game/story/CodeCutscenePlayer.tsx')));
   });
 });

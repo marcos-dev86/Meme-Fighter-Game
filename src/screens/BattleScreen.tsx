@@ -62,6 +62,7 @@ import { introLabel } from '@/game/versus/versusLogic';
 import { ActionCluster } from '@/game/input/ActionCluster';
 import { SpriteEffect, type EffectName } from '@/game/battle/SpriteEffect';
 import { AuraEffect } from '@/game/battle/AuraEffect';
+import { ShieldGif } from '@/game/battle/ShieldGif';
 import { TapDashDetector } from '@/game/input/tapDash';
 
 const ARENA_W = 1280;
@@ -1146,7 +1147,7 @@ function FighterSprite({ fighter, withGear }: { fighter: Fighter; withGear?: boo
         // Flash branco do golpe recebido: a silhueta do quadro atual, toda branca.
         <Image testID="hit-flash" source={source} resizeMode="stretch" style={[silhouetteBox, { tintColor: '#ffffff', opacity: flashA, transform: [{ scaleX: fighter.facing }] }]} />
       )}
-      {fighter.state === 'shield' && <View style={[styles.shieldGlow, { width: fighter.drawWidth, height: refHeight }]} />}
+      {fighter.state === 'shield' && <ShieldGif cx={xOffset + frameWidth / 2} cy={refHeight * 0.55} size={Math.max(frameWidth, refHeight) * 1.15} />}
       {fighter.state === 'charge' && !hasPose(fighter.characterKey, 'charge') && <AuraEffect active width={fighter.drawWidth} height={refHeight} />}
       {ultActive && (
         <Image
