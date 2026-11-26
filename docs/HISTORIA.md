@@ -1,7 +1,7 @@
 # História de Meme-Fighter (referência narrativa)
 
 Documento de referência da narrativa, separado do `AUDIT.md` (que é técnico). É o "porquê" das coisas; o AUDIT é o "como".
-Atualizado na Parte 38.
+Atualizado na Parte 38 e na revisão de novembro de 2026 (seção "Os outros personagens").
 
 ## Premissa
 Dogge é um lutador de uma vila numa ilha que um dia foi partida. A inscrição achada nas ilhas diz:
@@ -51,3 +51,16 @@ mas contam no progresso: 100% = todas as missões POSSÍVEIS no save.
 Secretas: Cliente da Madrugada (mercador, à noite), Cantiga da Chuva (cantora, na chuva), Tesouro da Igreja (baú ao lado da igreja da praça),
 Sem um Arranhão (vencer um chefe sem tomar golpe; dá o chapéu exclusivo Coroa), Mais Alto na Torre (andar 25), Reunião de Família (as 5 primas),
 Sete da Sorte (777 no caça-níquel), A Luz do Breno, O Respeito do Sigma, O Duelo Amistoso (as três dependem de escolhas).
+
+## Os outros personagens (modo história de cada um)
+O mundo é o mesmo, mas cada um dos 16 lutadores jogáveis deve ter a sua história: três atos e um final com escolha, num mundo
+próprio por save e por personagem. Referência: `meme-fighter-historias.zip` (lore do mundo e um arquivo por personagem) e
+`docs/CAMPANHAS.md` (como implementar). Estado: só o Dogge está no jogo; as outras campanhas serão entregues 2 por vez.
+
+Mudanças de narrativa que valem para todos:
+- O NPC `rival` da praça é o Gadigago na campanha do Dogge e do Orc, e o **Dogge** na campanha do Gadigago.
+- O **Maior Fã** (antagonista da campanha do Gadigago) usa o lutador Ninja e o NPC Mercador da Madrugada.
+- As conversas dos NPCs mudam conforme o personagem da campanha e o ponto da história; as falas chamam o jogador pelo apelido
+  (`{player}`), nunca pelo nome do personagem.
+- Os finais das outras campanhas são cenas por código (uma por opção da escolha final), sem o sistema de pontos U/G/P do Dogge.
+- Cada personagem terá a sua árvore de habilidades.

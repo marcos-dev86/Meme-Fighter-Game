@@ -1,5 +1,10 @@
 # Meme-Fighter: Auditoria Técnica e Arquitetura
 
+> **Nota (novembro de 2026):** várias seções antigas abaixo falam de cutscenes em MP4, de `tools/cutscenes`, de `tools/test-*.mjs`
+> e da tela de Sair. Nada disso existe mais: as cutscenes são por código (`docs/CUTSCENES.md`), os testes estão em `tests/`
+> (`docs/TESTES.md`) e a tela de Sair foi removida. A última seção deste arquivo resume essa revisão.
+
+
 ## Atualização: o travamento de verdade (performance) + arena de luta descentralizada
 
 Duas correções concretas a partir de prints de teste real no celular do
@@ -1369,3 +1374,24 @@ Soma = 100. Justificativa: antes, missões (26) + mapa/NPCs/baús (27) somavam m
 - Save: ext `elites` (derrotados); save antigo sem a chave carrega vazio.
 - Testes: `node tests/unit/combate/rival-e-inimigos-de-elite.test.mjs` (21).
 - Só se confirma no aparelho/navegador jogando: dificuldade sentida das lutas do rival e dos elites (os multiplicadores foram conferidos em teste, não o "feeling").
+
+## Revisão de novembro de 2026: habilidades, cutscenes por código, fundos, mundo e testes
+Resumo técnico do que mudou (detalhes nos documentos citados).
+
+1. **Habilidades exclusivas** (`story/abilities.ts`, `docs/HABILIDADES.md`): 16, uma por personagem, valendo em todos os modos.
+   `Fighter` ganhou `abilityId`, `secondWindPct`, `extraLives`, `burnDotMult`, `burnTakenMult` e `survivalCheck`. A Sorte Absurda foi
+   recalibrada para não passar de 100% de retorno (simulação com `tools/casino-sim.mjs`).
+2. **Cutscenes por código** (`docs/CUTSCENES.md`): as 40 cenas do Dogge foram convertidas dos roteiros Python (trajetos, poses, câmera,
+   efeitos e sons preservados), com 190+ textos traduzidos para en, es, fr e ja, apelido do jogador (`{player}`) e skin/chapéu/capa
+   do jogador. `assets/cutscenes` (121 MB), `cutsceneAssets.ts` e os scripts de renderização saíram do projeto; `expo-video` ficou
+   sem uso. A cena de subir de nível ganhou aura e chão por personagem.
+3. **Fundos** (`docs/FUNDOS_E_TELAS.md`): 13 cenários e 7 mares em WebP (~1 MB), partículas procedurais, estilos RAIL e DIM; Opções com
+   painel rolável; botão e tela de Sair removidos.
+4. **Mundo** (`docs/MUNDO_E_MOVIMENTO.md`): acampamento 71x71 e Ilha dos Cães 151x165; uma direção por vez; NPCs, inimigos e chefes
+   sólidos; pulo sobre obstáculos finos e corpos; 8 casas com porta; escudo.gif; aura igual à da luta; Cara Tranquilo duplicado da
+   praça removido (resta o chefe amigo `boss_chill`).
+5. **Testes** (`docs/TESTES.md`): movidos de `tools/` para `tests/` por categoria, com `npm test`; novos: habilidades (22),
+   mundo (15), cutscenes (42). Quatro arquivos antigos continuam falhando (já falhavam antes).
+6. **Pendências:** campanhas dos 15 outros personagens (`docs/CAMPANHAS.md`), árvore de habilidades própria por personagem,
+   mostrar a habilidade na interface, puzzles que usem o pulo, NPCs sólidos dentro de prédios, recuperar as ondas e criaturas das
+   cenas do mar, corrigir os testes antigos.

@@ -43,4 +43,3 @@ O tamanho em tela de cada lutador **não muda**: o layout usa a proporção do i
 - `shadow_dragon.png`, `ice_dragon.png`, `green_dragon.png`: layout da folha — linha 0 retrato + 5 voos (**não usados**), linha 1 explosões/quadros (no dragão de sombra o "blast" está colado ao quadro anterior, vira `strong`), linha 2 aura/redemoinho/rastro/dash/blast, linha 3 4 poses + KO.
 - **Voo (idle/walk1-3/ult) dos dragões = sprites ANTIGOS**, ampliados (vizinho mais próximo + LANCZOS) para casar com a largura dos quadros novos (pedido do dono: a folha não trouxe voo bom).
 - `sprites.ts`: `V2_LAYOUT_FROM_IDLE` faz o tamanho em tela dos dragões vir do idle (a largura do corpo não muda).
-- Limpeza do que era antigo: `docs/PODE_APAGAR.md`.

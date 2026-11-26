@@ -6,8 +6,8 @@ Conferido contra `app.json`, `eas.json` e `package.json` deste repositório.
 - [x] Nome "Meme Fighter", slug `Meme-Fighter`, versão `1.0.0`, orientação `landscape`.
 - [x] `android.package` = `com.marcosros4.memefighterrpg`; ícone adaptativo (primeiro plano, fundo e monocromático) configurado.
 - [x] `eas.json` com perfis `development`, `preview` e `production` (`appVersionSource: remote`, `autoIncrement` na produção).
-- [x] Dependências nativas (SDK 57): `expo-video` ~57.0.2 (cutscenes), `expo-audio` ~57.0.5 (música, sons e ambientes), `expo-haptics` ~57.0.3 (vibração), `react-native-reanimated` 4.5.1 + `react-native-worklets` 0.10.1, `react-native-gesture-handler`, `react-native-screens`, `react-native-safe-area-context`, `react-native-svg`, `expo-image`, `expo-font`, `expo-splash-screen`. React Compiler ligado (`experiments.reactCompiler`). Nenhuma dependência tem plugin de configuração no `app.json` além de `expo-router` e `expo-splash-screen`.
-- [x] `npx tsc --noEmit` limpo e todos os `tools/test-*.mjs` passam.
+- [x] Dependências nativas (SDK 57): `expo-video` ~57.0.2 (não é mais usado: as cutscenes são por código; pode ser removido com `npm uninstall expo-video`), `expo-audio` ~57.0.5 (música, sons e ambientes), `expo-haptics` ~57.0.3 (vibração), `react-native-reanimated` 4.5.1 + `react-native-worklets` 0.10.1, `react-native-gesture-handler`, `react-native-screens`, `react-native-safe-area-context`, `react-native-svg`, `expo-image`, `expo-font`, `expo-splash-screen`. React Compiler ligado (`experiments.reactCompiler`). Nenhuma dependência tem plugin de configuração no `app.json` além de `expo-router` e `expo-splash-screen`.
+- [x] `npx tsc --noEmit` limpo e `npm test` sem falhas novas (4 arquivos antigos de teste falham desde antes da revisão de novembro de 2026: lista em `docs/TESTES.md`).
 - [x] Saves antigos migram sem erro (`tests/unit/conta/saves-antigos.test.mjs`).
 
 ## Conferências de build (por escrito; só o build real confirma)
@@ -23,10 +23,8 @@ Conferido contra `app.json`, `eas.json` e `package.json` deste repositório.
    "preview": { "distribution": "internal", "android": { "buildType": "apk" } }
    ```
    Depois: `eas build -p android --profile preview`. O perfil `production` (sem opções) gera AAB, o formato da Play Store.
-2. **Tamanho:** os assets somam ~116 MB (cutscenes 76 MB, áudio 30 MB). O APK fica grande; o limite do AAB na Play Store (base) é 200 MB,
-   então cabe, mas conferir depois do primeiro build. Se precisar reduzir: recodificar os MP4 menos importantes (`tools/cutscenes`) ou
-   mover as cutscenes para download sob demanda.
-3. **Testar num aparelho Android de verdade** (nada disso foi testado fora do navegador): vídeo das cutscenes (autoplay e toque para iniciar),
+2. **Tamanho:** os assets somam ~46 MB (áudio ~31 MB, sprites ~5 MB, cenários ~1 MB); as cutscenes não têm mais vídeos (eram ~76 MB), então o APK ficou bem menor. Conferir o tamanho depois do primeiro build.
+3. **Testar num aparelho Android de verdade** (nada disso foi testado fora do navegador): cutscenes por código (movimento suave, fala, pular, skin e chapéu aparecendo, apelido nas falas, cena de subir de nível em chãos diferentes), partículas dos fundos de menu e o pulo sobre pedras e inimigos,
    áudio (música, sons e os ambientes por região, dia/noite e transições), vibração, toque duplo para dash, seleção do Versus com dois toques, tela VS,
    desempenho da luta e do mundo em aparelho fraco (com as opções gráficas), pausa e retomada, salvar/carregar os 3 slots.
 4. **Script `lint`:** `package.json` tem `"lint": "expo lint"`, mas não há ESLint nas dependências. Rode `npx expo lint` uma vez (ele oferece instalar)
