@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming, withSequence } from 'react-native-reanimated';
 
 import { computeCameraPosition } from '@/game/camera/Camera';
-import { isAreaSolid, resolveMove } from '@/game/collision/collision';
+import { bodyBox, isAreaSolid, landFromJump, resolveMove, resolveMoveSolid, singleAxisInput, type AABB } from '@/game/collision/collision';
 import { useGameLoop } from '@/game/core/useGameLoop';
 import { DefeatOverlay } from '@/game/account/DefeatOverlay';
 import { clearDamageCause, describeDeath, lastDamageCause, noteDamage } from '@/game/account/deathCause';
@@ -118,8 +118,8 @@ const WALK_FRAME_MS = 140;
 const CHUNK_RADIUS = 1; // 3x3 chunks loaded at once, not 5x5 - see docs/AUDIT.md perf pass
 const ATTACK_ANIM_MS = 260;
 const JUMP_HEIGHT = 30;
-const JUMP_MS = 320;
-const JUMP_COOLDOWN_MS = 350;
+const JUMP_MS = 420; // o pulo precisa cobrir um bloco inteiro mais o corpo (uma pedra ou tronco no caminho)
+const JUMP_COOLDOWN_MS = 300;
 const INTERACT_RANGE = 70;
 const PICKUP_RANGE = 34;
 const NPC_MARKER_SIZE = 34;
@@ -195,6 +195,12 @@ export function WorldScreen() {
   const bumpY = useSharedValue(0);
   const jumpY = useSharedValue(0); // hop offset (negative = up), see handleJump
   const jumpingRef = useRef(false);
+  // Movimento: uma direção por vez (a última apertada vence), corpos sólidos e pouso do pulo
+  const heldAxesRef = useRef({ x: false, y: false });
+  const lastAxisRef = useRef<'x' | 'y'>('x');
+  const lastMoveRef = useRef({ x: 0, y: 1 });
+  const lastSafeRef = useRef({ x: 0, y: 0 });
+  const bodiesRef = useRef<{ at: number; boxes: AABB[] }>({ at: 0, boxes: [] });
   const [jumpReady, setJumpReady] = useState(true);
   const healthPct = useSharedValue(100);
   const energyPct = useSharedValue(0);
@@ -570,11 +576,14 @@ export function WorldScreen() {
       dy = dashDirRef.current.y;
       usingDash = true;
     } else if (!fighter.isShielding) {
-      if (input.left) dx -= 1;
-      if (input.right) dx += 1;
-      if (input.up) dy -= 1;
-      if (input.down) dy += 1;
+      // UMA direção por vez: sem andar na diagonal (se apertar duas, vale a última)
+      const one = singleAxisInput(input, heldAxesRef.current, lastAxisRef.current);
+      dx = one.dx;
+      dy = one.dy;
+      heldAxesRef.current = one.held;
+      lastAxisRef.current = one.axis;
     }
+    if (dx !== 0 || dy !== 0) lastMoveRef.current = { x: dx, y: dy };
 
     const isMoving = (dx !== 0 || dy !== 0) && !attacking;
 
@@ -584,8 +593,26 @@ export function WorldScreen() {
       const speedMul = (usingDash ? fighter.dashSpeed / fighter.speed : 1) * upgradeSpeedMult(getUpgradeLevels().speed) * getBagEffects().speedMult;
       const step = { x: (dx / len) * PLAYER_SPEED * speedMul * dt, y: (dy / len) * PLAYER_SPEED * speedMul * dt };
 
-      const result = resolveMove(map, positionRef.current, PLAYER_SIZE, step);
+      // NPCs, inimigos e chefes são SÓLIDOS (só dá para passar pulando por cima)
+      const nowMs = Date.now();
+      if (nowMs - bodiesRef.current.at > 120) {
+        const ts = map.tileSize;
+        const px = positionRef.current.x;
+        const py = positionRef.current.y;
+        const near = (cx: number, cy: number) => Math.abs(cx - px) < ts * 12 && Math.abs(cy - py) < ts * 12;
+        const boxes: AABB[] = [];
+        for (const p of OUTDOOR_NPCS) {
+          if (!isPlacementActive(p)) continue;
+          const pose = npcPose(p);
+          if (near(pose.x * ts, pose.y * ts)) boxes.push(bodyBox(pose.x * ts, pose.y * ts, ts));
+        }
+        for (const e of enemies.enemies) if ((e.mode === 'idle' || e.mode === 'chase') && near(e.x, e.y)) boxes.push(bodyBox(e.x, e.y + ts * 0.25, ts));
+        for (const b of BOSSES) if (b.spot && !isBossDefeated(b.id) && near(b.spot.x * ts, b.spot.y * ts)) boxes.push(bodyBox(b.spot.x * ts, b.spot.y * ts, ts));
+        bodiesRef.current = { at: nowMs, boxes };
+      }
+      const result = resolveMoveSolid(map, positionRef.current, PLAYER_SIZE, step, bodiesRef.current.boxes, jumpingRef.current);
       positionRef.current = result.position;
+      if (!isAreaSolid(map, { x: result.position.x, y: result.position.y, width: PLAYER_SIZE.x, height: PLAYER_SIZE.y })) lastSafeRef.current = result.position;
       playerX.value = result.position.x;
       playerY.value = result.position.y;
 
@@ -1042,11 +1069,19 @@ export function WorldScreen() {
    * mashed (short cooldown) and can't overlap an attack. */
   const handleJump = () => {
     if (paused || interior || diveSite || sailRef.current || attacking || jumpingRef.current) return;
+    if (!isAreaSolid(map, { x: positionRef.current.x, y: positionRef.current.y, width: PLAYER_SIZE.x, height: PLAYER_SIZE.y })) lastSafeRef.current = positionRef.current;
     jumpingRef.current = true;
     setJumpReady(false);
     jumpY.value = withSequence(withTiming(-JUMP_HEIGHT, { duration: JUMP_MS * 0.42 }), withTiming(0, { duration: JUMP_MS * 0.58 }));
     setTimeout(() => {
       jumpingRef.current = false;
+      // pousou dentro de uma pedra/árvore (passou por cima)? vai para o chão livre mais perto, olhando para a frente
+      const land = landFromJump(map, positionRef.current, PLAYER_SIZE, lastMoveRef.current, lastSafeRef.current);
+      if (land !== positionRef.current) {
+        positionRef.current = land;
+        playerX.value = land.x;
+        playerY.value = land.y;
+      }
     }, JUMP_MS);
     setTimeout(() => setJumpReady(true), JUMP_MS + JUMP_COOLDOWN_MS);
   };

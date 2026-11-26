@@ -142,6 +142,17 @@ const buildings: Building[] = [
   makeBuilding('loja_abandonada', 1690, 994, 5, 5, 'shop'),
   // Bonus strip.
   makeBuilding('salao_camp', 400, STRIP_Y0 + 170, 5, 5, 'house'),
+  // Estruturas desenhadas no mapa que antes eram só cenário (sem porta): agora todas podem ser visitadas. Cada uma é o retângulo
+  // exato do desenho (casas da vila ao redor da praça e a casa da Ilha dos Fragmentos). As barracas de 2x2 e 3x2 ficam fora:
+  // são pequenas demais para uma porta de 3 blocos.
+  makeBuilding('casa_vila_1', 888, 928, 5, 4, 'house'),
+  makeBuilding('casa_vila_2', 847, 930, 5, 4, 'house'),
+  makeBuilding('casa_vila_3', 856, 930, 6, 4, 'house'),
+  makeBuilding('casa_vila_4', 839, 938, 6, 4, 'house'),
+  makeBuilding('casa_vila_5', 858, 937, 5, 3, 'house'),
+  makeBuilding('casa_vila_6', 840, 944, 5, 3, 'house'),
+  makeBuilding('casa_vila_7', 889, 948, 6, 4, 'house'),
+  makeBuilding('casa_fragmentos', 1591, 1028, 4, 6, 'house'),
 ];
 
 /**
