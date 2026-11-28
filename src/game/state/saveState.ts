@@ -16,6 +16,7 @@ import type { Direction } from '@/types/game';
 import { resetExts, restoreExts, snapshotExts } from './saveExt';
 import './registerExts';
 import { noteWorldCreated } from '@/game/account/accountState';
+import { MAX_SLOTS, SLOT_SHOP } from '@/game/account/accountConfig';
 
 /**
  * Local save system: up to 3 story worlds ("slots"), on-device only
@@ -31,7 +32,7 @@ import { noteWorldCreated } from '@/game/account/accountState';
  * list is read, so nobody loses their old progress.
  */
 
-export const SLOT_COUNT = 3;
+export const SLOT_COUNT = SLOT_SHOP.base; // slots grátis; a conta pode comprar mais (até MAX_SLOTS)
 const SLOT_KEY = (i: number) => `meme_fighter_slot_${i + 1}_v2`;
 const LEGACY_KEY = 'meme_fighter_save_v1';
 const SAVE_VERSION = 2;
@@ -119,18 +120,25 @@ async function migrateLegacy() {
   }
 }
 
-/** The 3 slots, null where empty. */
-export async function listSlots(): Promise<(SaveData | null)[]> {
+/**
+ * Os slots, null onde está vazio. `visible` = quantos a conta tem (3 grátis + os comprados). Um mundo guardado num slot
+ * acima disso (conta restaurada sem a compra) continua aparecendo: nenhum save some da lista.
+ */
+export async function listSlots(visible: number = SLOT_COUNT): Promise<(SaveData | null)[]> {
   await migrateLegacy();
   const out: (SaveData | null)[] = [];
-  for (let i = 0; i < SLOT_COUNT; i++) {
+  let last = -1;
+  for (let i = 0; i < MAX_SLOTS; i++) {
+    let d: SaveData | null = null;
     try {
-      out.push(parse(await AsyncStorage.getItem(SLOT_KEY(i))));
+      d = parse(await AsyncStorage.getItem(SLOT_KEY(i)));
     } catch {
-      out.push(null);
+      d = null;
     }
+    if (d) last = i;
+    out.push(d);
   }
-  return out;
+  return out.slice(0, Math.max(SLOT_COUNT, Math.min(MAX_SLOTS, visible), last + 1));
 }
 
 async function writeSlot(slot: number, data: SaveData): Promise<boolean> {

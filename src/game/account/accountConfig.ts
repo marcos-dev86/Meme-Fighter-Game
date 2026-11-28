@@ -62,4 +62,16 @@ export const PROFILE_PRICES = {
   frame: { common: 10, uncommon: 20, rare: 35, epic: 60, legendary: 100, secret: 200 } as Record<Rarity, number>,
 };
 
+/**
+ * SLOTS DE MUNDO EXTRAS (comprados com Diamond Meme, valem para a CONTA inteira). Todo jogador começa com `base` slots grátis;
+ * cada slot extra custa o próximo preço da lista (100 a 150). Para mudar o balanceamento mexa só aqui.
+ */
+export const SLOT_SHOP = {
+  base: 3,
+  /** preço de cada compra, na ordem; o tamanho da lista é o máximo de slots extras */
+  prices: [100, 125, 150, 150, 150, 150] as readonly number[],
+};
+export const MAX_EXTRA_SLOTS = SLOT_SHOP.prices.length;
+export const MAX_SLOTS = SLOT_SHOP.base + MAX_EXTRA_SLOTS;
+
 export const NICK_MAX = 14;

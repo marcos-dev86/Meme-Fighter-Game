@@ -4,7 +4,7 @@
  * cuidar de guardar/avisar. A conta vive FORA dos slots: apagar um save nunca mexe nela.
  */
 import { ACHIEVEMENTS, ACH_BY_ID, type Cond, type SetName } from './achievementDefs';
-import { DIAMOND_RATES, NICK_MAX, COIN_PACKS } from './accountConfig';
+import { DIAMOND_RATES, NICK_MAX, COIN_PACKS, SLOT_SHOP, MAX_EXTRA_SLOTS } from './accountConfig';
 import { BG_BY_ID, DEFAULT_AVATAR, DEFAULT_BG, DEFAULT_FRAME, FRAME_BY_ID, FREE_AVATARS, avatarNeedsUnlock, avatarPrice } from './profileDefs';
 import { AVATAR_BY_ID } from './avatarList';
 import { COSMETIC_BY_ID } from '@/game/cosmetics/cosmeticDefs';
@@ -26,6 +26,8 @@ export interface Account {
   /** cosméticos (chapéu/capa/skin) que a conta já conseguiu: valem em TODOS os saves */
   cosmetics: string[];
   diamonds: number;
+  /** slots de mundo extras já comprados (além dos 3 grátis); valem para todos os saves da conta */
+  extraSlots: number;
   /** id da conquista -> quando saiu (ms) */
   achievements: Record<string, number>;
   stats: Record<string, number>;
@@ -38,7 +40,7 @@ export interface Account {
 export function emptyAccount(now = Date.now()): Account {
   return {
     v: ACCOUNT_VERSION, nick: null, favorite: null, avatar: DEFAULT_AVATAR, bg: DEFAULT_BG, frame: DEFAULT_FRAME,
-    avatarsOwned: [...FREE_AVATARS], bgOwned: [], framesOwned: [DEFAULT_FRAME], cosmetics: [], diamonds: 0,
+    avatarsOwned: [...FREE_AVATARS], bgOwned: [], framesOwned: [DEFAULT_FRAME], cosmetics: [], diamonds: 0, extraSlots: 0,
     achievements: {}, stats: {}, sets: {}, daily: { day: '', versus: 0 }, createdAt: now,
   };
 }
@@ -66,6 +68,7 @@ export function sanitizeAccount(raw: unknown, now = Date.now()): Account {
   a.frame = typeof d.frame === 'string' && a.framesOwned.includes(d.frame) ? d.frame : DEFAULT_FRAME;
   a.favorite = typeof d.favorite === 'string' ? d.favorite : null;
   a.diamonds = Math.floor(num(d.diamonds));
+  a.extraSlots = Math.max(0, Math.min(MAX_EXTRA_SLOTS, Math.floor(num(d.extraSlots))));
   const ach: Record<string, number> = {};
   if (d.achievements && typeof d.achievements === 'object') for (const [k, v] of Object.entries(d.achievements as Record<string, unknown>)) if (ACH_BY_ID[k]) ach[k] = num(v, now);
   a.achievements = ach;
@@ -225,6 +228,24 @@ export function setFrame(a: Account, id: string): Account {
 export function setFavorite(a: Account, fighter: string | null, unlockedFighters: string[]): Account {
   if (fighter !== null && !unlockedFighters.includes(fighter)) return a;
   return { ...a, favorite: fighter };
+}
+
+/** Preço do PRÓXIMO slot de mundo extra; null = já comprou todos. */
+export function nextSlotPrice(a: Account): number | null {
+  return a.extraSlots >= MAX_EXTRA_SLOTS ? null : SLOT_SHOP.prices[a.extraSlots];
+}
+/** Quantos slots de mundo a conta tem (grátis + comprados). */
+export function slotTotal(a: Account): number {
+  return SLOT_SHOP.base + a.extraSlots;
+}
+export type SlotBuyResult = { ok: true; account: Account; price: number } | { ok: false; reason: 'max' | 'poor' };
+/** Compra o próximo slot de mundo. Sem saldo ou no limite, nada muda. */
+export function buySlot(a: Account): SlotBuyResult {
+  const price = nextSlotPrice(a);
+  if (price === null) return { ok: false, reason: 'max' };
+  const paid = spendDiamonds(a, price);
+  if (!paid) return { ok: false, reason: 'poor' };
+  return { ok: true, price, account: bump({ ...paid, extraSlots: a.extraSlots + 1 }, 'bought_slots') };
 }
 
 /** Compra um pacote de Meme Coins; devolve a conta com os diamantes gastos e quantas moedas entregar. */

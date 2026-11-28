@@ -4,7 +4,7 @@ import { migrateLegacyIds } from '@/game/state/legacyIds';
 import {
   addToSet, bump, buyAvatar as coreBuyAvatar, buyBackground as coreBuyBg, buyFrame as coreBuyFrame, cleanNick, emptyAccount, evaluateAchievements,
   grantDiamonds as coreGrantDiamonds, grantVersusWin, sanitizeAccount, setAvatar as coreSetAvatar, setBackground as coreSetBg, setFavorite as coreSetFavorite,
-  setFrame as coreSetFrame, setMax, spendDiamonds as coreSpendDiamonds, towerFloorDiamonds, buyCoinPack as coreBuyCoinPack, type Account, type BuyResult,
+  setFrame as coreSetFrame, setMax, spendDiamonds as coreSpendDiamonds, towerFloorDiamonds, buyCoinPack as coreBuyCoinPack, buySlot as coreBuySlot, type Account, type BuyResult, type SlotBuyResult,
 } from './accountCore';
 import type { SetName } from './achievementDefs';
 import { DIAMOND_RATES } from './accountConfig';
@@ -167,6 +167,12 @@ export function spendDiamonds(n: number): boolean {
   if (!r) return false;
   update((a) => coreSpendDiamonds(a, n) ?? a);
   return true;
+}
+/** Compra o próximo slot de mundo extra com diamantes (ver SLOT_SHOP). */
+export function buyWorldSlot(): SlotBuyResult {
+  const r = coreBuySlot(account);
+  if (r.ok) update(() => r.account);
+  return r;
 }
 /** Troca diamantes por um pacote de moedas; devolve quantas moedas entregar (0 = saldo insuficiente). A entrega fica em exchange.ts. */
 export function takeCoinPack(packId: string): number {
