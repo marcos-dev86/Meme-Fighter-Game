@@ -4,6 +4,7 @@ import { costForNextLevel, MAX_LEVEL, type UpgradeStat } from '@/game/items/upgr
 import { MAX_PLAYER_LEVEL, pointsForReaching, xpToNext } from '@/game/items/levels';
 import { BAGS, DEFAULT_BAG, MAX_STACK, bagEffectsOf } from '@/game/items/bags';
 import { getBagEffects, setBagEffects } from '@/game/items/bagRuntime';
+import { carryWeightMult } from '@/game/story/abilities';
 import { ARMORS } from '@/game/items/armorDefs';
 import { playSfx } from '@/game/audio/audioManager';
 import { haptic } from '@/game/audio/haptics';
@@ -247,7 +248,7 @@ export function equipBag(bagId: string): boolean {
     slots += 1;
     weight += (ITEMS[id]?.weight ?? 0.3) * qty;
   }
-  if (slots > bag.slots || weight * bagEffectsOf(bagId).weightMult > bag.maxWeight + 1e-6) return false;
+  if (slots > bag.slots || weight * bagEffectsOf(bagId).weightMult * carryWeightMult() > bag.maxWeight + 1e-6) return false;
   state.bagId = bagId;
   setBagEffects(bagEffectsOf(bagId));
   notify();

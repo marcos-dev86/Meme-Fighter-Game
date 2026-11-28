@@ -1,5 +1,7 @@
 import type { AttackType, Fighter, StatusKind } from '@/game/battle/Fighter';
 import type { IconName } from '@/game/ui/iconRegistry';
+import { attachSupreme } from '@/game/battle/supremes';
+import { GADIGAGO_TREE, ORC_TREE } from './skillTreesCampanhas';
 
 /**
  * Árvore de habilidades, uma por personagem jogável (Parte 36), paga com os
@@ -27,7 +29,8 @@ export type SkillEffect =
   | { t: 'crit'; chance: number; mult?: number } // chance soma; mult (opcional) soma ao dano crítico (base 1,5x)
   | { t: 'lifesteal'; pct: number } // fração do dano que volta como vida (0.05 = 5%)
   | { t: 'statusDmg'; mult: number } // dano extra contra alvo com status
-  | { t: 'startEnergy'; add: number }; // energia inicial de cada round
+  | { t: 'startEnergy'; add: number } // energia inicial de cada round
+  | { t: 'supreme'; id: string }; // suprema exclusiva do personagem (battle/supremes.ts)
 
 export const BRANCH_COUNT = 5;
 export const BRANCH_COSTS = [1, 1, 2, 2, 3] as const;
@@ -43,11 +46,17 @@ export interface SkillDef {
   tier: number;
   requires: string[];
   effects: SkillEffect[];
+  /** Nível mínimo do jogador para aprender (opcional; as árvores individuais usam). */
+  minLevel?: number;
+  /** Suprema exclusiva do personagem (destaque na tela). */
+  supreme?: boolean;
 }
 
 export interface SkillTree {
   character: string;
   skills: SkillDef[];
+  /** Número de ramos (colunas) antes da linha final; ausente = 5. */
+  branches?: number;
 }
 
 type Row = { icon: IconName; effects: SkillEffect[] };
@@ -133,56 +142,23 @@ const DOGGE = buildTree(
   ],
 );
 
-/** GADIGAGO: A Gelo · B Ágil · C Veneno · D Sombra (crítico) · E Vigor (vida e energia). */
-const GADIGAGO = buildTree(
-  'gadigago',
-  'g',
-  [
-    [
-      { icon: 'snow', effects: [{ t: 'proc', kind: 'freeze', chance: 0.22, ms: 2200, on: ['flash'] }] },
-      { icon: 'snow', effects: [{ t: 'proc', kind: 'freeze', chance: 0.35, ms: 2800, on: ['strong'] }] },
-      { icon: 'sparkle', effects: [{ t: 'statusDmg', mult: 1.12 }] },
-      { icon: 'snow', effects: [{ t: 'statusChance', mult: 1.2 }, { t: 'resist', mult: 0.8 }] },
-      { icon: 'snow', effects: [{ t: 'proc', kind: 'freeze', chance: 1, ms: 3500, on: ['ultimate'] }, { t: 'ultdmg', mult: 1.2 }] },
-    ],
-    [
-      { icon: 'wind', effects: [{ t: 'speed', mult: 1.06 }] },
-      { icon: 'wind', effects: [{ t: 'dashCd', mult: 0.7 }] },
-      { icon: 'wind', effects: [{ t: 'taken', mult: 0.93 }] },
-      { icon: 'wind', effects: [{ t: 'speed', mult: 1.06 }, { t: 'dashCd', mult: 0.85 }] },
-      { icon: 'swords', effects: [{ t: 'flashdmg', mult: 1.2 }, { t: 'speed', mult: 1.04 }] },
-    ],
-    [
-      { icon: 'poison', effects: [{ t: 'proc', kind: 'poison', chance: 0.25, ms: 6000, on: ['flash'] }] },
-      { icon: 'poison', effects: [{ t: 'proc', kind: 'poison', chance: 0.3, ms: 6000, on: ['strong'] }] },
-      { icon: 'skull', effects: [{ t: 'statusDmg', mult: 1.15 }] },
-      { icon: 'poison', effects: [{ t: 'statusChance', mult: 1.15 }, { t: 'proc', kind: 'poison', chance: 1, ms: 7000, on: ['ultimate'] }] },
-      { icon: 'skull', effects: [{ t: 'proc', kind: 'poison', chance: 0.18, ms: 8000, on: ['flash', 'strong'] }, { t: 'strongdmg', mult: 1.15 }] },
-    ],
-    [
-      { icon: 'target', effects: [{ t: 'crit', chance: 0.08 }] },
-      { icon: 'fist', effects: [{ t: 'strongdmg', mult: 1.1 }] },
-      { icon: 'target', effects: [{ t: 'crit', chance: 0.1 }] },
-      { icon: 'swords', effects: [{ t: 'flashdmg', mult: 1.15 }] },
-      { icon: 'skull', effects: [{ t: 'crit', chance: 0.08, mult: 0.3 }] },
-    ],
-    [
-      { icon: 'bolt', effects: [{ t: 'startEnergy', add: 20 }] },
-      { icon: 'heart', effects: [{ t: 'health', add: 15 }] },
-      { icon: 'heart', effects: [{ t: 'lifesteal', pct: 0.04 }] },
-      { icon: 'bolt', effects: [{ t: 'energyGain', mult: 1.2 }, { t: 'startEnergy', add: 15 }] },
-      { icon: 'moon', effects: [{ t: 'lifesteal', pct: 0.04 }, { t: 'regen', perSec: 0.4 }, { t: 'shieldCost', mult: 0.8 }] },
-    ],
-  ],
-  [
-    { icon: 'snow', needs: [0, 1], effects: [{ t: 'speed', mult: 1.08 }, { t: 'dmg', mult: 1.08 }, { t: 'proc', kind: 'freeze', chance: 0.15, ms: 2500, on: ['strong'] }] },
-    { icon: 'poison', needs: [2, 3], effects: [{ t: 'crit', chance: 0.1 }, { t: 'statusDmg', mult: 1.15 }, { t: 'proc', kind: 'stun', chance: 0.12, ms: 900, on: ['strong'] }] },
-    { icon: 'moon', needs: [4, 1], effects: [{ t: 'lifesteal', pct: 0.06 }, { t: 'speed', mult: 1.06 }, { t: 'taken', mult: 0.93 }] },
-    { icon: 'crown', needs: [0, 0], effects: [{ t: 'dmg', mult: 1.15 }, { t: 'health', add: 35 }, { t: 'startEnergy', add: 30 }, { t: 'lifesteal', pct: 0.04 }, { t: 'crit', chance: 0.05 }] },
-  ],
-);
 
-export const SKILL_TREES: Record<string, SkillTree> = { dogge: DOGGE, gadigago: GADIGAGO };
+/** Árvores individuais já entregues; quem ainda não tem a sua usa a do Dogge (treeFor) até a campanha chegar. */
+export const SKILL_TREES: Record<string, SkillTree> = { dogge: DOGGE, gadigago: GADIGAGO_TREE, orc: ORC_TREE };
+
+/** Quantos ramos (colunas) a árvore tem: 5 nas árvores originais, 4 nas individuais das campanhas. */
+export function treeBranchCount(tree: SkillTree): number {
+  return tree.branches ?? BRANCH_COUNT;
+}
+
+/** Custos das habilidades antigas da árvore de Gelo/Sombra do Gadigago (removida): quem tiver id velho no save recebe os pontos de volta. */
+const OLD_GADIGAGO_BRANCH_COSTS = [1, 1, 2, 2, 3];
+export function legacySkillCost(id: string): number {
+  const m = /^g_([a-e])([1-5])$/.exec(id);
+  if (m) return OLD_GADIGAGO_BRANCH_COSTS[Number(m[2]) - 1];
+  if (/^g_f[1-4]$/.test(id)) return id === 'g_f4' ? 8 : 5;
+  return 0;
+}
 
 export function treeFor(characterId: string): SkillTree {
   return SKILL_TREES[characterId] ?? DOGGE;
@@ -261,6 +237,9 @@ export function applySkills(fighter: Fighter, characterId: string, learned: stri
           break;
         case 'startEnergy':
           fighter.startEnergy = Math.min(fighter.maxEnergy, fighter.startEnergy + e.add);
+          break;
+        case 'supreme':
+          attachSupreme(fighter, e.id); // idempotente: guarda o id no lutador, não soma nada
           break;
       }
     }

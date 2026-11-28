@@ -55,7 +55,7 @@ import { OutdoorNpcs } from '@/game/world/OutdoorNpcs';
 import { BossMarkers } from '@/game/world/BossMarkers';
 import { BOSSES, BOSS_BY_ID, isBossDefeated, type BossDef } from '@/game/state/bossState';
 import { applySkills } from '@/game/items/skills';
-import { applyAbility, healMult, lootBonusItem, lootCoins, worldRegenPerSec } from '@/game/story/abilities';
+import { applyAbility, healMult, lootBonusItem, lootCoins, worldRegenPerSec, worldSpeedMult } from '@/game/story/abilities';
 import { getLearned } from '@/game/state/skillState';
 import { npcPose } from '@/game/world/npcRoutine';
 import { tip } from '@/game/state/tipsState';
@@ -82,7 +82,8 @@ import { markEliteDefeated } from '@/game/state/eliteState';
 import { nextRivalEncounter, getRivalEncounterParam } from '@/game/state/rivalState';
 import { EnemyLayer } from '@/game/enemies/EnemyLayer';
 import { getStoryDifficulty } from '@/game/state/difficulty';
-import { NPCS, OUTDOOR_NPCS, type NpcDef } from '@/game/world/npcs';
+import { OUTDOOR_NPCS, type NpcDef } from '@/game/world/npcs';
+import { npcFor } from '@/game/story/npcOverrides';
 import { isPlacementActive } from '@/game/world/npcActive';
 import { endingShouldPlay } from '@/game/story/storyEnding';
 import { cutscenesForMission } from '@/game/story/cutscenes';
@@ -590,7 +591,7 @@ export function WorldScreen() {
     if (isMoving) {
       const len = Math.hypot(dx, dy) || 1;
       // Dash ratio x the Velocidade attribute (+3%/level) x the bag's walking bonus.
-      const speedMul = (usingDash ? fighter.dashSpeed / fighter.speed : 1) * upgradeSpeedMult(getUpgradeLevels().speed) * getBagEffects().speedMult;
+      const speedMul = (usingDash ? fighter.dashSpeed / fighter.speed : 1) * upgradeSpeedMult(getUpgradeLevels().speed) * getBagEffects().speedMult * worldSpeedMult();
       const step = { x: (dx / len) * PLAYER_SPEED * speedMul * dt, y: (dy / len) * PLAYER_SPEED * speedMul * dt };
 
       // NPCs, inimigos e chefes são SÓLIDOS (só dá para passar pulando por cima)
@@ -807,7 +808,7 @@ export function WorldScreen() {
       const d = Math.hypot(px - nx, py - ny);
       if (d < closestDist) {
         closestDist = d;
-        closestNpc = NPCS[placement.npcId];
+        closestNpc = npcFor(placement.npcId);
       }
     }
     if (closestNpc?.id !== nearbyNpc?.id) setNearbyNpc(closestNpc);

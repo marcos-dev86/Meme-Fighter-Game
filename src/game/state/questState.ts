@@ -441,7 +441,17 @@ export function isMissionRevealed(def: MissionDef): boolean {
   return def.objective.kind === 'chain' && chainIndex(def) > 0;
 }
 
+/** Revela as missões secretas de campanha cujo gatilho (`discover`) é este NPC ou prédio e cujos requisitos já foram cumpridos. */
+function discoverSecrets(trigger: { talk?: string; enter?: string }) {
+  for (const m of getMissionList()) {
+    if (!m.secret || !m.discover || isDone(m.id)) continue;
+    const hit = (trigger.talk !== undefined && m.discover.talk === trigger.talk) || (trigger.enter !== undefined && m.discover.enter === trigger.enter);
+    if (hit && (m.requires ?? []).every((r) => isDone(r))) setFlag(`found:${m.id}`);
+  }
+}
+
 export function reportTalk(npcId: string) {
+  discoverSecrets({ talk: npcId });
   if (COUSINS.includes(npcId)) {
     setFlag(`met_${npcId}`);
     if (COUSINS.filter((c) => hasFlag(`met_${c}`)).length >= 2) setFlag('found:sec_primas');
@@ -452,6 +462,7 @@ export function reportTalk(npcId: string) {
   if (!runChains({ type: 'talk', npcId }) && first) evaluateMissions();
 }
 export function reportEnter(buildingId: string) {
+  discoverSecrets({ enter: buildingId });
   const first = addUnique(stats.entered, buildingId);
   if (!runChains({ type: 'enter', buildingId }) && first) evaluateMissions();
 }

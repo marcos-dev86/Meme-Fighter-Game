@@ -91,6 +91,11 @@ export interface MissionDef {
   optional?: boolean;
   /** Secreta: aparece como "???" na lista até ser descoberta. */
   secret?: boolean;
+  /**
+   * Gatilho de descoberta de uma missão secreta de campanha: falar com o NPC ou entrar no prédio revela a missão na lista
+   * (bandeira `found:<id>`), mas só depois de cumpridos os `requires`. Missões secretas antigas usam gatilhos fixos em questState.
+   */
+  discover?: { talk?: string; enter?: string };
   /** Pontos que a missão soma para cada final quando concluída. */
   storyPts?: { u?: number; g?: number; p?: number };
 }

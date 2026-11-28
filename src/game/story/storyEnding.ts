@@ -1,6 +1,8 @@
-import { getMissionList, getQuestStatus } from '@/game/state/questState';
+import { getMissionList, getQuestStatus, getStoryCharacterId } from '@/game/state/questState';
+import { getCampaign, pickCampaignEnding } from './campaigns/registry';
+import type { CampaignEnding } from './campaigns/campaignTypes';
 import { choiceScores, CHOICE_BY_ID } from './storyChoices';
-import { getChoice, getChoiceOrder, getEnding, type Ending } from '@/game/state/storyFlags';
+import { getChoice, getChoiceOrder, getEnding, hasFlag, type Ending } from '@/game/state/storyFlags';
 
 /**
  * Qual final o jogador alcança. Cada escolha importante e cada missão secreta/de caminho concluída soma
@@ -73,6 +75,16 @@ export const ENDING_TEXT: Record<Ending, EndingText> = {
     ],
   },
 };
+
+/**
+ * O final da CAMPANHA do personagem atual (Gadigago, Orc...), pela bandeira que a escolha final ligou. null no mundo do Dogge
+ * (que usa os 3 finais por pontos). Se nenhuma bandeira estiver ligada (save estranho), vale o primeiro final da campanha.
+ */
+export function activeCampaignEnding(characterId: string = getStoryCharacterId()): CampaignEnding | null {
+  const camp = getCampaign(characterId);
+  if (!camp) return null;
+  return pickCampaignEnding(characterId, hasFlag) ?? camp.endings[0] ?? null;
+}
 
 /** A missão final foi concluída e o final ainda não foi mostrado neste save? */
 export function endingShouldPlay(): boolean {

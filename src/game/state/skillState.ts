@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { registerSaveExt } from './saveExt';
 import { getStoryCharacterId } from './questState';
-import { getCoins, spendCoins, spendStatPoints, addStatPoints, getStatPoints } from './playerState';
-import { SKILL_TREES, skillById, type SkillDef } from '@/game/items/skills';
+import { getCoins, spendCoins, spendStatPoints, addStatPoints, getStatPoints, getLevel } from './playerState';
+import { SKILL_TREES, legacySkillCost, skillById, type SkillDef } from '@/game/items/skills';
 
 /** Skills learned in this world (they belong to the save's character). */
 const learned = new Set<string>();
@@ -26,9 +26,10 @@ export function skillPointsSpent(): number {
   return n;
 }
 
-export function canLearn(sk: SkillDef): 'ok' | 'owned' | 'locked' | 'points' {
+export function canLearn(sk: SkillDef): 'ok' | 'owned' | 'locked' | 'level' | 'points' {
   if (learned.has(sk.id)) return 'owned';
   if (!sk.requires.every((r) => learned.has(r))) return 'locked';
+  if (sk.minLevel && getLevel() < sk.minLevel) return 'level';
   if (getStatPoints() < sk.cost) return 'points';
   return 'ok';
 }
@@ -81,6 +82,7 @@ registerSaveExt({
         const exists = Object.values(SKILL_TREES).some((tr) => tr.skills.some((sk) => sk.id === v));
         if (exists) learned.add(v);
         else if (v === 'd_c' || v === 'g_c') refund += 4;
+        else refund += legacySkillCost(v); // árvore antiga do Gadigago (Gelo/Sombra), removida: devolve os pontos
       }
     }
     if (refund > 0) addStatPoints(refund);

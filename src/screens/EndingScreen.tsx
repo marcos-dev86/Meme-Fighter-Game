@@ -6,12 +6,14 @@ import { getBodySprite } from '@/game/cosmetics/CosmeticLayers';
 import { WeatherLayer } from '@/game/world/WeatherLayer';
 import { GameIcon } from '@/game/ui/GameIcon';
 import type { IconName } from '@/game/ui/iconRegistry';
-import { CREDITS, ENDING_TEXT, computeEnding } from '@/game/story/storyEnding';
+import { CREDITS, ENDING_TEXT, activeCampaignEnding, computeEnding } from '@/game/story/storyEnding';
+import { getStoryCharacter } from '@/game/story/characters';
+import { getStoryCharacterId } from '@/game/state/questState';
 import { getEnding, setEnding, type Ending } from '@/game/state/storyFlags';
 import { getLang, useI18n } from '@/game/i18n/i18n';
 import { playSfx } from '@/game/audio/audioManager';
 import { CutscenePlayer } from '@/game/story/CutscenePlayer';
-import { cutsceneForEnding } from '@/game/story/cutscenes';
+import { cutsceneForCampaignEnding, cutsceneForEnding } from '@/game/story/cutscenes';
 import { markCutsceneSeen } from '@/game/story/cutsceneState';
 
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -94,19 +96,32 @@ const SCENES: Record<Ending, Scene> = {
   },
 };
 
+/** Cena dos slides do final de uma campanha: o personagem do jogador no centro, no clima do tipo de final. */
+function campaignScene(kind: Ending, fighter: string): Scene {
+  if (kind === 'union') {
+    return { bg: 'stage1', tint: 'rgba(255,230,160,0.12)', actors: [{ char: fighter, x: 0.5, y: 0.86, h: 0.44 }], icons: [{ name: 'heart', x: 0.5, y: 0.18, size: 34 }, { name: 'sparkle', x: 0.3, y: 0.2, size: 26 }, { name: 'sparkle', x: 0.7, y: 0.22, size: 26 }] };
+  }
+  if (kind === 'glory') {
+    return { bg: 'stage2', tint: 'rgba(255,200,60,0.1)', actors: [{ char: fighter, x: 0.5, y: 0.84, h: 0.46 }], icons: [{ name: 'trophy', x: 0.5, y: 0.14, size: 54 }, { name: 'star', x: 0.42, y: 0.28, size: 24 }, { name: 'star', x: 0.58, y: 0.28, size: 24 }] };
+  }
+  return { bg: 'stage1', tint: 'rgba(25,0,45,0.55)', actors: [{ char: fighter, x: 0.5, y: 0.86, h: 0.44 }], icons: [{ name: 'crown', x: 0.5, y: 0.2, size: 44 }], weather: 'rain' };
+}
+
 /** Tela de FINAL (Parte 38): cena, 5 falas, título e créditos. O final vem das escolhas e das missões secretas. */
 export function EndingScreen() {
   const { t } = useI18n();
   const { width, height } = useWindowDimensions();
-  const ending = useMemo<Ending>(() => getEnding() ?? computeEnding(), []);
+  // Campanha de outro personagem (Gadigago, Orc...): final escolhido por bandeira, com título e falas próprios.
+  const campaignEnding = useMemo(() => activeCampaignEnding(), []);
+  const ending = useMemo<Ending>(() => getEnding() ?? campaignEnding?.kind ?? computeEnding(), [campaignEnding]);
   const lang = LANGS.indexOf(getLang() as (typeof LANGS)[number]);
-  const text = ENDING_TEXT[ending];
-  const scene = SCENES[ending];
+  const text = campaignEnding ? { title: campaignEnding.title, lines: campaignEnding.lines } : ENDING_TEXT[ending];
+  const scene = useMemo(() => (campaignEnding ? campaignScene(campaignEnding.kind, getStoryCharacter(getStoryCharacterId()).fighter) : SCENES[ending]), [campaignEnding, ending]);
   // 0 = título; 1..n = falas; n+1..n+3 = créditos
   const total = 1 + text.lines.length + CREDITS.length;
   const [step, setStep] = useState(0);
   // Cutscene em código do final (campaigns/doggeCutscenes.ts, ids final_*) antes dos slides; se faltar ou falhar, o player chama onDone e segue direto.
-  const finalCutscene = useMemo(() => cutsceneForEnding(ending), [ending]);
+  const finalCutscene = useMemo(() => (campaignEnding ? cutsceneForCampaignEnding(campaignEnding.id) : cutsceneForEnding(ending)), [campaignEnding, ending]);
   const [videoDone, setVideoDone] = useState(!finalCutscene);
   const playing = !videoDone;
 

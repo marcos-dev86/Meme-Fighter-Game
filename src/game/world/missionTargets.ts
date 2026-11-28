@@ -1,4 +1,5 @@
 import { OUTDOOR_NPCS } from './npcs';
+import { campaignGate } from './npcActive';
 import { npcPose } from './npcRoutine';
 import { WORLD_PICKUPS } from './pickups';
 import { BUILDING_DOORS } from './worldGen';
@@ -6,7 +7,8 @@ import { CASINO_NPC_IDS, CASINO_BUILDING_ID } from './casinoLayout';
 import { BUILDING_CONTENT } from './buildingContent';
 import { FERRY_STOPS } from './islandMap';
 import { isCollected } from '@/game/state/playerState';
-import { getChainStep, getMissionDef } from '@/game/state/questState';
+import { getChainStep, getMissionDef, getStoryCharacterId } from '@/game/state/questState';
+import { getCampaign } from '@/game/story/campaigns/registry';
 import type { ChainStep, Objective } from '@/game/story/missionTypes';
 
 /**
@@ -22,9 +24,13 @@ export interface TileTarget {
 
 export const MISSION_TARGET_OVERRIDES: Record<string, TileTarget[]> = {};
 
+function alwaysOn(p: { npcId: string }): boolean {
+  return !!getCampaign(getStoryCharacterId())?.alwaysActive.includes(p.npcId);
+}
+
 /** Where an NPC can be found: outdoors, or at the door of the building they live in. */
 function npcSpots(npcId: string): TileTarget[] {
-  const out: TileTarget[] = OUTDOOR_NPCS.filter((p) => p.npcId === npcId && !p.only).map((p) => {
+  const out: TileTarget[] = OUTDOOR_NPCS.filter((p) => p.npcId === npcId && (!p.only || alwaysOn(p)) && campaignGate(p)).map((p) => {
     const pose = npcPose(p);
     return { x: Math.round(pose.x), y: Math.round(pose.y) };
   });

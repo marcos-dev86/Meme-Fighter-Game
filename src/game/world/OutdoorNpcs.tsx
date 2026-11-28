@@ -2,7 +2,8 @@ import { isGamePaused } from '@/game/state/pauseState';
 import React, { useEffect, useRef, useState } from 'react';
 import { GameIcon } from '@/game/ui/GameIcon';
 import { Image, StyleSheet, View } from 'react-native';
-import { NPCS, OUTDOOR_NPCS, type OutdoorPlacement } from './npcs';
+import { OUTDOOR_NPCS, type OutdoorPlacement } from './npcs';
+import { npcFor } from '@/game/story/npcOverrides';
 import { isPlacementActive } from './npcActive';
 import { npcPose } from './npcRoutine';
 import { CharacterMarker } from './CharacterMarker';
@@ -16,7 +17,7 @@ interface Props {
 }
 
 function Npc({ placement, tileSize, markerSize, cycleTick, frame, onWalking }: { placement: OutdoorPlacement; tileSize: number; markerSize: number; cycleTick: number; frame: number; onWalking: () => void }) {
-  const npc = NPCS[placement.npcId];
+  const npc = npcFor(placement.npcId);
   const pose = npcPose(placement);
   const npcH = markerSize * 1.8;
   const npcW = npc.fighterSprite ? npcH * getIdleAspect(npc.fighterSprite) : markerSize;

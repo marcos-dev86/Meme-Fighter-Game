@@ -6,6 +6,7 @@ import { SCREEN_SCENE } from '@/game/menu/sceneArt';
 import { MenuButton } from '@/game/menu/MenuButton';
 import { DEFAULT_CHARACTER_ID, STORY_CHARACTERS } from '@/game/story/characters';
 import { useUnlockedCharacters } from '@/game/state/profileState';
+import { CharacterInfoPanel } from '@/game/menu/CharacterInfoPanel';
 import { DifficultyPicker } from '@/game/menu/DifficultyPicker';
 import { DIFFICULTY_PARAMS, type Difficulty } from '@/game/state/difficulty';
 import { createWorld, deleteSlot, listSlots, startSession, summarize, SLOT_COUNT, type SaveData } from '@/game/state/saveState';
@@ -87,23 +88,28 @@ export function SaveSlotsScreen() {
               placeholderTextColor="rgba(255,255,255,0.4)"
               style={styles.input}
             />
-            {unlockedCharacters.length > 1 && (
-              <>
-                <Text style={[styles.label, { marginTop: 10 }]}>{t('slots_character')}</Text>
-                <View style={styles.charRow}>
-                  {unlockedCharacters.map((id) => (
-                    <Pressable key={id} onPress={() => setCharacterId(id)} style={[styles.charChip, characterId === id && styles.charChipOn]}>
-                      <Text style={[styles.charText, characterId === id && styles.charTextOn]}>{STORY_CHARACTERS[id]?.name ?? id}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </>
-            )}
+            <Text style={[styles.label, { marginTop: 10 }]}>{t('slots_character')}</Text>
+            <View style={styles.charRow}>
+              {Object.keys(STORY_CHARACTERS).map((id) => {
+                const open = unlockedCharacters.includes(id);
+                return (
+                  <Pressable key={id} onPress={() => setCharacterId(id)} testID={`char-chip-${id}`} style={[styles.charChip, characterId === id && styles.charChipOn, !open && styles.charChipLocked]}>
+                    <Text style={[styles.charText, characterId === id && styles.charTextOn, !open && styles.charTextLocked]}>
+                      {STORY_CHARACTERS[id]?.name ?? id}
+                      {!open ? '  ·  ' + t('char_locked') : ''}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <View style={styles.charPanel}>
+              <CharacterInfoPanel characterId={characterId} locked={!unlockedCharacters.includes(characterId)} maxHeight={300} />
+            </View>
             <Text style={[styles.label, { marginTop: 10 }]}>{t('difficulty_title')}</Text>
             <DifficultyPicker value={difficulty} onChange={setDifficulty} />
             {error && <Text style={styles.error}>{t('save_fail')}</Text>}
             <View style={{ height: 14 }} />
-            <MenuButton label={t('slots_create')} onPress={() => create(i)} disabled={busy} />
+            <MenuButton label={t('slots_create')} onPress={() => create(i)} disabled={busy || !unlockedCharacters.includes(characterId)} />
           </ScrollView>
         </KeyboardAvoidingView>
       </ArtBackdrop>
@@ -174,6 +180,9 @@ const styles = StyleSheet.create({
   charChip: { borderWidth: 2, borderColor: 'rgba(255,215,0,0.4)', borderRadius: 10, paddingVertical: 6, paddingHorizontal: 14, backgroundColor: 'rgba(10,10,18,0.5)' },
   charChipOn: { borderColor: '#FFD700', backgroundColor: 'rgba(255,215,0,0.22)' },
   charText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  charChipLocked: { opacity: 0.6, borderColor: 'rgba(255,120,120,0.5)' },
+  charTextLocked: { color: '#ffb3b3' },
+  charPanel: { width: '100%', maxWidth: 560, alignSelf: 'center', marginTop: 8, padding: 10, borderRadius: 12, backgroundColor: 'rgba(8,10,28,0.72)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' },
   charTextOn: { color: '#FFD700' },
   heading: { color: '#FFD700', fontWeight: '800', fontSize: 20, letterSpacing: 2, marginBottom: 14, textAlign: 'center' },
   row: { flexDirection: 'row', gap: 14, alignItems: 'stretch', justifyContent: 'center' },

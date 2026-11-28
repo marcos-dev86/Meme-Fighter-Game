@@ -18,18 +18,18 @@ const CODE = require('../../../src/game/story/campaigns/index.ts');
 const TXT = require('../../../src/game/story/cutsceneText.ts');
 const LU = require('../../../src/game/story/levelUpScene.ts');
 
-const missionSrc = ['missionsDogge', 'missionsCassino', 'missionsStory', 'missionsMar'].map((f) => read(`src/game/story/${f}.ts`)).join('\n');
+const missionSrc = ['missionsDogge', 'missionsCassino', 'missionsStory', 'missionsMar', 'campaigns/gadigago', 'campaigns/orc'].map((f) => read(`src/game/story/${f}.ts`)).join('\n');
 const missionIds = new Set([...missionSrc.matchAll(/\bid: '([a-z0-9_]+)'/g)].map((m) => m[1]));
 const STORY = CS.CUTSCENES.filter((c) => !c.short);
 const SHORT = CS.CUTSCENES.filter((c) => c.short);
 
 describe('registro das cutscenes', () => {
-  it('tem 40 itens: 24 de história (13 + 8 do mar + 3 finais) + 16 curtas por ação, ids únicos', () => {
-    assert.equal(CS.CUTSCENES.length, 40);
-    assert.equal(STORY.length, 24);
+  it('tem 53 itens: 37 de história (13 + 8 do mar + 3 finais do Dogge + 13 das campanhas do Gadigago e do Orc) + 16 curtas por ação, ids únicos', () => {
+    assert.equal(CS.CUTSCENES.length, 53);
+    assert.equal(STORY.length, 37);
     assert.equal(SHORT.length, 16);
-    assert.equal(new Set(CS.CUTSCENES.map((c) => c.id)).size, 40);
-    assert.equal(CS.CUTSCENES.filter((c) => c.final).length, 3);
+    assert.equal(new Set(CS.CUTSCENES.map((c) => c.id)).size, 53);
+    assert.equal(CS.CUTSCENES.filter((c) => c.final).length, 9);
     for (const c of CS.CUTSCENES) assert.ok(c.title.length > 3, c.id);
   });
   it('todas as missões usadas como gatilho existem', () => {

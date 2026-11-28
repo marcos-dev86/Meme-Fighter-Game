@@ -34,7 +34,7 @@ const EX = require('../../../src/game/state/exploredState.ts');
 const CO = require('../../../src/game/state/cosmeticsState.ts');
 const SX = require('../../../src/game/state/saveExt.ts');
 const SV = require('../../../src/game/state/saveState.ts');
-const { STORY_CHOICES } = require('../../../src/game/story/storyChoices.ts');
+const { STORY_CHOICES, choicesForCharacter } = require('../../../src/game/story/storyChoices.ts');
 const { COSMETICS, COSMETIC_PROGRESS_TARGET } = require('../../../src/game/cosmetics/cosmeticDefs.ts');
 const { totalPointsAt, MAX_PLAYER_LEVEL } = require('../../../src/game/items/levels.ts');
 const { UPGRADE_STATS, UPGRADE_POINT_COSTS, MAX_LEVEL } = require('../../../src/game/items/upgrades.ts');
@@ -55,7 +55,7 @@ function build(skip = [], character = 'dogge', pickOption = (c) => c.options[0].
   resetAll(character);
   const T = P.progressTargets();
   const S = (id) => skip.includes(id);
-  if (!S('choices')) for (const c of STORY_CHOICES) SF.makeChoice(c.id, pickOption(c));
+  if (!S('choices')) for (const c of choicesForCharacter(character)) SF.makeChoice(c.id, pickOption(c));
   if (!S('ending')) SF.setEnding('union');
   if (!S('map')) for (const c of T.landCells) EX.revealAround(c.cx, c.cy);
   if (!S('npcs')) for (const id of T.npcIds) Q.reportTalk(id);
@@ -123,14 +123,21 @@ describe('3.3 regras: nível 99, 4 atributos, 147 pontos, árvore', () => {
     assert.equal(UPGRADE_STATS.length * UPGRADE_POINT_COSTS.reduce((a, b) => a + b, 0), 100);
     assert.equal(UPGRADE_POINT_COSTS.length, MAX_LEVEL - 1);
   });
-  it('a árvore completa custa 68 pontos por personagem e NÃO é exigida', () => {
+  it('a árvore do Dogge custa 68 pontos e as árvores individuais das campanhas 47; nenhuma árvore cheia é exigida', () => {
     for (const [id, tree] of Object.entries(SKI.SKILL_TREES)) {
-      assert.equal(tree.skills.reduce((a, s) => a + s.cost, 0), 68, id);
       const branch = tree.skills.filter((s) => s.branch < 5);
-      assert.equal(branch.length, P.SKILL_BRANCH_TARGET);
-      assert.equal(branch.reduce((a, s) => a + s.cost, 0), P.SKILL_BRANCH_POINTS);
+      const total = tree.skills.reduce((a, s) => a + s.cost, 0);
+      if (id === 'dogge') {
+        assert.equal(total, 68, id);
+        assert.equal(branch.length, P.SKILL_BRANCH_TARGET);
+        assert.equal(branch.reduce((a, s) => a + s.cost, 0), P.SKILL_BRANCH_POINTS);
+      } else {
+        assert.equal(total, 47, id); // 4 ramos (6+... pontos) + poderes especiais + suprema
+        assert.equal(branch.length, 12, id);
+        assert.ok(branch.length <= P.SKILL_BRANCH_TARGET && branch.reduce((a, s) => a + s.cost, 0) <= P.SKILL_BRANCH_POINTS, id);
+      }
+      assert.ok(tree.skills.some((x) => x.branch === 5), `${id}: tem suprema`);
     }
-    assert.ok(68 > 147 - 100, 'a árvore cheia não cabe na sobra: por isso não pode ser exigida');
     assert.ok(100 + P.SKILL_BRANCH_POINTS <= totalPointsAt(99), 'atributos + 5 ramos cabem nos 147 pontos');
   });
   it('a meta da árvore cumprida sem a linha final já completa a categoria', () => {

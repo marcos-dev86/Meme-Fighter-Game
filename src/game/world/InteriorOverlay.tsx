@@ -12,6 +12,7 @@ import type { Direction, MapDef, TileType } from '@/types/game';
 import { MenuButton } from '@/game/menu/MenuButton';
 import { BUILDING_CONTENT, type FloorContent, type InteriorTemplate } from './buildingContent';
 import { NPCS } from './npcs';
+import { npcFor } from '@/game/story/npcOverrides';
 import { CharacterMarker } from './CharacterMarker';
 import { NpcSprite } from './NpcSprite';
 import { getIdleAspect, getSprite, SPRITE_ASPECTS, walkFrames } from '@/game/battle/sprites';
@@ -283,11 +284,11 @@ export function InteriorOverlay({ buildingId, onExit }: Props) {
   const content: FloorContent | undefined = floor === 'up' ? building?.upstairs : floor === 'down' ? building?.basement : building;
   const template = content?.template ?? 'humbleHome';
   const isGroundFloor = floor === 'ground';
-  const npc = content?.npcId ? NPCS[content.npcId] : null;
+  const npc = content?.npcId ? npcFor(content.npcId) : null;
   // A second resident on the same floor - Marina/Maximilian in the shop
   // (see docs/AUDIT.md: shops stay single-floor, so he stands next to
   // her instead of getting his own floor).
-  const npc2 = content?.npcId2 ? NPCS[content.npcId2] : null;
+  const npc2 = content?.npcId2 ? npcFor(content.npcId2) : null;
   const hasBattleShop = content?.npcId === 'maximilian' || content?.npcId2 === 'maximilian';
   const hasCasino = !!content?.casino;
   const hasCosmetics = !!content?.cosmetics;

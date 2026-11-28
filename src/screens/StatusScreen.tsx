@@ -7,10 +7,14 @@ import { MenuButton } from '@/game/menu/MenuButton';
 import { PowerPointsView } from '@/game/menu/PowerPointsView';
 import { CosmeticBrowser } from '@/game/menu/CosmeticBrowser';
 import { SkillTreeView } from '@/game/menu/SkillTreeView';
+import { CharacterInfoPanel } from '@/game/menu/CharacterInfoPanel';
+import { getMissionCountsSplit, getStoryCharacterId } from '@/game/state/questState';
+import { getEnding } from '@/game/state/storyFlags';
 import { useI18n } from '@/game/i18n/i18n';
+import { useWindowDimensions } from 'react-native';
 import { usePlayerState } from '@/game/state/playerState';
 
-type Page = 'hub' | 'skills' | 'power' | 'visual';
+type Page = 'hub' | 'skills' | 'power' | 'visual' | 'character';
 
 /**
  * "STATUS" (menu de pausa): duas opções, ÁRVORE DE HABILIDADES e PONTOS DE PODER
@@ -20,6 +24,7 @@ export function StatusScreen() {
   const { t } = useI18n();
   const { statPoints } = usePlayerState();
   const [page, setPage] = useState<Page>('hub');
+  const { height } = useWindowDimensions();
 
   const onBack = () => {
     if (page === 'hub') router.back();
@@ -35,11 +40,17 @@ export function StatusScreen() {
             {statPoints} {t('upgrade_points_abbr')}
           </Text>
           <View style={styles.hub}>
+            <MenuButton label={t('status_character')} onPress={() => setPage('character')} />
             <MenuButton label={t('status_skills')} onPress={() => setPage('skills')} />
             <MenuButton label={t('status_power')} onPress={() => setPage('power')} />
             <MenuButton label={t('status_visual')} onPress={() => setPage('visual')} />
           </View>
         </>
+      )}
+      {page === 'character' && (
+        <View style={styles.charPanel}>
+          <CharacterInfoPanel characterId={getStoryCharacterId()} progress={getMissionCountsSplit().main} secrets={getMissionCountsSplit().secret} endingSeen={!!getEnding()} maxHeight={Math.max(200, height - 130)} />
+        </View>
       )}
       {page === 'skills' && <SkillTreeView />}
       {page === 'power' && <PowerPointsView />}
@@ -52,4 +63,5 @@ const styles = StyleSheet.create({
   title: { color: '#FFD700', fontSize: 24, fontWeight: '900', letterSpacing: 3, marginBottom: 6 },
   points: { color: '#fff', fontWeight: '800', backgroundColor: 'rgba(255,215,0,0.18)', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8, marginBottom: 12 },
   hub: { gap: 10, alignItems: 'center' },
+  charPanel: { width: '92%', maxWidth: 560, backgroundColor: 'rgba(8,10,28,0.78)', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)', padding: 12, marginBottom: 56 },
 });

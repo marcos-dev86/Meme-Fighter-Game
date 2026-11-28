@@ -12,6 +12,8 @@ import { clearFx, createFx, hitKindOf, KIND_STYLE, numberVisual, particleVisual,
 import { grantVictory, resolveSetup, type Granted } from '@/game/battle/battleModes';
 import { applySkills } from '@/game/items/skills';
 import { applyAbility } from '@/game/story/abilities';
+import { getStoryCharacter } from '@/game/story/characters';
+import { supremeAfterDamaged, supremeAfterHit, supremeBeforeHit, supremeHudStacks, type SupremeEvent } from '@/game/battle/supremes';
 import { getLearned } from '@/game/state/skillState';
 import { endRun, getRun } from '@/game/state/towerState';
 import { CpuController } from '@/game/battle/CpuController';
@@ -114,6 +116,8 @@ interface HitCtx {
   critLabel: string;
   /** Identifica quem levou o golpe, para os números de dano não se empilharem no mesmo ponto. */
   targetKey: string;
+  /** Feedback das habilidades supremas (banner e partículas); opcional. */
+  onSupreme?: (f: Fighter, ev: SupremeEvent[]) => void;
 }
 
 /** Dano que o último checkHit realmente causou (0 se nenhum). */
@@ -133,10 +137,17 @@ function checkHit(attacker: Fighter, defender: Fighter, ctx: HitCtx, onEffect: (
     if (seaHook && defender === seaHook.beast) dmg *= seaHook.incoming(attacker.currentAttack.type);
     // Habilidades: bônus contra alvo com status e golpe crítico.
     if (attacker.statusTargetDmgMult !== 1 && defender.hasAnyStatus()) dmg *= attacker.statusTargetDmgMult;
+    dmg *= attacker.tempDamageMult; // estado temporário da suprema (Ordem Recusada)
+    const pre = supremeBeforeHit(attacker, defender);
     // Dano aleatorio dentro da faixa do golpe (FLASH ±15%, FORTE/SUPER ±10%) e critico (base 5% + habilidades + arma afiada).
-    const roll = rollHit({ base: dmg, type: attacker.currentAttack.type, critChance: attacker.critChance + gearCrit, critMult: attacker.critMult });
+    const roll = rollHit({ base: dmg, type: attacker.currentAttack.type, critChance: attacker.critChance + gearCrit + pre.critBonus, critMult: attacker.critMult + pre.critMultBonus });
     dmg = roll.damage;
-    const crit = roll.crit;
+    let crit = roll.crit;
+    // Combo cheio da suprema: crítico garantido (se o sorteio não deu crítico, aplica agora o mesmo multiplicador).
+    if (pre.forceCrit && !crit) {
+      dmg *= attacker.critMult + pre.critMultBonus;
+      crit = true;
+    }
     const isUlt = attacker.currentAttack.type === 'ultimate';
     const blocked = defender.isShielding && defender.energy >= defender.shieldCost;
 
@@ -146,6 +157,9 @@ function checkHit(attacker: Fighter, defender: Fighter, ctx: HitCtx, onEffect: (
     defender.takeHit(dmg);
     const dealt = Math.max(0, hpBefore - defender.health);
     lastHitDealt = dealt; // quem chamou usa isto (ex.: segredo "Sem um Arranhão")
+    // Supremas: combo e energia de quem bateu; quebra de combo e gatilho de vida baixa de quem apanhou.
+    ctx.onSupreme?.(attacker, supremeAfterHit(attacker, { dealt, blocked, forced: pre.forceCrit }));
+    ctx.onSupreme?.(defender, supremeAfterDamaged(defender, { dealt, blocked }));
     if (seaHook) seaHook.after({ attacker: defender === seaHook.beast ? 'player' : 'beast', type: attacker.currentAttack.type, blocked, dealt });
     // Roubo de vida: parte do dano que realmente entrou volta para quem bateu.
     if (attacker.lifesteal > 0 && !attacker.isKO) {
@@ -235,7 +249,9 @@ export function BattleScreen() {
   // 2 slots and used instantly mid-fight via the ITEM button below.
   useEffect(() => {
     applyUpgrades(p1, getUpgradeLevels());
-    applySkills(p1, getStoryCharacterId(), getLearned());
+    // A árvore individual só vale no lutador do personagem da partida (a do Dogge mantém o comportamento antigo: vale em qualquer p1).
+    const treeOwner = getStoryCharacterId();
+    if (treeOwner === 'dogge' || getStoryCharacter(treeOwner).fighter === p1Key) applySkills(p1, treeOwner, getLearned());
     // Habilidade exclusiva do personagem (vale em todos os modos; no Versus o 2º jogador também usa a do seu lutador).
     applyAbility(p1, p1Key);
     if (setup.kind === 'free') applyAbility(p2, p2Key);
@@ -327,6 +343,18 @@ export function BattleScreen() {
   const [seconds, setSeconds] = useState(Math.round(ROUND_TIME_MS / 1000));
   const [roundEndReason, setRoundEndReason] = useState<'ko' | 'time'>('ko');
   const [banner, setBanner] = useState<string | null>(null);
+  /** Feedback das supremas: partículas na cor da habilidade, som e (só para o jogador) um aviso curto no topo. */
+  const showSupreme = (f: Fighter, events: SupremeEvent[]) => {
+    for (const ev of events) {
+      spawnBurst(fxRef.current, { x: f.x + f.drawWidth / 2, y: f.y + f.getReferenceHeight() / 2, count: 18, speed: 5, life: 600, color: ev.color, vyBias: -1, light: getSettings().lightMode });
+      playSfx(ev.sfx, { gain: 0.8 });
+      if (ev.banner && f === p1) {
+        setBanner(t(ev.key));
+        if (bannerTimer.current) clearTimeout(bannerTimer.current);
+        bannerTimer.current = setTimeout(() => setBanner(null), 1400);
+      }
+    }
+  };
   const [granted, setGranted] = useState<Granted | null>(null);
   // Derrota: o jogador pode reviver com Diamond Meme na hora do nocaute que perderia a luta (fase 'downed').
   const account = useAccount();
@@ -529,7 +557,7 @@ export function BattleScreen() {
       }
 
       const gear = getGear(); // equipped weapon/shield (see items/gear.ts)
-      const hitCtx = (targetKey: string): HitCtx => ({ fx: fxRef.current, light: getSettings().lightMode, critLabel: t('battle_crit'), targetKey });
+      const hitCtx = (targetKey: string): HitCtx => ({ fx: fxRef.current, light: getSettings().lightMode, critLabel: t('battle_crit'), targetKey, onSupreme: showSupreme });
       checkHit(p1, p2, hitCtx('p2'), addEffect, gear.damageMult, gear.critChance);
       lastHitDealt = 0;
       checkHit(p2, p1, hitCtx('p1'), addEffect, gear.guardMult);
@@ -845,6 +873,19 @@ export function BattleScreen() {
             <Text style={[styles.centerText, styles.centerTextRed, { fontSize: banner.length > 34 ? 24 : 38 }]}>{banner}</Text>
           </View>
         )}
+
+        {(() => {
+          // Combo da suprema do Gadigago (Troféu da Revanche): contador discreto, só enquanto houver combo.
+          const combo = supremeHudStacks(p1);
+          if (!combo || combo.current <= 0) return null;
+          return (
+            <View pointerEvents="none" style={[styles.centerWrap, { top: 112 }]} testID="supreme-combo">
+              <Text style={[styles.centerText, { fontSize: 18, color: combo.current >= combo.max ? '#ff9a28' : '#ffd23c' }]}>
+                {t('sup_trofeu_hud').replace('{n}', String(combo.current)).replace('{max}', String(combo.max))}
+              </Text>
+            </View>
+          );
+        })()}
 
         {/* Sea Beast, fase 2 em diante: fôlego do jogador (volta quando o chefe sobe) e correnteza em curso */}
         {brainRef.current?.submerged && (

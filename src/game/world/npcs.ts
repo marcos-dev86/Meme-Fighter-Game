@@ -1,6 +1,7 @@
 import { PLAZA_SQUARE, REGION_ANCHORS, IGLOO_TILE, CAVE_GUARDIAN_SPOT, FERRY_DOCKS } from './worldGen';
 import type { CharacterKey } from '@/game/battle/Fighter';
 import { CASINO_NPCS } from './casinoNpcs';
+import { CAMPAIGNS } from '@/game/story/campaigns/registry';
 
 /**
  * "Igual do Pokémon FireRed, tipo o Professor Carvalho" was given as a
@@ -636,6 +637,12 @@ export interface OutdoorPlacement {
   only?: 'night' | 'rain';
   /** Só aparece depois que esse chefe do mundo foi vencido (ex.: os 3 troncos). */
   after?: string;
+  /** NPC extra de uma campanha: só existe no mundo desse personagem de história. */
+  campaign?: string;
+  /** (campanha) só aparece depois dessa missão ser concluída. */
+  afterMission?: string;
+  /** (campanha) some quando essa missão é concluída. */
+  hideAfterMission?: string;
 }
 
 export const OUTDOOR_NPCS: OutdoorPlacement[] = [
@@ -703,6 +710,8 @@ export const OUTDOOR_NPCS: OutdoorPlacement[] = [
   { npcId: 'seis_sete', x: 1295, y: 895 }, // ilha principal, centro
   // One ferryman per dock: talking opens the boat menu.
   ...Object.values(FERRY_DOCKS).map((d) => ({ npcId: 'barqueiro', x: d.ferryman.x, y: d.ferryman.y })),
+  // NPCs extras das campanhas (campaigns/*.ts, extraPlacements): cada um só existe no mundo do seu personagem.
+  ...Object.values(CAMPAIGNS).flatMap((c) => c.extraPlacements.map((p): OutdoorPlacement => ({ ...p, campaign: c.id }))),
 ];
 
 // buildingId -> npcId, for NPCs that live inside a specific structure.

@@ -12,6 +12,7 @@ import type { IconName } from '@/game/ui/iconRegistry';
 export type FighterState = 'idle' | 'walk' | 'dash' | 'flash' | 'strong' | 'shield' | 'charge' | 'hurt' | 'ko';
 import { BASE_CRIT_CHANCE, BASE_CRIT_MULT } from './damageRoll';
 import { walkFrames } from './sprites';
+import { resetSupremeForRound, tickSupreme, type SupremeState } from './supremes';
 export type AttackType = 'flash' | 'strong' | 'ultimate';
 export type AttackPhase = 'startup' | 'active' | 'recovery';
 export type CharacterKey = 'dogge' | 'gadigago' | 'orc' | 'soldier' | 'dogking' | 'tank' | 'ninja' | 'mystic' | 'ice_dragon' | 'green_dragon' | 'shadow_dragon' | 'cara_tranquilo' | 'troll_face' | 'sahur' | 'sahur_god' | 'sahur_evil' | 'sea_beast' | 'poseidon';
@@ -182,6 +183,13 @@ export class Fighter {
    * recebeu applyAbility; os valores nunca se somam sozinhos porque abilityId guarda qual já foi aplicada.
    */
   abilityId: string | null = null;
+  /** Suprema da árvore individual (battle/supremes.ts): id e contadores da luta. Nunca vão para o save. */
+  supremeId: string | null = null;
+  supreme: SupremeState | null = null;
+  /** Multiplicadores e guarda TEMPORÁRIOS da suprema (voltam ao neutro quando o estado acaba ou o round recomeça). */
+  tempTakenMult = 1;
+  tempDamageMult = 1;
+  statusGuardMs = 0;
   /** Fração da vida máxima curada UMA vez por luta quando a vida cai a 20% ou menos. */
   secondWindPct = 0;
   secondWindUsed = false;
@@ -331,7 +339,7 @@ export class Fighter {
       this.setState('hurt');
     }
 
-    this.health = Math.max(0, this.health - finalDamage * this.damageTakenMult);
+    this.health = Math.max(0, this.health - finalDamage * this.damageTakenMult * this.tempTakenMult);
     if (this.survivalCheck()) return;
     if (this.health <= 0) {
       this.isKO = true;
@@ -405,6 +413,7 @@ export class Fighter {
   /** Inflicts a status for `ms` (keeps the longer one). Returns false if immune or already KO. */
   applyStatus(kind: StatusKind, ms: number): boolean {
     if (this.isKO || this.immune.includes(kind)) return false;
+    if (this.statusGuardMs > 0 && (kind === 'stun' || kind === 'freeze')) return false;
     const dur = ms * this.statusDurationMult;
     this.status[kind] = Math.max(this.status[kind] ?? 0, dur);
     if (kind === 'stun') {
@@ -490,6 +499,7 @@ export class Fighter {
 
   resetForRound(x: number, y: number, facing: 1 | -1) {
     this.leavePhase2();
+    resetSupremeForRound(this);
     this.health = this.maxHealth;
     this.energy = Math.min(this.maxEnergy, this.startEnergy);
     this.x = x;
@@ -557,6 +567,7 @@ export class Fighter {
     this.tickVisuals(dt);
     if (this.regenPerSec > 0 && !this.isKO) this.health = Math.min(this.maxHealth, this.health + (this.regenPerSec * dt) / 1000);
     this.tickStatus(dt);
+    if (this.supreme) tickSupreme(this, dt);
 
     if (this.hitstunTimer > 0) {
       this.hitstunTimer -= dt;

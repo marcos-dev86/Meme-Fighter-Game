@@ -1,6 +1,8 @@
 import type { CharacterKey } from '@/game/battle/Fighter';
 import type { MissionDef } from './missionTypes';
 import { DOGGE_MISSIONS } from './missionsDogge';
+import { GADIGAGO_CAMPAIGN } from './campaigns/gadigago';
+import { ORC_CAMPAIGN } from './campaigns/orc';
 
 /**
  * Story characters. EVERY system that is part of "the story" (missions,
@@ -47,6 +49,27 @@ export const STORY_CHARACTERS: Record<string, StoryCharacter> = {
     missions: DOGGE_MISSIONS,
     ability: { id: 'dogge_stronk', name: 'Músculos de Meme', description: 'Dogge é o lutador equilibrado do reino: nenhum bônus, nenhum ponto fraco.' },
     unlockedByDefault: true,
+    // Terminar a história do Dogge libera os personagens com campanha (o lote 1 libera Gadigago e Orc; os próximos lotes acrescentam os seus).
+    unlocks: ['gadigago', 'orc'],
+  },
+  gadigago: {
+    id: 'gadigago',
+    name: 'Gadigago',
+    fighter: 'gadigago',
+    missions: GADIGAGO_CAMPAIGN.missions,
+    ability: { id: 'soco_certeiro', name: 'Soco Certeiro', description: '+18 pontos de chance de golpe crítico em todos os ataques.' },
+    spawn: { x: 879, y: 934 }, // porta da casa do Gadigago
+    unlockedByDefault: false,
+    unlocks: [],
+  },
+  orc: {
+    id: 'orc',
+    name: 'Orc',
+    fighter: 'orc',
+    missions: ORC_CAMPAIGN.missions,
+    ability: { id: 'casca_grossa', name: 'Casca Grossa', description: 'Recebe 15% menos dano de todos os golpes.' },
+    spawn: { x: 400, y: 1340 }, // acampamento da Legião Cinzenta
+    unlockedByDefault: false,
     unlocks: [],
   },
 };

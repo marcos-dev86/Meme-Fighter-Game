@@ -2,6 +2,7 @@ import { getLang } from '@/game/i18n/i18n';
 import type { Lang } from '@/game/i18n/translations';
 import type { AttackType, StatusKind } from '@/game/battle/Fighter';
 import type { SkillDef, SkillEffect } from './skills';
+import { SUPREMES } from '@/game/battle/supremes';
 
 /** Nomes, ramos e descrições da árvore de habilidades nos 5 idiomas. As descrições são montadas a partir dos efeitos. */
 const LANGS: Lang[] = ['pt', 'en', 'es', 'fr', 'ja'];
@@ -38,35 +39,40 @@ const NAMES: Record<string, Five> = {
   d_f2: ['Predador Supremo', 'Apex Predator', 'Depredador Supremo', 'Prédateur Suprême', '頂点捕食者'],
   d_f3: ['Cão do Inferno', 'Hellhound', 'Perro del Infierno', "Chien d'Enfer", '地獄の犬'],
   d_f4: ['Rei da Matilha', 'Pack King', 'Rey de la Manada', 'Roi de la Meute', '群れの王'],
-  g_a1: ['Toque Gelado', 'Frozen Touch', 'Toque Helado', 'Toucher Glacé', '凍てつく一撃'],
-  g_a2: ['Rajada Polar', 'Polar Gust', 'Ráfaga Polar', 'Rafale Polaire', '極地の突風'],
-  g_a3: ['Frio Cortante', 'Biting Cold', 'Frío Cortante', 'Froid Mordant', '刺す寒さ'],
-  g_a4: ['Nevasca', 'Snowstorm', 'Ventisca', 'Tempête de Neige', '吹雪'],
-  g_a5: ['Zero Absoluto', 'Absolute Zero', 'Cero Absoluto', 'Zéro Absolu', '絶対零度'],
-  g_b1: ['Pés Leves', 'Light Feet', 'Pies Ligeros', 'Pieds Légers', '軽い足取り'],
-  g_b2: ['Dash Rápido', 'Quick Dash', 'Dash Rápido', 'Dash Rapide', '高速ダッシュ'],
-  g_b3: ['Esquiva Fluida', 'Fluid Dodge', 'Esquiva Fluida', 'Esquive Fluide', '流れる回避'],
-  g_b4: ['Passo Sombrio', 'Shadow Step', 'Paso Sombrío', "Pas d'Ombre", '影の足運び'],
-  g_b5: ['Vento Cortante', 'Cutting Wind', 'Viento Cortante', 'Vent Tranchant', '切り裂く風'],
-  g_c1: ['Gota Amarga', 'Bitter Drop', 'Gota Amarga', 'Goutte Amère', '苦い一滴'],
-  g_c2: ['Veneno Sombrio', 'Dark Venom', 'Veneno Sombrío', 'Venin Sombre', '暗黒の毒'],
-  g_c3: ['Toxina Forte', 'Strong Toxin', 'Toxina Fuerte', 'Toxine Puissante', '強力な毒素'],
-  g_c4: ['Névoa Tóxica', 'Toxic Mist', 'Niebla Tóxica', 'Brume Toxique', '毒霧'],
-  g_c5: ['Peçonha Letal', 'Lethal Venom', 'Ponzoña Letal', 'Venin Mortel', '致死の毒'],
-  g_d1: ['Olhar Frio', 'Cold Stare', 'Mirada Fría', 'Regard Froid', '冷たい眼差し'],
-  g_d2: ['Golpe Furtivo', 'Sneak Strike', 'Golpe Furtivo', 'Coup Furtif', '不意打ち'],
-  g_d3: ['Ponto Cego', 'Blind Spot', 'Punto Ciego', 'Angle Mort', '死角'],
-  g_d4: ['Lâmina Sombria', 'Shadow Blade', 'Hoja Sombría', "Lame d'Ombre", '影の刃'],
-  g_d5: ['Assassino', 'Assassin', 'Asesino', 'Assassin', '暗殺者'],
-  g_e1: ['Mente Calma', 'Calm Mind', 'Mente Serena', 'Esprit Calme', '静かな心'],
-  g_e2: ['Vigor', 'Vigor', 'Vigor', 'Vigueur', '活力'],
-  g_e3: ['Sede de Sombras', 'Thirst for Shadows', 'Sed de Sombras', "Soif d'Ombres", '影への渇望'],
-  g_e4: ['Foco', 'Focus', 'Concentración', 'Concentration', '集中'],
-  g_e5: ['Eclipse', 'Eclipse', 'Eclipse', 'Éclipse', '日食'],
-  g_f1: ['Gelo Veloz', 'Swift Frost', 'Escarcha Veloz', 'Givre Rapide', '迅速な霜'],
-  g_f2: ['Sombra Venenosa', 'Venomous Shadow', 'Sombra Venenosa', 'Ombre Venimeuse', '毒の影'],
-  g_f3: ['Dança da Lua', 'Moon Dance', 'Danza de la Luna', 'Danse de la Lune', '月の舞'],
-  g_f4: ['Lenda da Sombra', 'Shadow Legend', 'Leyenda de la Sombra', "Légende de l'Ombre", '影の伝説'],
+  // GADIGAGO (precisão, críticos e combos)
+  gd_a1: ['Olho de Rival', 'Rival’s Eye', 'Ojo de Rival', 'Œil de Rival', 'ライバルの目'],
+  gd_a2: ['Soco Calibrado', 'Calibrated Punch', 'Puñetazo Calibrado', 'Poing Calibré', '調整された拳'],
+  gd_a3: ['Ponto Fraco', 'Weak Spot', 'Punto Débil', 'Point Faible', '急所'],
+  gd_b1: ['Aquecimento', 'Warm-Up', 'Calentamiento', 'Échauffement', 'ウォームアップ'],
+  gd_b2: ['Sequência Rápida', 'Quick Sequence', 'Secuencia Rápida', 'Séquence Rapide', '連続攻撃'],
+  gd_b3: ['Finalização', 'Finisher', 'Remate', 'Finition', 'フィニッシュ'],
+  gd_c1: ['Passada de Madrugada', 'Dawn Step', 'Paso de Madrugada', 'Pas de l’Aube', '夜明けの一歩'],
+  gd_c2: ['Finta', 'Feint', 'Finta', 'Feinte', 'フェイント'],
+  gd_c3: ['Contra-ataque', 'Counterattack', 'Contraataque', 'Contre-attaque', 'カウンター'],
+  gd_d1: ['Caderno de Derrotas', 'Notebook of Defeats', 'Cuaderno de Derrotas', 'Carnet des Défaites', '敗北ノート'],
+  gd_d2: ['Não Perco de Novo', 'Never Losing Again', 'No Pierdo Otra Vez', 'Plus Jamais Perdre', '二度と負けない'],
+  gd_d3: ['Esforço Vence Talento', 'Effort Beats Talent', 'El Esfuerzo Vence al Talento', 'L’Effort Bat le Talent', '努力は才能に勝つ'],
+  gd_f1: ['Mão Pesada', 'Heavy Hand', 'Mano Pesada', 'Main Lourde', '重い一撃'],
+  gd_f2: ['Dança do Rival', 'Rival’s Dance', 'Danza del Rival', 'Danse du Rival', 'ライバルの舞'],
+  gd_f3: ['Orgulho Ferido', 'Wounded Pride', 'Orgullo Herido', 'Fierté Blessée', '傷ついた誇り'],
+  gd_f4: ['Troféu da Revanche', 'Trophy of Revenge', 'Trofeo de la Revancha', 'Trophée de la Revanche', '雪辱のトロフィー'],
+  // ORC (força bruta e resistência)
+  oc_a1: ['Punho Pesado', 'Heavy Fist', 'Puño Pesado', 'Poing Lourd', '重い拳'],
+  oc_a2: ['Machado de Cozinha', 'Kitchen Axe', 'Hacha de Cocina', 'Hache de Cuisine', '厨房の斧'],
+  oc_a3: ['Esmagador', 'Crusher', 'Aplastador', 'Écraseur', '粉砕者'],
+  oc_b1: ['Farda Remendada', 'Patched Uniform', 'Uniforme Remendado', 'Uniforme Rapiécé', '継ぎ接ぎの軍服'],
+  oc_b2: ['Escudo de Panela', 'Pot Shield', 'Escudo de Olla', 'Bouclier Casserole', '鍋の盾'],
+  oc_b3: ['Muralha Cinzenta', 'Grey Wall', 'Muralla Gris', 'Muraille Grise', '灰色の壁'],
+  oc_c1: ['Sopa Quente', 'Hot Soup', 'Sopa Caliente', 'Soupe Chaude', '熱いスープ'],
+  oc_c2: ['Estômago de Ferro', 'Iron Stomach', 'Estómago de Hierro', 'Estomac de Fer', '鉄の胃袋'],
+  oc_c3: ['Segunda Porção', 'Second Helping', 'Segunda Ración', 'Deuxième Portion', 'おかわり'],
+  oc_d1: ['Bom Humor Teimoso', 'Stubborn Good Mood', 'Buen Humor Terco', 'Bonne Humeur Têtue', '頑固な上機嫌'],
+  oc_d2: ['Ronda Noturna', 'Night Watch', 'Ronda Nocturna', 'Ronde de Nuit', '夜警'],
+  oc_d3: ['Marcha Pesada', 'Heavy March', 'Marcha Pesada', 'Marche Lourde', '重い行進'],
+  oc_f1: ['Quebra-Escudo', 'Shield Breaker', 'Rompescudos', 'Brise-Bouclier', '盾砕き'],
+  oc_f2: ['Resistência de Caserna', 'Barracks Endurance', 'Resistencia de Cuartel', 'Endurance de Caserne', '兵舎の粘り強さ'],
+  oc_f3: ['Sopa dos Decentes', 'Soup of the Decent', 'Sopa de los Decentes', 'Soupe des Honnêtes', '誠実な者のスープ'],
+  oc_f4: ['Ordem Recusada', 'Order Refused', 'Orden Rechazada', 'Ordre Refusé', '拒まれた命令'],
 };
 
 const BRANCHES: Record<string, Five[]> = {
@@ -79,12 +85,20 @@ const BRANCHES: Record<string, Five[]> = {
     ['LENDA', 'LEGEND', 'LEYENDA', 'LÉGENDE', '伝説'],
   ],
   gadigago: [
-    ['GELO', 'ICE', 'HIELO', 'GLACE', '氷'],
-    ['ÁGIL', 'AGILE', 'ÁGIL', 'AGILE', '俊敏'],
-    ['VENENO', 'VENOM', 'VENENO', 'VENIN', '毒'],
-    ['SOMBRA', 'SHADOW', 'SOMBRA', 'OMBRE', '影'],
+    ['MIRA', 'AIM', 'PUNTERÍA', 'VISÉE', '狙い'],
+    ['COMBO', 'COMBO', 'COMBO', 'COMBO', 'コンボ'],
+    ['RITMO', 'RHYTHM', 'RITMO', 'RYTHME', 'リズム'],
+    ['ORGULHO', 'PRIDE', 'ORGULLO', 'FIERTÉ', '誇り'],
+    ['', '', '', '', ''],
+    ['PODERES E SUPREMA', 'POWERS & SUPREME', 'PODERES Y SUPREMA', 'POUVOIRS ET SUPRÊME', '特殊技と究極技'],
+  ],
+  orc: [
+    ['FORÇA', 'STRENGTH', 'FUERZA', 'FORCE', '力'],
+    ['COURAÇA', 'ARMOR', 'CORAZA', 'CUIRASSE', '鎧'],
     ['VIGOR', 'VIGOR', 'VIGOR', 'VIGUEUR', '活力'],
-    ['LENDA', 'LEGEND', 'LEYENDA', 'LÉGENDE', '伝説'],
+    ['TEIMOSIA', 'STUBBORNNESS', 'TERQUEDAD', 'ENTÊTEMENT', '頑固'],
+    ['', '', '', '', ''],
+    ['PODERES E SUPREMA', 'POWERS & SUPREME', 'PODERES Y SUPREMA', 'POUVOIRS ET SUPRÊME', '特殊技と究極技'],
   ],
 };
 
@@ -167,6 +181,7 @@ function effectText(e: SkillEffect, lang: Lang): string {
     case 'lifesteal': return T('lifesteal', { p: Math.round(e.pct * 100) });
     case 'statusDmg': return T('statusDmg', { p: pct(e.mult) });
     case 'startEnergy': return T('startEnergy', { n: e.add });
+    case 'supreme': return SUPREMES[e.id] ? pick(SUPREMES[e.id].desc, lang) : '';
   }
 }
 

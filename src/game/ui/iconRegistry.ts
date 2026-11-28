@@ -2,6 +2,20 @@
 import type { ImageSourcePropType } from 'react-native';
 
 export const ICON_SOURCES = {
+  ab_boot_march: require('../../../assets/icons/ab_boot_march.png') as ImageSourcePropType,
+  ab_casca_grossa: require('../../../assets/icons/ab_casca_grossa.png') as ImageSourcePropType,
+  ab_club: require('../../../assets/icons/ab_club.png') as ImageSourcePropType,
+  ab_combo: require('../../../assets/icons/ab_combo.png') as ImageSourcePropType,
+  ab_costas_largas: require('../../../assets/icons/ab_costas_largas.png') as ImageSourcePropType,
+  ab_crosshair: require('../../../assets/icons/ab_crosshair.png') as ImageSourcePropType,
+  ab_fury: require('../../../assets/icons/ab_fury.png') as ImageSourcePropType,
+  ab_notebook: require('../../../assets/icons/ab_notebook.png') as ImageSourcePropType,
+  ab_pe_madrugada: require('../../../assets/icons/ab_pe_madrugada.png') as ImageSourcePropType,
+  ab_pot: require('../../../assets/icons/ab_pot.png') as ImageSourcePropType,
+  ab_soco_certeiro: require('../../../assets/icons/ab_soco_certeiro.png') as ImageSourcePropType,
+  ab_soup: require('../../../assets/icons/ab_soup.png') as ImageSourcePropType,
+  ab_sup_ordem_recusada: require('../../../assets/icons/ab_sup_ordem_recusada.png') as ImageSourcePropType,
+  ab_sup_trofeu_revanche: require('../../../assets/icons/ab_sup_trofeu_revanche.png') as ImageSourcePropType,
   amulet_gold: require('../../../assets/icons/amulet_gold.png') as ImageSourcePropType,
   amulet_green: require('../../../assets/icons/amulet_green.png') as ImageSourcePropType,
   amulet_pink: require('../../../assets/icons/amulet_pink.png') as ImageSourcePropType,

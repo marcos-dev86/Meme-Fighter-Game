@@ -3,6 +3,7 @@ import { getChainNpcLines, getNpcQuest } from '@/game/state/questState';
 import { storyLinesFor } from './storyDialogue';
 import { isBossDefeated } from '@/game/state/bossState';
 import { t } from '@/game/i18n/i18n';
+import { campaignLinesFor } from './npcOverrides';
 
 // Contadores so da sessao (nao precisam ir para o save): cada conversa mostra a proxima dica / pegadinha.
 let chillTalks = 0;
@@ -42,6 +43,9 @@ export function resolveNpcDialogue(npc: NpcDef): NpcDef {
   if (tronco) return { ...npc, dialogue: tronco };
   // As escolhas da história mudam o que o NPC diz (mas missão com fala própria ainda ativa vence).
   const q = getNpcQuest(npc.id);
+  // Campanha de outro personagem: regras e falas padrão da campanha (missão própria com fala, ainda aberta, vence).
+  const camp = campaignLinesFor(npc.id);
+  if (camp && !(q && q.status !== 'completed' && q.def.dialogue)) return { ...npc, dialogue: camp };
   const story = storyLinesFor(npc.id);
   if (story && (!q || q.status === 'completed')) return { ...npc, dialogue: story };
   if (!q) return npc;

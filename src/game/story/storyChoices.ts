@@ -1,4 +1,5 @@
-import { getQuestStatus } from '@/game/state/questState';
+import { getQuestStatus, getStoryCharacterId } from '@/game/state/questState';
+import { getCampaign, ALL_CAMPAIGN_CHOICES } from './campaigns/registry';
 import { addCoins, addItem, addStatPoints, addXp } from '@/game/state/playerState';
 import { getChoice, makeChoice, setFlag, getChoices } from '@/game/state/storyFlags';
 import { itemName } from '@/game/items/itemDefs';
@@ -148,12 +149,31 @@ export const STORY_CHOICES: ChoiceDef[] = [
   },
 ];
 
-export const CHOICE_BY_ID: Record<string, ChoiceDef> = Object.fromEntries(STORY_CHOICES.map((c) => [c.id, c]));
+/**
+ * Escolhas das campanhas dos outros personagens (campaigns/*.ts): mesma forma, sem pontos de final (cada campanha tem os
+ * próprios finais por bandeira). Ficam FORA de STORY_CHOICES para não mexer na contagem das 10 escolhas do Dogge.
+ */
+export const CAMPAIGN_CHOICE_DEFS: ChoiceDef[] = ALL_CAMPAIGN_CHOICES.map((c) => ({
+  id: c.id,
+  npcId: c.npcId,
+  available: () => done(c.afterMission),
+  intro: c.intro,
+  options: c.options.map((o) => ({ id: o.id, label: o.label, pts: {}, lines: o.lines, coins: o.coins, items: o.items, xp: o.xp, flags: o.flags })),
+}));
+
+export const CHOICE_BY_ID: Record<string, ChoiceDef> = Object.fromEntries([...STORY_CHOICES, ...CAMPAIGN_CHOICE_DEFS].map((c) => [c.id, c]));
 export const CHOICE_COUNT = STORY_CHOICES.length;
+
+/** As escolhas que valem no mundo do personagem atual: as 10 do Dogge, ou as da campanha do personagem. */
+export function choicesForCharacter(characterId: string): ChoiceDef[] {
+  if (characterId === 'dogge') return STORY_CHOICES;
+  const ids = new Set((getCampaign(characterId)?.choices ?? []).map((c) => c.id));
+  return CAMPAIGN_CHOICE_DEFS.filter((c) => ids.has(c.id));
+}
 
 /** A escolha que esse NPC oferece agora (disponível e ainda não feita), ou null. */
 export function pendingChoiceFor(npcId: string): ChoiceDef | null {
-  return STORY_CHOICES.find((c) => c.npcId === npcId && !getChoice(c.id) && c.available()) ?? null;
+  return choicesForCharacter(getStoryCharacterId()).find((c) => c.npcId === npcId && !getChoice(c.id) && c.available()) ?? null;
 }
 
 /** Soma de pontos por final de todas as escolhas feitas. */

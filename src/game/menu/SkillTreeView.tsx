@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { playSfx } from '@/game/audio/audioManager';
 import { haptic } from '@/game/audio/haptics';
-import { BRANCH_COUNT, treeFor, type SkillDef } from '@/game/items/skills';
+import { treeBranchCount, treeFor, type SkillDef } from '@/game/items/skills';
 import { branchName, skillDesc, skillName } from '@/game/items/skillText';
 import { canLearn, learnSkill, respec, RESPEC_COST, skillPointsSpent, useSkills } from '@/game/state/skillState';
-import { usePlayerState } from '@/game/state/playerState';
+import { getLevel, usePlayerState } from '@/game/state/playerState';
 import { getStoryCharacterId } from '@/game/state/questState';
 import { getStoryCharacter } from '@/game/story/characters';
 import { useI18n } from '@/game/i18n/i18n';
@@ -23,6 +23,7 @@ export function SkillTreeView({ onClose }: { onClose?: () => void }) {
   const { statPoints, coins } = usePlayerState();
   const charId = getStoryCharacterId();
   const tree = treeFor(charId);
+  const branchCount = treeBranchCount(tree);
   const [selId, setSelId] = useState<string>(tree.skills[0].id);
   const [msg, setMsg] = useState<string | null>(null);
   const sel = tree.skills.find((s) => s.id === selId) ?? tree.skills[0];
@@ -40,7 +41,7 @@ export function SkillTreeView({ onClose }: { onClose?: () => void }) {
       setMsg(`${t('skills_learned')} ${skillName(sel)}!`);
     } else {
       playSfx('ui_denied');
-      setMsg(state === 'locked' ? t('skills_locked') : t('skills_need_points'));
+      setMsg(state === 'locked' ? t('skills_locked') : state === 'level' ? t('skills_need_level').replace('{n}', String(sel.minLevel ?? 1)) : t('skills_need_points'));
     }
   };
   const reset = () => {
@@ -61,9 +62,9 @@ export function SkillTreeView({ onClose }: { onClose?: () => void }) {
       <Pressable
         key={sk.id}
         onPress={() => setSelId(sk.id)}
-        style={[styles.node, owned && styles.nodeOwned, open && styles.nodeOpen, st === 'locked' && styles.nodeLocked, selId === sk.id && styles.nodeSel]}
+        style={[styles.node, sk.supreme && styles.nodeSupreme, owned && styles.nodeOwned, open && styles.nodeOpen, (st === 'locked' || st === 'level') && styles.nodeLocked, selId === sk.id && styles.nodeSel]}
       >
-        <GameIcon name={sk.icon} size={26} />
+        <GameIcon name={sk.icon} size={sk.supreme ? 34 : 26} />
         <View style={styles.costTag}>{owned ? <GameIcon name="check" size={10} /> : <Text style={styles.costText}>{sk.cost}</Text>}</View>
       </Pressable>
     );
@@ -85,12 +86,12 @@ export function SkillTreeView({ onClose }: { onClose?: () => void }) {
       </View>
     );
   };
-  const finals = tree.skills.filter((s) => s.branch === BRANCH_COUNT);
+  const finals = tree.skills.filter((s) => s.branch === 5);
 
   const treeContent = (
     <View style={styles.treeScroll}>
-      <View style={styles.cols}>{Array.from({ length: BRANCH_COUNT }, (_, b) => column(b))}</View>
-      <Text style={[styles.branchName, { marginTop: 10 }]}>{branchName(charId, BRANCH_COUNT)}</Text>
+      <View style={styles.cols}>{Array.from({ length: branchCount }, (_, b) => column(b))}</View>
+      <Text style={[styles.branchName, { marginTop: 10 }]}>{branchName(charId, 5)}</Text>
       <View style={styles.finalRow}>{finals.map((s) => node(s))}</View>
     </View>
   );
@@ -103,17 +104,19 @@ export function SkillTreeView({ onClose }: { onClose?: () => void }) {
           {skillName(sel)}
         </Text>
       </View>
+      {sel.supreme && <Text style={styles.supremeTag}>{t('skills_supreme_tag')}</Text>}
       <Text style={styles.detailCost}>
         {sel.cost} {t('upgrade_points_abbr')}
+        {sel.minLevel ? `  ·  ${t('skills_level_req').replace('{n}', String(sel.minLevel))}${getLevel() < sel.minLevel ? ' ✗' : ''}` : ''}
       </Text>
       <Text style={styles.detailDesc}>{skillDesc(sel)}</Text>
-      {sel.requires.length > 0 && state === 'locked' && (
+      {sel.requires.length > 0 && (state === 'locked' || state === 'level') && (
         <Text style={styles.detailReq}>
           {t('skills_requires')}: {sel.requires.map((r) => { const d = tree.skills.find((s) => s.id === r); return d ? skillName(d) : r; }).join(' + ')}
         </Text>
       )}
       <Pressable style={[styles.learnBtn, state !== 'ok' && styles.learnOff]} onPress={learn} disabled={state === 'owned'}>
-        <Text style={styles.learnText}>{state === 'owned' ? t('skills_owned') : t('skills_learn')}</Text>
+        <Text style={styles.learnText}>{state === 'owned' ? t('skills_owned') : state === 'level' ? t('skills_level_req').replace('{n}', String(sel.minLevel ?? 1)) : t('skills_learn')}</Text>
       </Pressable>
       {msg && <Text style={styles.msg}>{msg}</Text>}
       <Pressable style={styles.ghost} onPress={reset}>
@@ -177,6 +180,8 @@ const styles = StyleSheet.create({
   nodeOpen: { borderColor: '#FFD700' },
   nodeOwned: { borderColor: '#4cd964', backgroundColor: 'rgba(76,217,100,0.18)' },
   nodeLocked: { opacity: 0.45 },
+  nodeSupreme: { width: 58, height: 58, borderRadius: 14, borderWidth: 3, borderColor: '#ffb62e', backgroundColor: 'rgba(255,182,46,0.16)' },
+  supremeTag: { color: '#ffb62e', fontSize: 10, fontWeight: '900', letterSpacing: 1.5 },
   nodeSel: { borderWidth: 3, borderColor: '#fff' },
   costTag: { position: 'absolute', right: 1, bottom: 0, minWidth: 14, alignItems: 'center' },
   costText: { color: '#FFD700', fontSize: 11, fontWeight: '900' },

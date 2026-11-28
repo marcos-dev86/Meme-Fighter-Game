@@ -1,5 +1,6 @@
 import type { Fighter } from '@/game/battle/Fighter';
 import { getLang } from '@/game/i18n/i18n';
+import type { IconName } from '@/game/ui/iconRegistry';
 
 /**
  * Habilidade especial EXCLUSIVA de cada personagem jogável do modo história (uma por personagem, nenhuma repetida).
@@ -125,6 +126,53 @@ export const ABILITIES: Record<string, AbilityDef> = {
   },
 };
 
+/**
+ * HABILIDADES PRINCIPAIS DE EXPLORAÇÃO (a 2ª habilidade principal de cada personagem, ao lado da de VERSUS).
+ * Regra: Versus mexe só no lutador; Exploração mexe só no mundo (velocidade, peso, baús, cura...). Nenhuma das duas
+ * vale no modo do outro. As 16 habilidades originais acima são a principal de UMA das duas categorias (area 'combat' =
+ * Versus; as demais = Exploração); a que falta de cada personagem entra neste mapa, lote a lote das campanhas.
+ */
+export const EXPLORATION_ABILITIES: Record<string, AbilityDef> = {
+  gadigago: {
+    characterId: 'gadigago', id: 'pe_de_madrugada', area: 'world',
+    name: ['Pé de Madrugada', 'Dawn Stride', 'Paso de Madrugada', 'Pas de l’Aube', '夜明けの足取り'],
+    effect: ['Caminha e corre 10% mais rápido pelo mundo.', 'Walks and runs 10% faster across the world.', 'Camina y corre un 10% más rápido por el mundo.', 'Marche et court 10% plus vite dans le monde.', 'ワールドでの移動速度が10%上がる。'],
+    usage: ['Automática, só no mundo (não vale em lutas nem no Versus).', 'Automatic, world only (does not apply in fights or Versus).', 'Automática, solo en el mundo (no vale en peleas ni en Versus).', 'Automatique, monde seulement (sans effet en combat ni en Versus).', '自動発動、ワールドのみ（戦闘とVersusでは無効）。'],
+  },
+  orc: {
+    characterId: 'orc', id: 'costas_largas', area: 'world',
+    name: ['Costas Largas', 'Broad Back', 'Espalda Ancha', 'Dos Large', '広い背中'],
+    effect: ['Os itens pesam 30% menos na mochila: dá para carregar cerca de 43% mais peso.', 'Items weigh 30% less in the bag: you can carry about 43% more weight.', 'Los objetos pesan un 30% menos en la mochila: puedes cargar un 43% más de peso.', 'Les objets pèsent 30% de moins dans le sac : environ 43% de poids en plus.', 'バッグ内のアイテムの重さが30%減り、約43%多く運べる。'],
+    usage: ['Automática, só no mundo (soma com o efeito da mochila; os espaços não mudam).', 'Automatic, world only (stacks with the bag effect; slots do not change).', 'Automática, solo en el mundo (se suma al efecto de la mochila; los espacios no cambian).', 'Automatique, monde seulement (s’ajoute à l’effet du sac ; les emplacements ne changent pas).', '自動発動、ワールドのみ（バッグ効果と重複、スロット数は変わらない）。'],
+  },
+};
+
+/** Ícone de cada habilidade principal (assets/icons). As das campanhas ainda não entregues usam ícones provisórios existentes. */
+export const ABILITY_ICONS: Record<string, IconName> = {
+  segundo_folego: 'heart', soco_certeiro: 'ab_soco_certeiro', casca_grossa: 'ab_casca_grossa', disciplina_ferro: 'tower',
+  uivo_real: 'crown', pele_de_rocha: 'moai', mao_leve: 'chest_open', mente_aberta: 'bulb', seiva_viva: 'tree',
+  toque_de_gelo: 'snow', sede_de_sombra: 'shadowstar', sorte_absurda: 'dice', preco_camarada: 'coin',
+  batida_contagiante: 'bolt', luz_restauradora: 'sun', brasa_no_calor: 'fire',
+  pe_de_madrugada: 'ab_pe_madrugada', costas_largas: 'ab_costas_largas',
+};
+export function abilityIcon(a: AbilityDef): IconName {
+  return ABILITY_ICONS[a.id] ?? 'star';
+}
+
+/** As duas habilidades principais do personagem (null onde a outra ainda não foi entregue). */
+export type AbilityKind = 'versus' | 'exploration';
+export function abilityKind(a: AbilityDef): AbilityKind {
+  return a.area === 'combat' ? 'versus' : 'exploration';
+}
+export function mainAbilities(characterId: string | null | undefined): { versus: AbilityDef | null; exploration: AbilityDef | null } {
+  const out: { versus: AbilityDef | null; exploration: AbilityDef | null } = { versus: null, exploration: null };
+  const base = abilityOf(characterId);
+  if (base) out[abilityKind(base)] = base;
+  const extra = characterId ? EXPLORATION_ABILITIES[characterId] : undefined;
+  if (extra) out[abilityKind(extra)] = extra;
+  return out;
+}
+
 export const ABILITY_CHARACTERS = Object.keys(ABILITIES);
 
 const LANG_INDEX: Record<string, number> = { pt: 0, en: 1, es: 2, fr: 3, ja: 4 };
@@ -155,7 +203,7 @@ export function getAbilityCharacter(): string {
 }
 /** A habilidade `id` (ex.: 'sorte_absurda') é a do personagem do mundo atual? */
 export function hasAbility(id: string): boolean {
-  return ABILITIES[activeCharacter]?.id === id;
+  return ABILITIES[activeCharacter]?.id === id || EXPLORATION_ABILITIES[activeCharacter]?.id === id;
 }
 
 /* ------------------------------------------------------------------ */
@@ -219,6 +267,20 @@ export function applyAbility(f: Fighter, characterId: string): boolean {
       break;
   }
   return true;
+}
+
+/* ------------------------------------------------------------------ */
+/* Exploração (Gadigago e Orc): só o mundo lê isto                    */
+/* ------------------------------------------------------------------ */
+export const DAWN_STRIDE_SPEED = 1.1;
+/** Multiplicador da velocidade de caminhada no mundo (Pé de Madrugada, Gadigago). */
+export function worldSpeedMult(): number {
+  return hasAbility('pe_de_madrugada') ? DAWN_STRIDE_SPEED : 1;
+}
+export const BROAD_BACK_WEIGHT = 0.7;
+/** Multiplicador do peso dos itens na mochila (Costas Largas, Orc). Soma com o efeito da mochila equipada. */
+export function carryWeightMult(): number {
+  return hasAbility('costas_largas') ? BROAD_BACK_WEIGHT : 1;
 }
 
 /* ------------------------------------------------------------------ */

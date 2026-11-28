@@ -10,6 +10,8 @@ export type CutsceneTrigger =
   | { missions: string[] }
   /** Toca no início da tela de final correspondente. */
   | { ending: EndingKind }
+  /** Toca no início da tela de final de uma CAMPANHA (id do final em campaigns/*.ts, ex.: 'gad_end_a'). */
+  | { campaignEnding: string }
   /** Cutscene CURTA disparada por uma ação do jogador (escalar, ganhar no cassino, abrir baú, subir de nível). Ver EVENTS abaixo. */
   | { event: string };
 
@@ -64,6 +66,21 @@ export const CUTSCENES: CutsceneDef[] = [
   { id: 'final_uniao', title: 'Final: A Ilha Inteira', trigger: { ending: 'union' }, final: true },
   { id: 'final_gloria', title: 'Final: O Verdadeiro Meme Fighter', trigger: { ending: 'glory' }, final: true },
   { id: 'final_poder', title: 'Final: O Rei das Sombras', trigger: { ending: 'power' }, final: true },
+  // ---- Campanha do Gadigago (campaigns/gadigago.ts) ----
+  { id: 'gad_c1_convite', title: 'O Convite sem Remetente', trigger: { missions: ['gad_convite'] } },
+  { id: 'gad_c2_espelho', title: 'O Espelho', trigger: { missions: ['gad_espelho'] } },
+  { id: 'gad_c3_praca_vazia', title: 'A Praça Vazia', trigger: { missions: ['gad_volta'] } },
+  { id: 'gad_c4_fa', title: 'O Maior Fã', trigger: { missions: ['gad_fa'] } },
+  { id: 'gad_end_a', title: 'Final: O Troféu que Ninguém Entrega', trigger: { campaignEnding: 'gad_end_a' }, final: true },
+  { id: 'gad_end_b', title: 'Final: A Revanche sem Plateia', trigger: { campaignEnding: 'gad_end_b' }, final: true },
+  { id: 'gad_end_c', title: 'Final: O Espetáculo Continua', trigger: { campaignEnding: 'gad_end_c' }, final: true },
+  // ---- Campanha do Orc (campaigns/orc.ts) ----
+  { id: 'orc_c1_sentido', title: 'Sentido!', trigger: { missions: ['orc_ordem'] } },
+  { id: 'orc_c2_farda', title: 'A Farda no Chão', trigger: { missions: ['orc_desercao'] } },
+  { id: 'orc_c3_volta', title: 'De Volta Sem Farda', trigger: { missions: ['orc_volta'] } },
+  { id: 'orc_end_a', title: 'Final: Dispensa Honrosa', trigger: { campaignEnding: 'orc_end_a' }, final: true },
+  { id: 'orc_end_b', title: 'Final: A Tropa Inteira', trigger: { campaignEnding: 'orc_end_b' }, final: true },
+  { id: 'orc_end_c', title: 'Final: O Desertor', trigger: { campaignEnding: 'orc_end_c' }, final: true },
 
   // ---- cutscenes CURTAS por ação (repetíveis) ----
   { id: 'climb_montanha_sobe', title: 'Subindo a montanha', trigger: { event: 'climb:montanha:sobe' }, repeat: true, short: true },
@@ -122,6 +139,11 @@ export function cutsceneForEvent(event: string): CutsceneDef | null {
 /** Evento do caça-níquel para 3 símbolos iguais (ids de SLOT_SYMBOLS); null se não forem 3 iguais. */
 export function slotWinEvent(ids: readonly string[]): string | null {
   return ids.length === 3 && ids[0] === ids[1] && ids[1] === ids[2] ? `casino:slot:${ids[0]}` : null;
+}
+
+/** A cutscene do final de uma campanha (id do final), ou null. */
+export function cutsceneForCampaignEnding(endingId: string): CutsceneDef | null {
+  return CUTSCENES.find((c) => 'campaignEnding' in c.trigger && c.trigger.campaignEnding === endingId) ?? null;
 }
 
 export function cutsceneForEnding(ending: EndingKind): CutsceneDef | null {

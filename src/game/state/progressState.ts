@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getCasinoGamesWon, getChoices, getEnding, useStory } from './storyFlags';
-import { CHOICE_COUNT } from '@/game/story/storyChoices';
+import { choicesForCharacter } from '@/game/story/storyChoices';
 import { useCosmetics } from './cosmeticsState';
 
 /** Os 5 jogos do cassino. */
@@ -147,6 +147,9 @@ export function computeProgress(): ProgressInfo {
   const entered = doors.filter((id) => st.entered.includes(id)).length;
   const level = Math.min(getLevel(), PROGRESS_LEVEL_TARGET);
   const spent = Math.min(pointsSpent(), ALL_STATS_POINTS);
+  const madeChoices = getChoices();
+  // as escolhas que existem no mundo deste personagem (10 do Dogge, ou as da campanha dele)
+  const myChoices = choicesForCharacter(getStoryCharacterId());
   const stock = Array.from(new Set([...SHOP_STOCK, ...BATTLE_STOCK, ...GELO_STOCK]));
   const bought = stock.filter((id) => st.boughtItems.includes(id)).length;
 
@@ -169,12 +172,15 @@ export function computeProgress(): ProgressInfo {
     { id: 'casino', have: Math.min(getCasinoGamesWon().length, CASINO_GAMES), total: CASINO_GAMES, weight: 3 },
     { id: 'cosmetics', have: Math.min(getOwnedCount(), COSMETIC_PROGRESS_TARGET), total: COSMETIC_PROGRESS_TARGET, weight: 3 },
     { id: 'monsters', have: Math.min(st.kills, MONSTER_TARGET), total: MONSTER_TARGET, weight: 5 },
-    { id: 'choices', have: Object.keys(getChoices()).length, total: CHOICE_COUNT, weight: 2 },
+    { id: 'choices', have: myChoices.filter((c) => !!madeChoices[c.id]).length, total: myChoices.length, weight: 2 },
     { id: 'ending', have: getEnding() ? 1 : 0, total: 1, weight: 2 },
   ];
-  const categories: ProgressCategory[] = raw.map((c) => ({ ...c, pct: c.total > 0 ? Math.min(1, c.have / c.total) : 0 }));
+  // categoria sem nada a fazer neste personagem (ex.: campanhas sem missão secreta) conta como cumprida e sai da conta da barra
+  const categories: ProgressCategory[] = raw.map((c) => ({ ...c, pct: c.total > 0 ? Math.min(1, c.have / c.total) : 1 }));
   const platinum = categories.every((c) => c.pct >= 1);
-  const sum = categories.reduce((a, c) => a + c.weight * c.pct, 0);
+  const live = categories.filter((c) => c.total > 0);
+  const liveWeight = live.reduce((a, c) => a + c.weight, 0);
+  const sum = live.reduce((a, c) => a + c.weight * c.pct, 0) * (liveWeight > 0 ? 100 / liveWeight : 1);
   return { percent: platinum ? 100 : Math.min(99, Math.floor(sum)), categories, platinum };
 }
 
